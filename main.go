@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/snehmatic/mindloop/cmd"
+	cli "github.com/snehmatic/mindloop/cmd/cli"
 )
 
 func main() {
-	cmd.Execute()
+	cli.Execute()
 }
