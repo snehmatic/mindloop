@@ -1,43 +1,24 @@
 package models
 
 import (
-	"fmt"
-	"os"
 	"time"
 
-	"gopkg.in/yaml.v3"
+	"github.com/snehmatic/mindloop/internal/config"
 	"gorm.io/gorm"
 )
 
 // model definitions reside here
 // request/response structs, etc.
 
-type MindloopMode string
 type IntervalType string
 
-var AllModes = [...]string{"local", "byodb", "api"}
 var AllIntervalTypes = [...]string{"hour", "day", "week"}
-
-var (
-	Local MindloopMode = MindloopMode(AllModes[0])
-	ByoDB MindloopMode = MindloopMode(AllModes[1])
-	Api   MindloopMode = MindloopMode(AllModes[2])
-)
 
 var (
 	Hour IntervalType = IntervalType(AllIntervalTypes[0])
 	Day  IntervalType = IntervalType(AllIntervalTypes[1])
 	Week IntervalType = IntervalType(AllIntervalTypes[2])
 )
-
-type UserConfig struct {
-	Name string `yaml:"name"`
-	Mode string `yaml:"mode"`
-}
-
-// UserConfigPath is the file path where the user configuration YAML will be written.
-// ToDo: Make this configurable or use a constant
-var UserConfigPath = "user_config.yaml"
 
 type Habit struct {
 	gorm.Model
@@ -50,7 +31,7 @@ type Habit struct {
 type Intent struct {
 	gorm.Model
 	Name    string     `gorm:"not null" json:"name"`         // comma-separated or JSON later
-	Status  string     `gorm:"default:active" json:"status"` // active, ended, archived
+	Status  string     `gorm:"default:active" json:"status"` // active, done, archived
 	EndedAt *time.Time `json:"ended_at,omitempty"`
 }
 
@@ -102,24 +83,10 @@ type JournalEntry struct {
 }
 
 func IsValidMode(mode string) bool {
-	for _, item := range AllModes {
+	for _, item := range config.AllModes {
 		if item == mode {
 			return true
 		}
 	}
 	return false
-}
-
-func (uc UserConfig) WriteToYAML() {
-	marshalled, err := yaml.Marshal(uc)
-	if err != nil {
-		fmt.Println("Error marshalling user config to YAML")
-		return
-	}
-	err = os.WriteFile(UserConfigPath, marshalled, 0644)
-	if err != nil {
-		fmt.Println("Error writing user config to file")
-		return
-	}
-	fmt.Println("User config written to YAML successfully")
 }

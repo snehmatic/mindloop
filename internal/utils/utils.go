@@ -10,8 +10,6 @@ import (
 	"strings"
 
 	"github.com/snehmatic/mindloop/internal/log"
-	"github.com/snehmatic/mindloop/models"
-	"github.com/spf13/cobra"
 
 	"github.com/olekukonko/tablewriter"
 )
@@ -118,17 +116,4 @@ func FileDelete(filename string) error {
 	}
 	logger.Info().Str("file", filename).Msg("file deleted successfully")
 	return nil
-}
-
-func ValidateUserConfig(cmd *cobra.Command) {
-	// check if user_config.yaml exists
-	if FileExists(models.UserConfigPath) {
-		logger.Debug().Msgf("User config exists at %s", models.UserConfigPath)
-	} else {
-		if cmd.Use != "configure" {
-			fmt.Println("Warn: user config does not exist, create a new one or run `mindloop configure`.")
-			logger.Warn().Msg("User config does not exist, warned user")
-			os.Exit(0)
-		}
-	}
 }

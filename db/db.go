@@ -58,9 +58,9 @@ func LocalConn() (*gorm.DB, error) {
 func ConnectToDb(appConfig config.Config) (*gorm.DB, error) {
 	logger.Debug().Msg("Connecting to DB...")
 	switch appConfig.Mode {
-	case models.Local:
+	case config.Local:
 		return LocalConn()
-	case models.Api:
+	case config.Api:
 		connString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 			appConfig.DBConfig.Host,
 			appConfig.DBConfig.Port,

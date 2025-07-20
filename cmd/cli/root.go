@@ -9,7 +9,6 @@ import (
 	"github.com/snehmatic/mindloop/db"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/log"
-	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -24,7 +23,7 @@ var rootCmd = &cobra.Command{
 	ValidArgs: []string{"intent", "focus", "habit", "log", "stats"},
 	Args:      cobra.OnlyValidArgs,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		utils.ValidateUserConfig(cmd)
+		config.ValidateUserConfig(cmd)
 
 		if db.LocalDBFileExists() {
 			logger.Info().Msg("Found local DB file, using it for local mode.")
