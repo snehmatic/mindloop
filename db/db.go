@@ -5,6 +5,7 @@ import (
 
 	"github.com/rs/zerolog/log"
 	"github.com/snehmatic/mindloop/config"
+	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -69,4 +70,8 @@ func ConnectToDb(appConfig config.Config) (*gorm.DB, error) {
 	default:
 		return nil, fmt.Errorf("Mode selected is invalid!")
 	}
+}
+
+func LocalDBFileExists() bool {
+	return utils.FileExists("mindloop_local.db")
 }

@@ -37,7 +37,7 @@ type UserConfig struct {
 
 // UserConfigPath is the file path where the user configuration YAML will be written.
 // ToDo: Make this configurable or use a constant
-var UserConfigPath = "ml_config.yaml"
+var UserConfigPath = "user_config.yaml"
 
 type Habit struct {
 	gorm.Model

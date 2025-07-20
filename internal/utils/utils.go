@@ -7,6 +7,8 @@ import (
 	"os"
 
 	"github.com/rs/zerolog/log"
+	"github.com/snehmatic/mindloop/models"
+	"github.com/spf13/cobra"
 )
 
 func PrettyPrint(x any) {
@@ -61,4 +63,16 @@ func FileDelete(filename string) error {
 	}
 	log.Info().Str("file", filename).Msg("file deleted successfully")
 	return nil
+}
+
+func ValidateUserConfig(cmd *cobra.Command) {
+	// check if user_config.yaml exists
+	if FileExists(models.UserConfigPath) {
+		fmt.Println("User config exists at", models.UserConfigPath)
+	} else {
+		if cmd.Use != "configure" {
+			fmt.Println("Warn: user config does not exist, create a new one or run `mindloop configure`.")
+			os.Exit(0)
+		}
+	}
 }

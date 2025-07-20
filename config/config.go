@@ -31,11 +31,6 @@ var config *Config
 func InitConfig(name, mode, port string) {
 	once.Do(func() { // singleton
 
-		// check if user_config.yaml exists
-		if utils.FileExists(models.UserConfigPath) {
-			fmt.Println("User config already exists at", models.UserConfigPath)
-			return
-		}
 		config = &Config{
 			Name:     name,
 			Port:     port,

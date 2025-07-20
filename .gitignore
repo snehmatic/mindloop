@@ -30,3 +30,7 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# Mindloop config files
+user_config.yaml
+mindloop_local.db
