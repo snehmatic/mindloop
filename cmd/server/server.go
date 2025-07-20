@@ -12,8 +12,8 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
 	v1 "github.com/snehmatic/mindloop/api/v1"
-	"github.com/snehmatic/mindloop/config"
 	"github.com/snehmatic/mindloop/db"
+	"github.com/snehmatic/mindloop/internal/config"
 )
 
 const (

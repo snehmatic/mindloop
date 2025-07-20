@@ -5,6 +5,8 @@ import (
 	"sync"
 
 	"github.com/joho/godotenv"
+	"github.com/rs/zerolog"
+	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 )
@@ -15,6 +17,7 @@ type Config struct {
 	Port     string
 	Name     string
 	DBConfig DBConfig
+	Logger   zerolog.Logger
 }
 
 type DBConfig struct {
@@ -36,6 +39,7 @@ func InitConfig(name, mode, port string) {
 			Port:     port,
 			Mode:     models.MindloopMode(mode),
 			DBConfig: DBConfig{},
+			Logger:   log.Get(),
 		}
 
 		if mode == "api" {
@@ -53,7 +57,7 @@ func InitConfig(name, mode, port string) {
 			}
 		}
 
-		fmt.Println("Mindloop global config has been set!")
+		config.Logger.Info().Msg("Mindloop global config has been set!")
 	})
 }
 

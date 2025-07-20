@@ -6,10 +6,17 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/rs/zerolog/log"
+	"reflect"
+	"strings"
+
+	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
+
+	"github.com/olekukonko/tablewriter"
 )
+
+var logger = log.Get()
 
 func PrettyPrint(x any) {
 	b, err := json.MarshalIndent(x, "", "  ")
@@ -17,6 +24,54 @@ func PrettyPrint(x any) {
 		fmt.Println("error:", err)
 	}
 	fmt.Print(string(b))
+}
+
+func PrintTable(data interface{}) {
+	v := reflect.ValueOf(data)
+	if v.Kind() != reflect.Slice {
+		fmt.Println("Input must be a slice of structs")
+		logger.Error().Msg("Input to PrintTable must be a slice of structs")
+		return
+	}
+
+	if v.Len() == 0 {
+		fmt.Println("No records found.")
+		logger.Info().Msg("len 0 of the provided data slice")
+		return
+	}
+
+	first := v.Index(0)
+	if first.Kind() != reflect.Struct {
+		fmt.Println("Slice elements must be structs, type mismatch")
+		logger.Error().Msg("Slice elements must be structs, type mismatch")
+		return
+	}
+
+	// Extract headers
+	var headers []string
+	t := first.Type()
+	for i := 0; i < t.NumField(); i++ {
+		headers = append(headers, strings.ToUpper(t.Field(i).Name))
+	}
+
+	// Extract data
+	var rows [][]string
+	for i := 0; i < v.Len(); i++ {
+		elem := v.Index(i)
+		var row []string
+		for j := 0; j < elem.NumField(); j++ {
+			val := elem.Field(j)
+			row = append(row, fmt.Sprintf("%v", val.Interface()))
+		}
+		rows = append(rows, row)
+	}
+
+	// Print in table format
+	table := tablewriter.NewWriter(os.Stdout)
+	table.Header(headers)
+	table.Bulk(rows)
+	table.Render()
+	logger.Info().Msgf("Rendered table with %d records of type %s", v.Len(), first.Type())
 }
 
 func WriteResponse(data interface{}, respWriter http.ResponseWriter, status int) {
@@ -29,7 +84,7 @@ func GetEnvOrDie(key string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
-	log.Fatal().Str("key", key).Msg("failed to get environment variable")
+	logger.Fatal().Str("key", key).Msg("failed to get environment variable")
 	return ""
 }
 
@@ -41,37 +96,38 @@ func FileExists(filename string) bool {
 }
 func FileWrite(filename string, data []byte) error {
 	if err := os.WriteFile(filename, data, 0644); err != nil {
-		log.Error().Err(err).Str("file", filename).Msg("failed to write file")
+		logger.Error().Err(err).Str("file", filename).Msg("failed to write file")
 		return err
 	}
-	log.Info().Str("file", filename).Msg("file written successfully")
+	logger.Info().Str("file", filename).Msg("file written successfully")
 	return nil
 }
 func FileRead(filename string) ([]byte, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		log.Error().Err(err).Str("file", filename).Msg("failed to read file")
+		logger.Error().Err(err).Str("file", filename).Msg("failed to read file")
 		return nil, err
 	}
-	log.Info().Str("file", filename).Msg("file read successfully")
+	logger.Info().Str("file", filename).Msg("file read successfully")
 	return data, nil
 }
 func FileDelete(filename string) error {
 	if err := os.Remove(filename); err != nil {
-		log.Error().Err(err).Str("file", filename).Msg("failed to delete file")
+		logger.Error().Err(err).Str("file", filename).Msg("failed to delete file")
 		return err
 	}
-	log.Info().Str("file", filename).Msg("file deleted successfully")
+	logger.Info().Str("file", filename).Msg("file deleted successfully")
 	return nil
 }
 
 func ValidateUserConfig(cmd *cobra.Command) {
 	// check if user_config.yaml exists
 	if FileExists(models.UserConfigPath) {
-		fmt.Println("User config exists at", models.UserConfigPath)
+		logger.Debug().Msgf("User config exists at %s", models.UserConfigPath)
 	} else {
 		if cmd.Use != "configure" {
 			fmt.Println("Warn: user config does not exist, create a new one or run `mindloop configure`.")
+			logger.Warn().Msg("User config does not exist, warned user")
 			os.Exit(0)
 		}
 	}

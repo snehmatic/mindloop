@@ -49,11 +49,31 @@ type Habit struct {
 
 type Intent struct {
 	gorm.Model
-	Message string         `gorm:"not null" json:"message"`
-	Tags    string         `gorm:"type:text" json:"tags"`        // comma-separated or JSON later
-	Status  string         `gorm:"default:active" json:"status"` // active, ended, archived
-	EndedAt *time.Time     `json:"ended_at,omitempty"`
-	Focuses []FocusSession `gorm:"foreignKey:IntentID" json:"focus_sessions,omitempty"`
+	Name    string     `gorm:"not null" json:"name"`         // comma-separated or JSON later
+	Status  string     `gorm:"default:active" json:"status"` // active, ended, archived
+	EndedAt *time.Time `json:"ended_at,omitempty"`
+}
+
+type IntentView struct {
+	ID      uint
+	Name    string
+	Status  string
+	EndedAt string
+}
+
+func ToIntentView(i Intent) IntentView {
+	var ended string
+	if i.EndedAt != nil {
+		ended = i.EndedAt.Format("2006-01-02 15:04")
+	} else {
+		ended = "-"
+	}
+	return IntentView{
+		ID:      i.ID,
+		Name:    i.Name,
+		Status:  i.Status,
+		EndedAt: ended,
+	}
 }
 
 type FocusSession struct {

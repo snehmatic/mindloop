@@ -34,3 +34,4 @@ go.work.sum
 # Mindloop config files
 user_config.yaml
 mindloop_local.db
+mindloop.log

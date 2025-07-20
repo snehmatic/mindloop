@@ -6,17 +6,15 @@ import (
 
 	"gorm.io/gorm"
 
-	"github.com/snehmatic/mindloop/config"
 	"github.com/snehmatic/mindloop/db"
+	"github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
 )
 
-const (
-	AppName = "Mindloop"
-)
-
 var gdb *gorm.DB
+var logger = log.Get()
 
 var rootCmd = &cobra.Command{
 	Use:       "mindloop",
@@ -27,19 +25,11 @@ var rootCmd = &cobra.Command{
 	Args:      cobra.OnlyValidArgs,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		utils.ValidateUserConfig(cmd)
-		appConfig := config.GetConfig()
 
 		if db.LocalDBFileExists() {
-			fmt.Println("Found local DB file, using it for local mode.")
+			logger.Info().Msg("Found local DB file, using it for local mode.")
 		} else {
-			fmt.Println("No local DB file found, a new one will be created.")
-		}
-
-		// Initialize local db
-		_, err := db.ConnectToDb(*appConfig) // to be used later
-		if err != nil {
-			fmt.Printf("Error connecting to DB: %v\n", err)
-			os.Exit(1)
+			logger.Warn().Msg("No local DB file found, a new one will be created.")
 		}
 	},
 }
@@ -57,6 +47,15 @@ func init() {
 }
 
 func initConfig() {
-	// Init global config
-	config.InitConfig(AppName, "local", "")
+	appConfig := config.GetConfig()
+	// Initialize local db
+	db, err := db.ConnectToDb(*appConfig) // to be used later
+	if err != nil {
+		fmt.Printf("Error connecting to DB: %v\n", err)
+		logger.Error().Msgf("Error connecting to DB: %v", err)
+		fmt.Println("Please check your database connection or configuration.")
+		logger.Warn().Msg("Exiting due to DB connection error.")
+		os.Exit(1)
+	}
+	gdb = db
 }

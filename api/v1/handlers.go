@@ -4,7 +4,7 @@ package v1
 import (
 	"net/http"
 
-	"github.com/snehmatic/mindloop/config"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/utils"
 )
 

@@ -3,8 +3,8 @@ package db
 import (
 	"fmt"
 
-	"github.com/rs/zerolog/log"
-	"github.com/snehmatic/mindloop/config"
+	"github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/driver/postgres"
@@ -13,8 +13,9 @@ import (
 	"gorm.io/gorm/schema"
 )
 
+var logger = log.Get()
+
 func Conn(connString string) (*gorm.DB, error) {
-	log.Debug().Msg("Function Conn called")
 	db, err := gorm.Open(postgres.Open(connString), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
 			SingularTable: true,
@@ -25,12 +26,12 @@ func Conn(connString string) (*gorm.DB, error) {
 		return db, err
 	}
 
-	err = db.AutoMigrate() // db model structs go here
+	err = MigrateDB(db)
 	if err != nil {
 		return db, err
 	}
 
-	log.Info().Msg("Connected to DB, migrations complete!")
+	logger.Info().Msg("Connected to DB, migrations complete!")
 	return db, nil
 }
 
@@ -45,16 +46,17 @@ func LocalConn() (*gorm.DB, error) {
 		return db, err
 	}
 
-	err = db.AutoMigrate(models.Habit{}) // db model structs go here
+	err = MigrateDB(db)
 	if err != nil {
 		return db, err
 	}
 
-	fmt.Println("Connected to local SQLite DB, migrations complete!")
+	logger.Info().Msg("Connected to local SQLite DB, migrations complete!")
 	return db, nil
 }
 
 func ConnectToDb(appConfig config.Config) (*gorm.DB, error) {
+	logger.Debug().Msg("Connecting to DB...")
 	switch appConfig.Mode {
 	case models.Local:
 		return LocalConn()
@@ -74,4 +76,17 @@ func ConnectToDb(appConfig config.Config) (*gorm.DB, error) {
 
 func LocalDBFileExists() bool {
 	return utils.FileExists("mindloop_local.db")
+}
+
+func MigrateDB(db *gorm.DB) error {
+	err := db.AutoMigrate(
+		&models.Intent{},
+		&models.FocusSession{},
+		&models.Habit{},
+	)
+	if err != nil {
+		logger.Error().Err(err).Msg("Failed to migrate DB")
+		return err
+	}
+	return nil
 }
