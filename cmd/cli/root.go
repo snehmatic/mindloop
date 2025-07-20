@@ -12,8 +12,10 @@ import (
 )
 
 const (
-	AppName = "MindLoop"
+	AppName = "Mindloop"
 )
+
+// var DB db.DBClient
 
 var rootCmd = &cobra.Command{
 	Use:       "mindloop",
@@ -37,19 +39,13 @@ func init() {
 }
 
 func initConfig() {
+
 	// Init global config
-	config.InitConfig(AppName, "")
+	config.InitConfig(AppName, "cli", "")
 	appConfig := config.GetConfig()
 
-	dbConnString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		appConfig.DBConfig.Host,
-		appConfig.DBConfig.Port,
-		appConfig.DBConfig.User,
-		appConfig.DBConfig.Password,
-		appConfig.DBConfig.Name,
-	)
-
-	_, err := db.Conn(dbConnString) // to be used later
+	// Init local db
+	_, err := db.ConnectToDb(*appConfig) // to be used later
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error connecting to DB")
 	}

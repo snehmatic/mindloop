@@ -9,18 +9,30 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/snehmatic/mindloop/config"
 	"github.com/snehmatic/mindloop/db"
 )
 
 const (
-	AppName = "MindLoop"
+	AppName = "Mindloop"
 	Port    = "8080"
 )
 
-func ServeMindloop() {
-	r, err := CreateRouter()
+func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
+	r := mux.NewRouter()
+
+	// routes
+	r.HandleFunc("/", mlh.HandleHome)
+	r.HandleFunc("/healthz", mlh.HandleHealthz)
+
+	return r, nil
+}
+
+func ServeMindloop(mlh *v1.MindloopHandler) {
+	r, err := CreateRouter(mlh)
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error creating router")
 	}
@@ -55,21 +67,15 @@ func ServeMindloop() {
 func main() {
 
 	// Init global config
-	config.InitConfig(AppName, fmt.Sprintf(":"+Port))
+	config.InitConfig(AppName, "api", fmt.Sprintf(":"+Port))
 	appConfig := config.GetConfig()
 
-	dbConnString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		appConfig.DBConfig.Host,
-		appConfig.DBConfig.Port,
-		appConfig.DBConfig.User,
-		appConfig.DBConfig.Password,
-		appConfig.DBConfig.Name,
-	)
-
-	_, err := db.Conn(dbConnString) // to be used later
+	_, err := db.ConnectToDb(*appConfig) // to be used later
 	if err != nil {
 		log.Fatal().Err(err).Msg("Error connecting to DB")
 	}
 
-	ServeMindloop()
+	mlh := v1.NewMindloopHandler()
+
+	ServeMindloop(mlh)
 }

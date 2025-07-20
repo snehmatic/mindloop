@@ -30,3 +30,35 @@ func GetEnvOrDie(key string) string {
 	log.Fatal().Str("key", key).Msg("failed to get environment variable")
 	return ""
 }
+
+func FileExists(filename string) bool {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+func FileWrite(filename string, data []byte) error {
+	if err := os.WriteFile(filename, data, 0644); err != nil {
+		log.Error().Err(err).Str("file", filename).Msg("failed to write file")
+		return err
+	}
+	log.Info().Str("file", filename).Msg("file written successfully")
+	return nil
+}
+func FileRead(filename string) ([]byte, error) {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		log.Error().Err(err).Str("file", filename).Msg("failed to read file")
+		return nil, err
+	}
+	log.Info().Str("file", filename).Msg("file read successfully")
+	return data, nil
+}
+func FileDelete(filename string) error {
+	if err := os.Remove(filename); err != nil {
+		log.Error().Err(err).Str("file", filename).Msg("failed to delete file")
+		return err
+	}
+	log.Info().Str("file", filename).Msg("file deleted successfully")
+	return nil
+}
