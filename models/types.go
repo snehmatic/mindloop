@@ -1,6 +1,7 @@
 package models
 
 import (
+	"math"
 	"time"
 
 	"github.com/snehmatic/mindloop/internal/config"
@@ -59,11 +60,44 @@ func ToIntentView(i Intent) IntentView {
 
 type FocusSession struct {
 	gorm.Model
-	IntentID  int       `gorm:"not null;index" json:"intent_id"`
-	StartTime time.Time `gorm:"autoCreateTime" json:"start_time"`
-	EndTime   time.Time `json:"end_time"`
-	Duration  int       `json:"duration"`                // in seconds
-	Rating    int       `gorm:"default:0" json:"rating"` // 1 to 5, optional
+	Title    string    `gorm:"not null" json:"title"`        // e.g., "Work on project"
+	Status   string    `gorm:"default:active" json:"status"` // active, paused
+	EndTime  time.Time `json:"end_time"`
+	Duration float64   `json:"duration"`                 // in seconds
+	Rating   int       `gorm:"default:-1" json:"rating"` // 1 to 5, optional
+}
+
+type FocusSessionView struct {
+	ID        uint    `json:"id"`
+	Title     string  `json:"title"`
+	Status    string  `json:"status"`
+	EndTime   string  `json:"end_time"`   // formatted as "2006-01-02 15:04:05"
+	Duration  float64 `json:"duration"`   // in seconds
+	Rating    int     `json:"rating"`     // 1 to 10, -1 if not rated
+	CreatedAt string  `json:"created_at"` // formatted as "2006-01-02 15:04:05"
+}
+
+func ToFocusSessionView(fs FocusSession) FocusSessionView {
+	fsv := FocusSessionView{
+		ID:        fs.ID,
+		Title:     fs.Title,
+		Status:    fs.Status,
+		EndTime:   fs.EndTime.Format("2006-01-02 15:04:05"),
+		Duration:  fs.Duration,
+		Rating:    fs.Rating,
+		CreatedAt: fs.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
+
+	if fs.EndTime.IsZero() {
+		fsv.EndTime = "Focus on!"
+	}
+	if fs.Rating == 0 {
+		fsv.Rating = -1 // indicate no rating given
+	}
+	now := time.Now()
+	fsv.Duration = now.Sub(fs.CreatedAt).Minutes()
+	fsv.Duration = math.Floor(fsv.Duration) // todo: fix decimals
+	return fsv
 }
 
 type HabitLog struct {

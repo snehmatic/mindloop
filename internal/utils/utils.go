@@ -72,6 +72,30 @@ func PrintTable(data interface{}) {
 	logger.Info().Msgf("Rendered table with %d records of type %s", v.Len(), first.Type())
 }
 
+func AddSuccessCheck(s string) string {
+	green := "\033[32m"
+	reset := "\033[0m"
+	tick := "✔"
+	greenTick := fmt.Sprintf("%s%s%s ", green, tick, reset)
+
+	if s == "" {
+		return greenTick
+	}
+	return greenTick + s
+}
+
+func AddErrorCross(s string) string {
+	red := "\033[31m"
+	reset := "\033[0m"
+	cross := "✖"
+	redCross := fmt.Sprintf("%s%s%s ", red, cross, reset)
+
+	if s == "" {
+		return redCross
+	}
+	return redCross + s
+}
+
 func WriteResponse(data interface{}, respWriter http.ResponseWriter, status int) {
 	respWriter.Header().Set("content-type", "application/json; charset=utf-8")
 	respWriter.WriteHeader(status)
