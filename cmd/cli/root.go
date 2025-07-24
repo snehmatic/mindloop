@@ -6,6 +6,7 @@ import (
 
 	"gorm.io/gorm"
 
+	"github.com/rs/zerolog"
 	"github.com/snehmatic/mindloop/db"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/log"
@@ -13,7 +14,7 @@ import (
 )
 
 var gdb *gorm.DB
-var logger = log.Get()
+var logger zerolog.Logger
 
 var rootCmd = &cobra.Command{
 	Use:       "mindloop",
@@ -47,8 +48,9 @@ func init() {
 
 func initConfig() {
 	appConfig := config.GetConfig()
+	logger = log.Get()
 	// Initialize local db
-	db, err := db.ConnectToDb(*appConfig) // to be used later
+	db, err := db.ConnectToDb(*appConfig)
 	if err != nil {
 		fmt.Printf("Error connecting to DB: %v\n", err)
 		logger.Error().Msgf("Error connecting to DB: %v", err)
