@@ -8,6 +8,7 @@ import (
 
 	"github.com/snehmatic/mindloop/db"
 	"github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -49,9 +50,9 @@ func initConfig() {
 	// Initialize local db
 	db, err := db.ConnectToDb(*ac)
 	if err != nil {
-		fmt.Printf("Error connecting to DB: %v\n", err)
+		utils.PrintErrorf("Error connecting to DB: %v\n", err)
 		ac.Logger.Error().Msgf("Error connecting to DB: %v", err)
-		fmt.Println("Please check your database connection or configuration.")
+		utils.PrintErrorln("Please check your database connection or configuration.")
 		ac.Logger.Warn().Msg("Exiting due to DB connection error.")
 		os.Exit(1)
 	}

@@ -32,6 +32,7 @@ var (
 	warn      = "⚠️"
 	rocket    = "🚀"
 	timeSand  = "⏳"
+	bulb      = "💡"
 )
 
 func PrettyPrint(x any) {
@@ -122,6 +123,22 @@ func PrintRocketf(format string, a ...any) (n int, err error) {
 	return fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
 }
 
+func PrintInfoln(a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintln(os.Stdout, bulb)
+	}
+
+	return fmt.Fprintln(os.Stdout, append([]any{bulb}, a...)...)
+}
+
+func PrintInfof(format string, a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintf(os.Stdout, bulb+" "+format, a...)
+	}
+
+	return fmt.Fprintf(os.Stdout, bulb+" "+format, a...)
+}
+
 func PrintLoadingln(a ...any) (n int, err error) {
 	if len(a) == 0 {
 		return fmt.Fprintln(os.Stdout, timeSand)
@@ -136,6 +153,22 @@ func PrintLoadingf(format string, a ...any) (n int, err error) {
 	}
 
 	return fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
+}
+
+func PrintWarnln(a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintln(os.Stdout, warn)
+	}
+
+	return fmt.Fprintln(os.Stdout, append([]any{warn}, a...)...)
+}
+
+func PrintWarnf(format string, a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintf(os.Stdout, warn+" "+format, a...)
+	}
+
+	return fmt.Fprintf(os.Stdout, warn+" "+format, a...)
 }
 
 func PrintErrorln(a ...any) (n int, err error) {

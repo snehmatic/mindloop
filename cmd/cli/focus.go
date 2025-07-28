@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
@@ -25,16 +24,17 @@ var focusStartCmd = &cobra.Command{
 	Example: `mindloop focus start "Work on project"`,
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
+		PrintRocketln("That's the spirit! Starting a new focus session...")
 		focusSession := &models.FocusSession{
 			Title:  args[0],
 			Status: "active",
 		}
 		if err := gdb.Create(focusSession).Error; err != nil {
-			cmd.Println("Error starting focus session:", err)
+			PrintErrorln("Error starting focus session:", err)
 			ac.Logger.Error().Msgf("Error starting focus session: %v", err)
 			return
 		}
-		cmd.Printf("Focus session '%s' started successfully with id %d!\n", focusSession.Title, focusSession.ID)
+		PrintSuccessf("Focus session '%s' started successfully with id %d!\n", focusSession.Title, focusSession.ID)
 		ac.Logger.Info().Msgf("Focus session '%s' started successfully with id %d!", focusSession.Title, focusSession.ID)
 	},
 }
@@ -47,12 +47,12 @@ var focusListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var focusSessions []models.FocusSession
 		if err := gdb.Find(&focusSessions).Error; err != nil {
-			cmd.Println("Error listing focus sessions:", err)
+			PrintErrorln("Error listing focus sessions:", err)
 			ac.Logger.Error().Msgf("Error listing focus sessions: %v", err)
 			return
 		}
 		if len(focusSessions) == 0 {
-			cmd.Println("No focus sessions found... Try starting one with 'mindloop focus start <title>'")
+			PrintInfoln("No focus sessions found... Try starting one with 'mindloop focus start <title>'")
 			ac.Logger.Info().Msg("No focus sessions found. Prompting user to start a new focus session.")
 			return
 		}
@@ -63,7 +63,7 @@ var focusListCmd = &cobra.Command{
 		}
 
 		ac.Logger.Info().Msg("Listing all focus sessions.")
-		fmt.Println("Focus sessions listed below. Note: Duration is in minutes")
+		PrintInfoln("Focus sessions listed below. Note: Duration is in minutes")
 		PrintTable(views)
 	},
 }
@@ -78,20 +78,20 @@ var focusEndCmd = &cobra.Command{
 		sessionID := args[0]
 		sessionIDInt, err := strconv.Atoi(sessionID)
 		if err != nil {
-			cmd.Println("Error parsing session ID:", err)
+			PrintErrorln("Error parsing session ID:", err)
 			ac.Logger.Error().Msgf("Error parsing session ID: %v", err)
 			return
 		}
 
 		var focusSession models.FocusSession
 		if err := gdb.First(&focusSession, sessionIDInt).Error; err != nil {
-			cmd.Println("Focus session not found:", err)
+			PrintErrorln("Focus session not found:", err)
 			ac.Logger.Error().Msgf("Focus session not found: %v", err)
 			return
 		}
 
 		if focusSession.Status != "active" {
-			cmd.Println("Focus session is not active.")
+			PrintWarnln("Focus session is not active.")
 			ac.Logger.Warn().Msg("Attempted to end a non-active focus session.")
 			return
 		}
@@ -100,11 +100,12 @@ var focusEndCmd = &cobra.Command{
 		focusSession.EndTime = time.Now()
 		focusSession.Duration = focusSession.EndTime.Sub(focusSession.CreatedAt).Minutes()
 		if err := gdb.Save(&focusSession).Error; err != nil {
-			cmd.Println("Error ending focus session:", err)
+			PrintErrorln("Error ending focus session:", err)
 			ac.Logger.Error().Msgf("Error ending focus session: %v", err)
 			return
 		}
-		cmd.Printf("Focus session '%s' ended successfully!\n", focusSession.Title)
+		PrintSuccessf("Focus session '%s' ended successfully!\n", focusSession.Title)
+		PrintRocketln("Great work chief!")
 		ac.Logger.Info().Msgf("Focus session '%s' ended successfully!", focusSession.Title)
 	},
 }
@@ -119,27 +120,27 @@ var focusRateCmd = &cobra.Command{
 		sessionID := args[0]
 		rating, err := strconv.Atoi(args[1])
 		if err != nil || rating < 0 || rating > 10 {
-			cmd.Println("Rating must be an integer between 0 and 10.")
+			PrintWarnln("Rating must be an integer between 0 and 10.")
 			ac.Logger.Warn().Msgf("Invalid rating provided: %s", args[1])
 			return
 		}
 
 		var focusSession models.FocusSession
 		if err := gdb.First(&focusSession, sessionID).Error; err != nil {
-			cmd.Println("Focus session not found:", err)
+			PrintErrorln("Focus session not found:", err)
 			ac.Logger.Error().Msgf("Focus session not found: %v", err)
 			return
 		}
 
 		if focusSession.Status != "ended" {
-			PrintSuccessln("Focus session is not ended. Please end it before rating.")
+			PrintWarnln("Focus session is not ended. Please end it before rating.")
 			ac.Logger.Warn().Msg("Attempted to rate a non-ended focus session.")
 			return
 		}
 
 		focusSession.Rating = rating
 		if err := gdb.Save(&focusSession).Error; err != nil {
-			cmd.Println("Error saving rating:", err)
+			PrintErrorln("Error saving rating:", err)
 			ac.Logger.Error().Msgf("Error saving rating for focus session ID %d: %v", focusSession.ID, err)
 			return
 		}
