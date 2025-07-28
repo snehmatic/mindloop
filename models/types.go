@@ -1,6 +1,7 @@
 package models
 
 import (
+	"fmt"
 	"math"
 	"time"
 
@@ -28,13 +29,41 @@ type Habit struct {
 	TargetCount int          `gorm:"type:int" json:"target_count"`
 }
 
+// Defaults for Habit
+// TargetCount: 1
+// Interval: Daily
+// Description: "Default habit description"
+func (h *Habit) SetDefaults() {
+	if h.TargetCount <= 0 {
+		h.TargetCount = 1
+	}
+	if h.Interval == "" {
+		h.Interval = Daily
+	}
+	if h.Description == "" {
+		h.Description = "Default habit description"
+	}
+}
+
+func (h *Habit) ValidateHabit() error {
+	if h.Title == "" {
+		return fmt.Errorf("habit title cannot be empty")
+	}
+	if h.TargetCount <= 0 {
+		return fmt.Errorf("target count must be greater than 0")
+	}
+	if !IsValidIntervalType(string(h.Interval)) {
+		return fmt.Errorf("invalid interval type: %s", h.Interval)
+	}
+	return nil
+}
+
 type HabitLog struct {
 	gorm.Model
-	HabitID         int       `gorm:"not null;index:idx_habit_day" json:"habit_id"`
-	TargetCount     int       `gorm:"not null" json:"target_count"`      // number of times the habit was done
-	ActualCount     int       `gorm:"not null" json:"actual_count"`      // number of times the habit was actually done
-	CompletedOnDate time.Time `gorm:"not null" json:"completed_on_date"` // YYYY-MM-DD only
-
+	HabitID     int       `gorm:"not null" json:"habit_id"`
+	TargetCount int       `gorm:"not null" json:"target_count"` // number of times the habit was done
+	ActualCount int       `gorm:"not null" json:"actual_count"` // number of times the habit was actually done
+	CompletedAt time.Time `gorm:"not null" json:"completed_at"`
 }
 
 type HabitLogView struct {
@@ -43,7 +72,7 @@ type HabitLogView struct {
 	TargetCount int          `json:"target_count"`
 	ActualCount int          `json:"actual_count"`
 	Interval    IntervalType `json:"interval"`
-	CompletedOn string       `json:"completed_on"`
+	CompletedAt string       `json:"completed_at"`
 }
 
 func ToHabitLogViews(habitLogs []HabitLog) []HabitLogView {
@@ -53,7 +82,7 @@ func ToHabitLogViews(habitLogs []HabitLog) []HabitLogView {
 			ID:          log.ID,
 			ActualCount: log.ActualCount,
 			TargetCount: log.TargetCount,
-			CompletedOn: log.CompletedOnDate.Format("2006-01-02"),
+			CompletedAt: log.CompletedAt.Format("2006-01-02 15:04:05"),
 			Interval:    Daily, // default to daily, can be changed later
 			Title:       "",    // title can be fetched from Habit model if needed
 		}
