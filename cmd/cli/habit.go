@@ -43,7 +43,7 @@ var habitAddCmd = &cobra.Command{
 			// non interactive mode
 			if len(args) < 3 {
 				fmt.Println("Please provide habit details. Ex. 'mindloop habit add <title> <description> <target_count>' --weekly or --daily(default)")
-				logger.Error().
+				ac.Logger.Error().
 					Interface("habit", newHabit).
 					Msg("Failed to add habit: missing arguments")
 				return
@@ -52,7 +52,7 @@ var habitAddCmd = &cobra.Command{
 			newHabit.Description = args[1]
 			targetCount, err := strconv.Atoi(args[2])
 			if err != nil {
-				logger.Error().
+				ac.Logger.Error().
 					Interface("habit", newHabit).
 					Err(err).
 					Msg("Failed to convert target count to integer")
@@ -66,7 +66,7 @@ var habitAddCmd = &cobra.Command{
 		// validate habit
 		err := newHabit.ValidateHabit()
 		if err != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Interface("habit", newHabit).
 				Err(err).
 				Msgf("Habit validation failed: %v", err)
@@ -77,7 +77,7 @@ var habitAddCmd = &cobra.Command{
 		// persist new habit to db
 		res := gdb.Create(newHabit)
 		if res.Error != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Interface("habit", newHabit).
 				Err(res.Error).
 				Msg("Failed to add habit in db")
@@ -85,7 +85,7 @@ var habitAddCmd = &cobra.Command{
 			return
 		}
 
-		logger.Info().
+		ac.Logger.Info().
 			Interface("habit", newHabit).
 			Msg("Habit added successfully")
 
@@ -102,7 +102,7 @@ var habitDeleteCmd = &cobra.Command{
 	Example: `mindloop habit delete "Excercise"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			logger.Error().Msg("No habit ID provided for deletion")
+			ac.Logger.Error().Msg("No habit ID provided for deletion")
 			fmt.Println("Please provide the habit ID to delete.")
 			return
 		}
@@ -110,7 +110,7 @@ var habitDeleteCmd = &cobra.Command{
 		var habit models.Habit
 		res := gdb.Where("ID = ?", habitID).First(&habit)
 		if res.Error != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Interface("habit", habit).
 				Msg("Habit not found")
 			fmt.Println("Habit not found:", res.Error)
@@ -119,7 +119,7 @@ var habitDeleteCmd = &cobra.Command{
 
 		res = gdb.Delete(&habit)
 		if res.Error != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Interface("habit", habit).
 				Err(res.Error).
 				Msg("Failed to delete habit")
@@ -127,7 +127,7 @@ var habitDeleteCmd = &cobra.Command{
 			return
 		}
 
-		logger.Info().
+		ac.Logger.Info().
 			Interface("habit", habit).
 			Msg("Habit deleted successfully")
 		fmt.Printf("Habit '%s' deleted successfully.\n", habit.Title)
@@ -142,7 +142,7 @@ var habitUpdateCmd = &cobra.Command{
 	Example: `mindloop habit update "Excercise" --time "1:00 PM"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			logger.Error().Msg("No habit ID provided for update")
+			ac.Logger.Error().Msg("No habit ID provided for update")
 			fmt.Println("Please provide the habit ID to update.")
 			return
 		}
@@ -150,7 +150,7 @@ var habitUpdateCmd = &cobra.Command{
 		var habit models.Habit
 		res := gdb.Where("ID = ?", habitId).First(&habit)
 		if res.Error != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Interface("habit", habit).
 				Msg("Habit not found")
 			fmt.Println("Habit not found:", res.Error)
@@ -162,14 +162,14 @@ var habitUpdateCmd = &cobra.Command{
 		habitArr = append(habitArr, models.ToHabitView(habit))
 		PrintTable(habitArr)
 		fmt.Println("Entering interactive mode to update Habit (Press Enter to keep current field intact)")
-		logger.Info().
+		ac.Logger.Info().
 			Interface("habit", habit).
 			Msg("Entering interactive mode to update habit")
 		BuildHabitFromInteractiveMode(&habit)
 
 		err := habit.ValidateHabit()
 		if err != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Interface("habit", habit).
 				Err(err).
 				Msg("Habit validation failed")
@@ -179,7 +179,7 @@ var habitUpdateCmd = &cobra.Command{
 
 		res = gdb.Save(&habit)
 		if res.Error != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Interface("habit", habit).
 				Err(res.Error).
 				Msg("Failed to update habit")
@@ -187,7 +187,7 @@ var habitUpdateCmd = &cobra.Command{
 			return
 		}
 
-		logger.Info().
+		ac.Logger.Info().
 			Interface("habit", habit).
 			Msg("Habit updated successfully")
 		fmt.Printf("Habit '%s' updated successfully.\n", habit.Title)
@@ -201,12 +201,12 @@ var habitListCmd = &cobra.Command{
 	Aliases: []string{"l"},
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Keep calm, fetching all habits...")
-		logger.Info().Msg("Fetching all habits...")
+		ac.Logger.Info().Msg("Fetching all habits...")
 
 		var habits []models.Habit
 		res := gdb.Find(&habits)
 		if res.Error != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Err(res.Error).
 				Msg("Failed to retrieve habits")
 			fmt.Println("Failed to retrieve habits:", res.Error)
@@ -246,7 +246,7 @@ var habitLogShowCmd = &cobra.Command{
 		var habitLogs []models.HabitLog
 		res := gdb.Find(&habitLogs).Where("interval = ?", interval)
 		if res.Error != nil {
-			logger.Error().
+			ac.Logger.Error().
 				Err(res.Error).
 				Msg("Failed to retrieve habit logs")
 			fmt.Println("Failed to retrieve habit logs:", res.Error)
@@ -324,7 +324,7 @@ func BuildHabitFromInteractiveMode(hb *models.Habit) *models.Habit {
 	fmt.Scanln(&interval)
 	if interval != "" {
 		if !models.IsValidIntervalType(interval) {
-			logger.Error().
+			ac.Logger.Error().
 				Interface("habit", hb).
 				Msg("Invalid interval type.")
 			fmt.Println("Invalid interval type.")

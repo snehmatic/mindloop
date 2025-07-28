@@ -30,12 +30,12 @@ var intentStartCmd = &cobra.Command{
 		// start the intent
 		if err := gdb.Create(intent).Error; err != nil {
 			fmt.Println("Error starting intent:", err)
-			logger.Error().Msgf("Error starting intent: %v", err)
+			ac.Logger.Error().Msgf("Error starting intent: %v", err)
 			fmt.Println("Please try again or check your database connection.")
 			return
 		}
 		fmt.Printf("Intent '%s' started successfully with id %d!\n", intent.Name, intent.ID)
-		logger.Info().Msgf("Intent '%s' started successfully with id %d!", intent.Name, intent.ID)
+		ac.Logger.Info().Msgf("Intent '%s' started successfully with id %d!", intent.Name, intent.ID)
 	},
 }
 
@@ -48,13 +48,13 @@ var intentListCmd = &cobra.Command{
 		var intents []models.Intent
 		if err := gdb.Find(&intents).Error; err != nil {
 			fmt.Println("Error fetching intents:", err)
-			logger.Error().Msgf("Error fetching intents: %v", err)
+			ac.Logger.Error().Msgf("Error fetching intents: %v", err)
 			fmt.Println("Please check your database connection or try again later.")
 			return
 		}
 		if len(intents) == 0 {
 			fmt.Println("No intents found... Try starting one with 'mindloop intent start <name>'")
-			logger.Info().Msg("No intents found. Prompting user to start a new intent.")
+			ac.Logger.Info().Msg("No intents found. Prompting user to start a new intent.")
 			return
 		}
 
@@ -63,7 +63,7 @@ var intentListCmd = &cobra.Command{
 			views = append(views, models.ToIntentView(i))
 		}
 		utils.PrintTable(views)
-		logger.Info().Msgf("Listed %d intents successfully.", len(intents))
+		ac.Logger.Info().Msgf("Listed %d intents successfully.", len(intents))
 	},
 }
 
@@ -76,13 +76,13 @@ var intentCurrentCmd = &cobra.Command{
 		var intents []models.Intent
 		if err := gdb.Where("Status = ?", "active").Find(&intents).Error; err != nil {
 			fmt.Println("Error fetching active intents:", err)
-			logger.Error().Msgf("Error fetching active intents: %v", err)
+			ac.Logger.Error().Msgf("Error fetching active intents: %v", err)
 			fmt.Println("Please check your database connection or try again later.")
 			return
 		}
 		if len(intents) == 0 {
 			fmt.Println("No active intents found. To get all intents, use 'mindloop intent list'")
-			logger.Info().Msg("No active intents found. Prompting user to list all intents.")
+			ac.Logger.Info().Msg("No active intents found. Prompting user to list all intents.")
 			return
 		}
 
@@ -91,7 +91,7 @@ var intentCurrentCmd = &cobra.Command{
 			views = append(views, models.ToIntentView(i))
 		}
 		utils.PrintTable(views)
-		logger.Info().Msgf("Listed %d active intents successfully.", len(intents))
+		ac.Logger.Info().Msgf("Listed %d active intents successfully.", len(intents))
 	},
 }
 
@@ -103,18 +103,18 @@ var intentEndCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			fmt.Println("Please provide the intent ID to end.")
-			logger.Warn().Msg("No intent ID provided for ending intent.")
+			ac.Logger.Warn().Msg("No intent ID provided for ending intent.")
 			return
 		}
 		var intent models.Intent
 		if err := gdb.Where("id = ?", args[0]).First(&intent).Error; err != nil {
 			fmt.Println("Error fetching intent:", err)
-			logger.Error().Msgf("Error fetching intent with ID %s: %v", args[0], err)
+			ac.Logger.Error().Msgf("Error fetching intent with ID %s: %v", args[0], err)
 			return
 		}
 		if intent.ID == 0 {
 			fmt.Println("No intent found with the given ID.")
-			logger.Warn().Msgf("No intent found with ID %s to finish.", args[0])
+			ac.Logger.Warn().Msgf("No intent found with ID %s to finish.", args[0])
 			return
 		}
 
@@ -123,10 +123,10 @@ var intentEndCmd = &cobra.Command{
 		intent.EndedAt = &now
 		if err := gdb.Save(&intent).Error; err != nil {
 			fmt.Println("Error ending intent:", err)
-			logger.Error().Msgf("Error ending intent with ID %d: %v", intent.ID, err)
+			ac.Logger.Error().Msgf("Error ending intent with ID %d: %v", intent.ID, err)
 			return
 		}
-		logger.Info().Msgf("Intent '%s' ended successfully!", intent.Name)
+		ac.Logger.Info().Msgf("Intent '%s' ended successfully!", intent.Name)
 		intentView := models.ToIntentView(intent)
 		utils.PrintTable([]models.IntentView{intentView})
 	},

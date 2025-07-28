@@ -60,6 +60,8 @@ func ConnectToDb(appConfig config.Config) (*gorm.DB, error) {
 	switch appConfig.Mode {
 	case config.Local:
 		return LocalConn()
+	case config.ByoDB:
+		fallthrough // as of now, ByoDB is same as Api mode
 	case config.Api:
 		connString := fmt.Sprintf("host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
 			appConfig.DBConfig.Host,
