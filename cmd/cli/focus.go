@@ -134,7 +134,7 @@ var focusRateCmd = &cobra.Command{
 		}
 
 		if focusSession.Status != "ended" {
-			cmd.Println(AddErrorCross("Focus session is not ended. Please end it before rating."))
+			PrintSuccessln("Focus session is not ended. Please end it before rating.")
 			logger.Warn().Msg("Attempted to rate a non-ended focus session.")
 			return
 		}
@@ -145,7 +145,7 @@ var focusRateCmd = &cobra.Command{
 			logger.Error().Msgf("Error saving rating for focus session ID %d: %v", focusSession.ID, err)
 			return
 		}
-		cmd.Printf(AddSuccessCheck("'%s' session rated successfully with a score of %d!\n"), focusSession.Title, rating)
+		PrintSuccessf("'%s' session rated successfully with a score of %d!\n", focusSession.Title, rating)
 		logger.Info().Msgf("Focus session '%s' rated successfully with a score of %d!", focusSession.Title, rating)
 	},
 }

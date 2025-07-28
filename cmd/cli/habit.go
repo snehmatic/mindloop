@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/snehmatic/mindloop/internal/utils"
+	. "github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
 )
@@ -160,7 +160,7 @@ var habitUpdateCmd = &cobra.Command{
 		fmt.Printf("Updating habit '%s'...\n", habit.Title)
 		var habitArr []models.HabitView
 		habitArr = append(habitArr, models.ToHabitView(habit))
-		utils.PrintTable(habitArr)
+		PrintTable(habitArr)
 		fmt.Println("Entering interactive mode to update Habit (Press Enter to keep current field intact)")
 		logger.Info().
 			Interface("habit", habit).
@@ -217,7 +217,7 @@ var habitListCmd = &cobra.Command{
 		for _, habit := range habits {
 			habitViews = append(habitViews, models.ToHabitView(habit))
 		}
-		utils.PrintTable(habitViews)
+		PrintTable(habitViews)
 	},
 }
 
@@ -233,13 +233,13 @@ var habitLogCmd = &cobra.Command{
 	},
 }
 
-// habit status
-var habitLogStatsCmd = &cobra.Command{
-	Use:     "stats",
-	Aliases: []string{"status", "check"},
-	Short:   "Check habit logs stats -w",
+// habit show subcommand
+var habitLogShowCmd = &cobra.Command{
+	Use:     "show",
+	Aliases: []string{"status", "check", "stats"},
+	Short:   "Check habit logs show -w",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Here is your habit logs stats...")
+		fmt.Println("Here is your habit logs show...")
 
 		interval := GetIntervalFromFlag()
 
@@ -254,7 +254,7 @@ var habitLogStatsCmd = &cobra.Command{
 		}
 
 		habitLogViews := models.ToHabitLogViews(habitLogs)
-		utils.PrintTable(habitLogViews)
+		PrintTable(habitLogViews)
 	},
 }
 
@@ -266,6 +266,7 @@ func init() {
 	habitCmd.AddCommand(habitUpdateCmd)
 	habitCmd.AddCommand(habitLogCmd)
 	habitCmd.AddCommand(habitListCmd)
+	habitLogCmd.AddCommand(habitLogShowCmd)
 
 	// flags
 	all = habitCmd.PersistentFlags().BoolP("all", "A", false, "Select all habits") // not using now

@@ -16,6 +16,24 @@ import (
 
 var logger = log.Get()
 
+var (
+	green          = "\033[32m"
+	red            = "\033[31m"
+	reset          = "\033[0m"
+	tick           = "✓"
+	cross          = "✖"
+	loading        = "↻"
+	greenTickSmall = fmt.Sprintf("%s%s%s", green, tick, reset)
+	redCrossSmall  = fmt.Sprintf("%s%s%s", red, cross, reset)
+
+	// emojis
+	greenTick = "✅"
+	redCross  = "❌"
+	warn      = "⚠️"
+	rocket    = "🚀"
+	timeSand  = "⏳"
+)
+
 func PrettyPrint(x any) {
 	b, err := json.MarshalIndent(x, "", "  ")
 	if err != nil {
@@ -72,28 +90,68 @@ func PrintTable(data interface{}) {
 	logger.Info().Msgf("Rendered table with %d records of type %s", v.Len(), first.Type())
 }
 
-func AddSuccessCheck(s string) string {
-	green := "\033[32m"
-	reset := "\033[0m"
-	tick := "✔"
-	greenTick := fmt.Sprintf("%s%s%s ", green, tick, reset)
-
-	if s == "" {
-		return greenTick
+func PrintSuccessln(a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintln(os.Stdout, greenTick)
 	}
-	return greenTick + s
+
+	return fmt.Fprintln(os.Stdout, append([]any{greenTick}, a...)...)
 }
 
-func AddErrorCross(s string) string {
-	red := "\033[31m"
-	reset := "\033[0m"
-	cross := "✖"
-	redCross := fmt.Sprintf("%s%s%s ", red, cross, reset)
-
-	if s == "" {
-		return redCross
+func PrintSuccessf(format string, a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintf(os.Stdout, greenTick+" "+format, a...)
 	}
-	return redCross + s
+
+	return fmt.Fprintf(os.Stdout, greenTick+" "+format, a...)
+}
+
+func PrintRocketln(a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintln(os.Stdout, rocket)
+	}
+
+	return fmt.Fprintln(os.Stdout, append([]any{rocket}, a...)...)
+}
+
+func PrintRocketf(format string, a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
+	}
+
+	return fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
+}
+
+func PrintLoadingln(a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintln(os.Stdout, timeSand)
+	}
+
+	return fmt.Fprintln(os.Stdout, append([]any{timeSand}, a...)...)
+}
+
+func PrintLoadingf(format string, a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
+	}
+
+	return fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
+}
+
+func PrintErrorln(a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintln(os.Stdout, redCross)
+	}
+
+	return fmt.Fprintln(os.Stdout, append([]any{redCross}, a...)...)
+}
+
+func PrintErrorf(format string, a ...any) (n int, err error) {
+	if len(a) == 0 {
+		return fmt.Fprintf(os.Stdout, redCross+" "+format, a...)
+	}
+
+	return fmt.Fprintf(os.Stdout, redCross+" "+format, a...)
 }
 
 func WriteResponse(data interface{}, respWriter http.ResponseWriter, status int) {
