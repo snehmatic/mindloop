@@ -94,7 +94,7 @@ func ValidateUserConfig(cmd *cobra.Command) {
 		logger.Debug().Msgf("User config exists at %s", UserConfigPath)
 	} else {
 		if cmd.Use != "configure" {
-			fmt.Println("Warn: user config does not exist, create a new one or run `mindloop configure`.")
+			utils.PrintWarnln("Warn: user config does not exist, create a new one or run `mindloop configure`.")
 			logger.Warn().Msg("User config does not exist, warned user")
 			os.Exit(0)
 		}
@@ -104,15 +104,15 @@ func ValidateUserConfig(cmd *cobra.Command) {
 func (uc UserConfig) WriteToYAML() {
 	marshalled, err := yaml.Marshal(uc)
 	if err != nil {
-		fmt.Println("Error marshalling user config to YAML")
+		utils.PrintErrorln("Error marshalling user config to YAML")
 		return
 	}
 	err = os.WriteFile(UserConfigPath, marshalled, 0644)
 	if err != nil {
-		fmt.Println("Error writing user config to file")
+		utils.PrintErrorln("Error writing user config to file")
 		return
 	}
-	fmt.Println("User config written to YAML successfully")
+	utils.PrintSuccessln("User config written to YAML successfully")
 }
 
 func (uc *UserConfig) ReadFromYAML() error {

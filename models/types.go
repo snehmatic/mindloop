@@ -60,19 +60,23 @@ func (h *Habit) ValidateHabit() error {
 
 type HabitLog struct {
 	gorm.Model
-	HabitID     int       `gorm:"not null" json:"habit_id"`
-	TargetCount int       `gorm:"not null" json:"target_count"` // number of times the habit was done
-	ActualCount int       `gorm:"not null" json:"actual_count"` // number of times the habit was actually done
-	CompletedAt time.Time `gorm:"not null" json:"completed_at"`
+	HabitID     uint         `gorm:"not null" json:"habit_id"`
+	Title       string       `gorm:"not null" json:"title"`
+	Interval    IntervalType `gorm:"type:varchar(100);not null" json:"interval"`
+	TargetCount int          `gorm:"not null" json:"target_count"`
+	ActualCount int          `gorm:"not null" json:"actual_count"`
+	EndedAt     time.Time    `gorm:"not null" json:"ended_at"`
 }
 
 type HabitLogView struct {
 	ID          uint         `json:"id"`
+	HabitID     uint         `json:"habit_id"`
 	Title       string       `json:"title"`
 	TargetCount int          `json:"target_count"`
 	ActualCount int          `json:"actual_count"`
 	Interval    IntervalType `json:"interval"`
-	CompletedAt string       `json:"completed_at"`
+	StartedAt   string       `json:"started_at"`
+	EndedAt     string       `json:"ended_at"`
 }
 
 func ToHabitLogViews(habitLogs []HabitLog) []HabitLogView {
@@ -80,11 +84,13 @@ func ToHabitLogViews(habitLogs []HabitLog) []HabitLogView {
 	for i, log := range habitLogs {
 		habitViews[i] = HabitLogView{
 			ID:          log.ID,
+			HabitID:     log.HabitID,
 			ActualCount: log.ActualCount,
 			TargetCount: log.TargetCount,
-			CompletedAt: log.CompletedAt.Format("2006-01-02 15:04:05"),
-			Interval:    Daily, // default to daily, can be changed later
-			Title:       "",    // title can be fetched from Habit model if needed
+			StartedAt:   log.CreatedAt.Format("2006-01-02"),
+			EndedAt:     log.EndedAt.Format("2006-01-02"),
+			Interval:    log.Interval,
+			Title:       log.Title,
 		}
 	}
 	return habitViews
@@ -95,7 +101,6 @@ type HabitView struct {
 	Title       string       `json:"title"`
 	Description string       `json:"description"`
 	Interval    IntervalType `json:"interval"`
-	ActualCount int          `json:"actual_count"`
 	TargetCount int          `json:"target_count"`
 }
 

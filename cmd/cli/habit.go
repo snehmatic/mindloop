@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"time"
 
 	. "github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
+	"gorm.io/gorm"
 )
 
 var (
@@ -158,9 +160,7 @@ var habitUpdateCmd = &cobra.Command{
 		}
 
 		PrintInfof("Updating habit '%s'...\n", habit.Title)
-		var habitArr []models.HabitView
-		habitArr = append(habitArr, models.ToHabitView(habit))
-		PrintTable(habitArr)
+		PrintTable([]models.HabitView{models.ToHabitView(habit)})
 		PrintInfoln("Entering interactive mode to update Habit (Press Enter to keep current field intact)")
 		ac.Logger.Info().
 			Interface("habit", habit).
@@ -200,11 +200,20 @@ var habitListCmd = &cobra.Command{
 	Example: `mindloop habit list`,
 	Aliases: []string{"l"},
 	Run: func(cmd *cobra.Command, args []string) {
-		PrintInfoln("Keep calm, fetching all habits...")
-		ac.Logger.Info().Msg("Fetching all habits...")
+		PrintInfoln("Keep calm, fetching habits...")
+		ac.Logger.Info().Msg("Fetching habits...")
+
+		intervalFilter := ""
+		if !*daily && !*weekly { // nothing selected via flags
+			PrintInfoln("No interval filter applied. Showing all habit logs.")
+			ac.Logger.Info().Msg("No interval filter applied. Showing all habit logs.")
+			intervalFilter = "" // no filter
+		} else {
+			intervalFilter = fmt.Sprintf("Interval = '%s'", GetIntervalFromFlag())
+		}
 
 		var habits []models.Habit
-		res := gdb.Find(&habits)
+		res := gdb.Where(intervalFilter).Find(&habits)
 		if res.Error != nil {
 			ac.Logger.Error().
 				Err(res.Error).
@@ -225,11 +234,172 @@ var habitListCmd = &cobra.Command{
 var habitLogCmd = &cobra.Command{
 	Use:     "log",
 	Aliases: []string{"done", "complete", "mkd"},
-	Args:    cobra.ExactArgs(1),
 	Short:   "Log a habit as done",
 	Example: `mindloop habit log "Excercise"`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Logged habit as done...")
+		if len(args) < 1 {
+			ac.Logger.Error().Msg("No habit ID provided for logging")
+			PrintWarnln("Please provide the habit ID to log.")
+			return
+		}
+		habitID := args[0]
+		var habit models.Habit
+		res := gdb.Where("ID = ?", habitID).First(&habit)
+		if res.Error != nil {
+			ac.Logger.Error().
+				Interface("habit", habit).
+				Msg("Habit not found")
+			PrintErrorln("Habit not found:", res.Error)
+			return
+		}
+
+		// check if habit is already logged today
+		var existingLog models.HabitLog
+		today := time.Now().Truncate(24 * time.Hour)
+		endedAt := today
+
+		switch habit.Interval {
+		case models.Daily:
+			// if the log exists for today
+			res = gdb.Where("HabitID = ? AND EndedAt = ?", habit.ID, today, today).First(&existingLog)
+		case models.Weekly:
+			// if the log exists for the current week
+			startOfWeek := time.Now().AddDate(0, 0, -int(time.Now().Weekday()))
+			endOfWeek := startOfWeek.AddDate(0, 0, 6).Truncate(24 * time.Hour)
+			endedAt = endOfWeek
+			res = gdb.Where("HabitID = ? AND CreatedAt >= ? AND EndedAt <= ?", habit.ID, startOfWeek, endOfWeek).First(&existingLog)
+		}
+		if res.Error == nil {
+			// habit log record found, update it if required
+			if existingLog.ActualCount >= habit.TargetCount {
+				PrintRocketf("Habit already completed for %s interval. No need to log again.\n", habit.Interval)
+				ac.Logger.Info().Msgf("Habit already completed for %s interval. No need to log again.", habit.Interval)
+				return
+			}
+
+			// habit not complete, increment the count
+			existingLog.ActualCount++
+			existingLog.EndedAt = endedAt
+			res = gdb.Save(&existingLog)
+			if res.Error != nil {
+				ac.Logger.Error().
+					Interface("habitLog", existingLog).
+					Err(res.Error).
+					Msg("Failed to update existing habit log")
+				PrintErrorln("Failed to update existing habit log:", res.Error)
+				return
+			}
+
+			ac.Logger.Info().
+				Interface("habit", habit).
+				Msgf("Habit %s logged %d/%d times in %s interval", habit.Title, existingLog.ActualCount, habit.TargetCount, habit.Interval)
+			PrintLoadingf("Habit %s logged %d/%d times in %s interval.\n", habit.Title, existingLog.ActualCount, habit.TargetCount, habit.Interval)
+			PrintInfof("Use 'mindloop habit unlog <id>' to mark it as undone, and reset to 0/%d.\n", habit.TargetCount)
+
+			return
+		} else if res.Error != gorm.ErrRecordNotFound {
+			ac.Logger.Error().
+				Interface("habit", habit).
+				Err(res.Error).
+				Msg("Failed to check existing habit log")
+			PrintErrorln("Failed to check existing habit log:", res.Error)
+			return
+		}
+
+		// habit log record not found in db
+		// create a new one
+		habitLog := &models.HabitLog{
+			HabitID:     habit.ID,
+			Title:       habit.Title,
+			Interval:    habit.Interval,
+			TargetCount: habit.TargetCount,
+			ActualCount: 1,
+			EndedAt:     endedAt,
+		}
+		res = gdb.Create(habitLog)
+		if res.Error != nil {
+			ac.Logger.Error().
+				Interface("habitLog", habitLog).
+				Err(res.Error).
+				Msg("Failed to log habit")
+			PrintErrorln("Failed to log habit:", res.Error)
+			return
+		}
+
+		ac.Logger.Info().
+			Interface("habit", habit).
+			Msg("Habit logged successfully")
+		PrintSuccessf("Habit '%s' logged successfully.\n", habit.Title)
+	},
+}
+
+// log habit as done subcommand
+var habitUnLogCmd = &cobra.Command{
+	Use:     "unlog",
+	Aliases: []string{"undone", "incomplete", "mkud"},
+	Args:    cobra.ExactArgs(1),
+	Short:   "Log a habit as undone",
+	Example: `mindloop habit unlog "Excercise"`,
+	Run: func(cmd *cobra.Command, args []string) {
+		if len(args) < 1 {
+			ac.Logger.Error().Msg("No habit ID provided for unlogging")
+			PrintWarnln("Please provide the habit ID to unlog.")
+			return
+		}
+		habitID := args[0]
+		var habit models.Habit
+		res := gdb.Where("ID = ?", habitID).First(&habit)
+		if res.Error != nil {
+			ac.Logger.Error().
+				Interface("habit", habit).
+				Msg("Habit not found")
+			PrintErrorln("Habit not found:", res.Error)
+			return
+		}
+
+		var existingLog models.HabitLog
+		today := time.Now().Format("2006-01-02")
+		switch habit.Interval {
+		case models.Daily:
+			res = gdb.Where("HabitID = ? AND DATE(CreatedAt) = ?", habit.ID, today).First(&existingLog)
+		case models.Weekly:
+			startOfWeek := time.Now().AddDate(0, 0, -int(time.Now().Weekday()))
+			res = gdb.Where("HabitID = ? AND CreatedAt >= ?", habit.ID, startOfWeek).First(&existingLog)
+		}
+		if res.Error != nil {
+			if res.Error == gorm.ErrRecordNotFound {
+				PrintWarnln("No existing log found for this habit.")
+				ac.Logger.Warn().Msg("No existing log found for this habit.")
+				return
+			}
+			ac.Logger.Error().
+				Err(res.Error).
+				Msg("Failed to check existing habit log")
+			PrintErrorln("Failed to check existing habit log:", res.Error)
+			return
+		}
+
+		if existingLog.ActualCount <= 0 {
+			PrintWarnln("Habit is already marked as undone.")
+			ac.Logger.Warn().Msg("Habit is already marked as undone.")
+			return
+		}
+
+		existingLog.ActualCount = 0
+		res = gdb.Save(&existingLog)
+		if res.Error != nil {
+			ac.Logger.Error().
+				Err(res.Error).
+				Msg("Failed to unlog habit")
+			PrintErrorln("Failed to unlog habit:", res.Error)
+			return
+		}
+
+		ac.Logger.Info().
+			Interface("habit", habit).
+			Msg("Habit unlogged successfully")
+		PrintSuccessf("Habit '%s' unlogged successfully. Reset to 0/%d.\n", habit.Title, habit.TargetCount)
+		PrintInfoln("Use 'mindloop habit log <id>' to mark it as done again.")
 	},
 }
 
@@ -239,17 +409,30 @@ var habitLogShowCmd = &cobra.Command{
 	Aliases: []string{"status", "check", "stats"},
 	Short:   "Check habit logs show -w",
 	Run: func(cmd *cobra.Command, args []string) {
-		PrintRocketln("Here is your habit logs show...")
+		PrintRocketln("'show me the logs'? Here you go Chief...")
 
-		interval := GetIntervalFromFlag()
+		intervalFilter := ""
+		if !*daily && !*weekly { // nothing selected via flags
+			PrintInfoln("No interval filter applied. Showing all habit logs.")
+			ac.Logger.Info().Msg("No interval filter applied. Showing all habit logs.")
+			intervalFilter = "" // no filter
+		} else {
+			intervalFilter = fmt.Sprintf("Interval = '%s'", GetIntervalFromFlag())
+		}
 
 		var habitLogs []models.HabitLog
-		res := gdb.Find(&habitLogs).Where("interval = ?", interval)
+		res := gdb.Where(intervalFilter).Order("CreatedAt DESC").Find(&habitLogs)
 		if res.Error != nil {
 			ac.Logger.Error().
 				Err(res.Error).
 				Msg("Failed to retrieve habit logs")
 			PrintErrorln("Failed to retrieve habit logs:", res.Error)
+			return
+		}
+
+		if len(habitLogs) == 0 {
+			PrintInfoln("Ruh-roh! No habit logs found. Start logging habits with 'mindloop habit log <id>'")
+			ac.Logger.Info().Msg("No habit logs found. Prompting user to log habits.")
 			return
 		}
 
@@ -265,14 +448,15 @@ func init() {
 	habitCmd.AddCommand(habitDeleteCmd)
 	habitCmd.AddCommand(habitUpdateCmd)
 	habitCmd.AddCommand(habitLogCmd)
+	habitCmd.AddCommand(habitUnLogCmd)
 	habitCmd.AddCommand(habitListCmd)
 	habitLogCmd.AddCommand(habitLogShowCmd)
 
 	// flags
 	all = habitCmd.PersistentFlags().BoolP("all", "A", false, "Select all habits") // not using now
-	daily = habitAddCmd.Flags().BoolP("daily", "d", false, "Set habit as daily")
-	weekly = habitAddCmd.Flags().BoolP("weekly", "w", false, "Set habit as weekly")
-	interactive = habitAddCmd.Flags().BoolP("interactive", "i", false, "Interactive mode for adding habit")
+	daily = habitCmd.PersistentFlags().BoolP("daily", "d", false, "Set habit as daily")
+	weekly = habitCmd.PersistentFlags().BoolP("weekly", "w", false, "Set habit as weekly")
+	interactive = habitCmd.PersistentFlags().BoolP("interactive", "i", false, "Interactive mode for adding habit")
 }
 
 // GetIntervalFromFlag returns the interval type based on the flags set
@@ -283,7 +467,7 @@ func GetIntervalFromFlag() models.IntervalType {
 	} else if *weekly {
 		return models.Weekly
 	}
-	PrintInfoln("Defaulting to daily interval.")
+	PrintInfoln("Defaulting to daily interval. Use -w or -d to set weekly or daily respectively.")
 	return models.Daily
 }
 
