@@ -33,7 +33,20 @@ var (
 	rocket    = "🚀"
 	timeSand  = "⏳"
 	bulb      = "💡"
+
+	// banner
+	banner = `
+ _  _  __  __ _  ____  __     __    __  ____ 
+( \/ )(  )(  ( \(    \(  )   /  \  /  \(  _ \
+/ \/ \ )( /    / ) D (/ (_/\(  O )(  O )) __/
+\_)(_/(__)\_)__)(____/\____/ \__/  \__/(__)  
+`
 )
+
+func PrettyPrintBanner() {
+	greenBanner := fmt.Sprintf("%s%s%s", green, banner, reset)
+	fmt.Println(greenBanner)
+}
 
 func PrettyPrint(x any) {
 	b, err := json.MarshalIndent(x, "", "  ")

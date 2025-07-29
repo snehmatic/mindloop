@@ -31,6 +31,12 @@ var rootCmd = &cobra.Command{
 			ac.Logger.Warn().Msg("No local DB file found, a new one will be created.")
 		}
 	},
+	Run: func(cmd *cobra.Command, args []string) {
+		utils.PrettyPrintBanner()
+		utils.PrintRocketln("Welcome to Mindloop! Use 'mindloop help' to see available commands.")
+		utils.PrintInfoln("For starters, try 'mindloop configure' to set up your profile.")
+		ac.Logger.Info().Msg("User accessed root command, prompting for help.")
+	},
 }
 
 func Execute() {
