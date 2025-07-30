@@ -37,6 +37,9 @@ var rootCmd = &cobra.Command{
 		utils.PrintInfoln("For starters, try 'mindloop configure' to set up your profile.")
 		ac.Logger.Info().Msg("User accessed root command, prompting for help.")
 	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		fmt.Println("🧠 Thank you for using Mindloop! This is still a work in progress.")
+	},
 }
 
 func Execute() {

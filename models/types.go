@@ -235,15 +235,13 @@ type FocusStats struct {
 type HabitStats struct {
 	HabitName      string
 	CompletionRate float64
-	DaysTracked    int
-	DaysCompleted  int
+	LogsTracked    int
+	LogsCompleted  int
 }
 
 type IntentStats struct {
 	IntentName string
-	FocusCount int
-	TotalFocus time.Duration
-	HabitCount int
+	Status     string
 }
 
 type SummaryReport struct {
