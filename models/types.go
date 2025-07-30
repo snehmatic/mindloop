@@ -196,9 +196,25 @@ func ToFocusSessionView(fs FocusSession) FocusSessionView {
 
 type JournalEntry struct {
 	gorm.Model
-	Date  time.Time `gorm:"uniqueIndex" json:"date"` // one entry per day
-	Entry string    `gorm:"type:text" json:"entry"`
-	Mood  string    `gorm:"type:varchar(50)" json:"mood"` // e.g., happy, sad, neutral
+	Content string `gorm:"type:text" json:"content"`
+	Title   string `gorm:"type:varchar(100)" json:"title"`
+	Mood    string `gorm:"type:varchar(50)" json:"mood"` // e.g., happy, sad, neutral
+}
+
+type JournalEntryView struct {
+	ID    uint   `json:"id"`
+	Title string `json:"title"`
+	Mood  string `json:"mood"`
+	Date  string `json:"date"` // formatted as "2006-01-02 15:04:05"
+}
+
+func ToJournalEntryView(entry JournalEntry) JournalEntryView {
+	return JournalEntryView{
+		ID:    entry.ID,
+		Title: entry.Title,
+		Mood:  entry.Mood,
+		Date:  entry.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
 }
 
 func IsValidMode(mode string) bool {
@@ -208,4 +224,31 @@ func IsValidMode(mode string) bool {
 		}
 	}
 	return false
+}
+
+type FocusStats struct {
+	TotalSessions  int
+	TotalDuration  string
+	LongestSession string
+}
+
+type HabitStats struct {
+	HabitName      string
+	CompletionRate float64
+	DaysTracked    int
+	DaysCompleted  int
+}
+
+type IntentStats struct {
+	IntentName string
+	FocusCount int
+	TotalFocus time.Duration
+	HabitCount int
+}
+
+type SummaryReport struct {
+	DateRange string
+	Focus     FocusStats
+	Habits    []HabitStats
+	Intents   []IntentStats
 }

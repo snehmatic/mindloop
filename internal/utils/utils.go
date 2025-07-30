@@ -3,8 +3,10 @@ package utils
 import (
 	"encoding/json"
 	"fmt"
+	"math"
 	"net/http"
 	"os"
+	"os/exec"
 
 	"reflect"
 	"strings"
@@ -244,4 +246,60 @@ func FileDelete(filename string) error {
 	}
 	logger.Info().Str("file", filename).Msg("file deleted successfully")
 	return nil
+}
+
+func CaptureJournalWithEditor() (string, error) {
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "vi"
+	}
+
+	tmpFile, err := os.CreateTemp("", "mindloop_journal_*.md")
+	if err != nil {
+		return "", err
+	}
+	defer os.Remove(tmpFile.Name())
+
+	header := "# Mindloop Journal\n# Write your thoughts below. Lines starting with # will be ignored.\n\n"
+	tmpFile.WriteString(header)
+	tmpFile.Close()
+
+	cmd := exec.Command(editor, tmpFile.Name())
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		return "", err
+	}
+
+	data, err := os.ReadFile(tmpFile.Name())
+	if err != nil {
+		return "", err
+	}
+
+	lines := strings.Split(string(data), "\n")
+	var content strings.Builder
+	for _, line := range lines {
+		if !strings.HasPrefix(line, "#") {
+			content.WriteString(line + "\n")
+		}
+	}
+
+	return strings.TrimSpace(content.String()), nil
+}
+
+// FormatMinutes converts float64 minutes into a human-readable string like "1hr 2min"
+func FormatMinutes(minutes float64) string {
+	totalMinutes := int(math.Round(minutes))
+	hours := totalMinutes / 60
+	mins := totalMinutes % 60
+
+	switch {
+	case hours > 0 && mins > 0:
+		return fmt.Sprintf("%dhr %dmin", hours, mins)
+	case hours > 0:
+		return fmt.Sprintf("%dhr", hours)
+	default:
+		return fmt.Sprintf("%dmin", mins)
+	}
 }
