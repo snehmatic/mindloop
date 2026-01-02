@@ -1,12 +1,15 @@
 package cli
 
 import (
-	"time"
-
+	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/utils"
 	. "github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
+)
+
+var (
+	intentService *intent.Service
 )
 
 // parent intent command
@@ -14,6 +17,9 @@ var intentCmd = &cobra.Command{
 	Use:     "intent",
 	Short:   "Manage your intents",
 	Example: `mindloop intent start "Get this work done"`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		intentService = intent.NewService(gdb)
+	},
 }
 
 // start intent subcommand
@@ -23,12 +29,9 @@ var intentStartCmd = &cobra.Command{
 	Example: `mindloop intent start "Get this work done"`,
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		intent := &models.Intent{
-			Name:   args[0],
-			Status: "active",
-		}
 		// start the intent
-		if err := gdb.Create(intent).Error; err != nil {
+		intent, err := intentService.StartIntent(args[0])
+		if err != nil {
 			PrintErrorln("Error starting intent:", err)
 			ac.Logger.Error().Msgf("Error starting intent: %v", err)
 			PrintInfoln("Please try again or check your database connection.")
@@ -45,8 +48,8 @@ var intentListCmd = &cobra.Command{
 	Short:   "List all intents",
 	Example: `mindloop intent list`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var intents []models.Intent
-		if err := gdb.Find(&intents).Error; err != nil {
+		intents, err := intentService.ListIntents()
+		if err != nil {
 			PrintErrorln("Error fetching intents:", err)
 			ac.Logger.Error().Msgf("Error fetching intents: %v", err)
 			PrintInfoln("Please check your database connection or try again later.")
@@ -73,8 +76,8 @@ var intentCurrentCmd = &cobra.Command{
 	Short:   "Show current active intents",
 	Example: `mindloop intent current`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var intents []models.Intent
-		if err := gdb.Where("Status = ?", "active").Find(&intents).Error; err != nil {
+		intents, err := intentService.ListActiveIntents()
+		if err != nil {
 			PrintErrorln("Error fetching active intents:", err)
 			ac.Logger.Error().Msgf("Error fetching active intents: %v", err)
 			PrintInfoln("Please check your database connection or try again later.")
@@ -106,28 +109,16 @@ var intentEndCmd = &cobra.Command{
 			ac.Logger.Warn().Msg("No intent ID provided for ending intent.")
 			return
 		}
-		var intent models.Intent
-		if err := gdb.Where("id = ?", args[0]).First(&intent).Error; err != nil {
-			PrintErrorln("Error fetching intent:", err)
-			ac.Logger.Error().Msgf("Error fetching intent with ID %s: %v", args[0], err)
-			return
-		}
-		if intent.ID == 0 {
-			PrintWarnln("No intent found with the given ID.")
-			ac.Logger.Warn().Msgf("No intent found with ID %s to finish.", args[0])
+
+		intent, err := intentService.EndIntent(args[0])
+		if err != nil {
+			PrintErrorln("Error ending intent:", err)
+			ac.Logger.Error().Msgf("Error ending intent with ID %s: %v", args[0], err)
 			return
 		}
 
-		now := time.Now()
-		intent.Status = "done"
-		intent.EndedAt = &now
-		if err := gdb.Save(&intent).Error; err != nil {
-			PrintErrorln("Error ending intent:", err)
-			ac.Logger.Error().Msgf("Error ending intent with ID %d: %v", intent.ID, err)
-			return
-		}
 		ac.Logger.Info().Msgf("Intent '%s' ended successfully!", intent.Name)
-		intentView := models.ToIntentView(intent)
+		intentView := models.ToIntentView(*intent)
 		PrintTable([]models.IntentView{intentView})
 	},
 }

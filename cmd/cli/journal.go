@@ -3,13 +3,15 @@ package cli
 import (
 	"fmt"
 
+	"github.com/snehmatic/mindloop/internal/core/journal"
 	. "github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
 )
 
 var (
-	mood *string
+	mood           *string
+	journalService *journal.Service
 )
 
 var journalCmd = &cobra.Command{
@@ -17,6 +19,9 @@ var journalCmd = &cobra.Command{
 	Short:   "Journal your thoughts and progress",
 	Long:    `Journal your thoughts, feelings, and progress to reflect on your journey.`,
 	Example: `mindloop journal new "Here goes nothing..."`,
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		journalService = journal.NewService(gdb)
+	},
 }
 
 var journalNewCmd = &cobra.Command{
@@ -40,13 +45,10 @@ var journalNewCmd = &cobra.Command{
 			PrintWarnln("Empty journal. Nothing saved.")
 			return
 		}
-		if *mood == "" {
-			PrintWarnln("No mood specified, defaulting to 'neutral'.")
-			*mood = "neutral"
-		}
 
 		PrintInfoln("Saving your journal entry...")
-		err = SaveJournalEntry(args[0], content, *mood)
+		// Mood handling is now done in the service if empty, but we pass the flag value
+		err = journalService.CreateEntry(args[0], content, *mood)
 		if err != nil {
 			PrintErrorln("Failed to save journal:", err)
 			return
@@ -66,10 +68,9 @@ var journalListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		PrintRocketln("Fetching your journal entries...")
 
-		var entries []models.JournalEntry
-		res := gdb.Find(&models.JournalEntry{}).Order("CreatedAt DESC").Scan(&entries)
-		if res.Error != nil {
-			PrintErrorln("Failed to retrieve journal entries:", res.Error)
+		entries, err := journalService.ListEntries()
+		if err != nil {
+			PrintErrorln("Failed to retrieve journal entries:", err)
 			return
 		}
 		if len(entries) == 0 {
@@ -96,8 +97,8 @@ var journalViewCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		id := args[0]
-		var entry models.JournalEntry
-		if err := gdb.First(&entry, id).Error; err != nil {
+		entry, err := journalService.GetEntry(id)
+		if err != nil {
 			PrintErrorln("Journal entry not found:", err)
 			ac.Logger.Error().Msgf("Journal entry not found: %v", err)
 			return
@@ -117,8 +118,8 @@ var journalDeleteCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		id := args[0]
 
-		var entry models.JournalEntry
-		if err := gdb.First(&entry, id).Error; err != nil {
+		entry, err := journalService.GetEntry(id)
+		if err != nil {
 			PrintErrorln("Journal entry not found:", err)
 			ac.Logger.Error().Msgf("Journal entry not found: %v", err)
 			return
@@ -135,10 +136,10 @@ var journalDeleteCmd = &cobra.Command{
 		}
 
 		PrintRocketf("Deleting journal entry '%s'\n", entry.Title)
-		res := gdb.Delete(&models.JournalEntry{}, id)
-		if res.Error != nil {
-			PrintErrorln("Failed to delete journal entry:", res.Error)
-			ac.Logger.Error().Msgf("Failed to delete journal entry with ID %s: %v", id, res.Error)
+		err = journalService.DeleteEntry(id)
+		if err != nil {
+			PrintErrorln("Failed to delete journal entry:", err)
+			ac.Logger.Error().Msgf("Failed to delete journal entry with ID %s: %v", id, err)
 			return
 		}
 
@@ -155,16 +156,6 @@ func init() {
 	rootCmd.AddCommand(journalCmd)
 
 	mood = journalNewCmd.Flags().StringP("mood", "m", "neutral", "Set journal mood")
-}
-
-func SaveJournalEntry(title, content, mood string) error {
-	entry := models.JournalEntry{
-		Title:   title,
-		Content: content,
-		Mood:    "neutral", // Default mood
-	}
-
-	return gdb.Create(&entry).Error
 }
 
 func PrintJournalEntry(entry models.JournalEntry) {
