@@ -1,86 +1,58 @@
 {{ define "content" }}
-<div class="card">
-    <h2>Focus Session</h2>
-    <div class="timer-display" id="timer">25:00</div>
+<div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
+    <!-- Active Timer Section -->
+    <div class="card text-center" style="padding: 3rem 1.5rem;">
+        <h1 class="mb-md" style="font-size: 3.5rem; font-weight: 800; color: var(--primary);">Focus</h1>
+        <p class="mb-lg">Enter a flow state. Track your deep work.</p>
 
-    <div style="display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem;">
-        <button id="startBtn" class="btn" style="padding: 0.75rem 2rem; font-size: 1.25rem;">Start Focus</button>
-        <button id="stopBtn" class="btn btn-danger"
-            style="padding: 0.75rem 2rem; font-size: 1.25rem; display: none;">Stop</button>
-    </div>
-
-    <!-- Hidden form to submit session start/stop to backend -->
-    <form id="sessionForm" action="/focus/start" method="POST" style="text-align: center;">
-        <input type="hidden" name="title" value="Web Focus Session"> <!-- Default title for now -->
-    </form>
-</div>
-
-<div class="card">
-    <div class="flex-between mb-md">
-        <h2 class="mb-0">Recent Sessions</h2>
-        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all focus session history?');">
-            <input type="hidden" name="type" value="focus">
-            <button type="submit" class="btn btn-danger-outline btn-sm">Clear History</button>
+        <form action="/focus/start" method="POST" class="mb-md">
+            <div class="form-group flex-center">
+                <input type="text" name="title" placeholder="What are you working on?" required
+                    style="max-width: 400px; text-align: center; font-size: 1.25rem;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;">
+                Start Session
+            </button>
         </form>
     </div>
-    {{ if .Sessions }}
-    <table class="table-layout">
-        <thead>
-            <tr class="table-header">
-                <th class="table-cell">Title</th>
-                <th class="table-cell">Status</th>
-                <th class="table-cell">Duration</th>
-                <th class="table-cell">Date</th>
-                <th class="table-cell">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
+
+    <!-- Session History -->
+    <div>
+        <div class="flex-between mb-md">
+            <h3>Recent Sessions</h3>
+            <div class="text-sm text-muted">Last 10 sessions</div>
+        </div>
+
+        {{ if .Sessions }}
+        <div class="card" style="padding: 0;">
             {{ range .Sessions }}
-            <tr class="table-row">
-                <td class="table-cell">{{ .Title }}</td>
-                <td class="table-cell">
-                    <span class="badge {{ if eq .Status " active" }}badge-active{{ else }}badge-inactive{{ end }}">
-                        {{ .Status }}
-                    </span>
-                </td>
-                <td class="table-cell">{{ printf "%.0f" .Duration }}m</td>
-                <td class="table-cell">{{ .CreatedAt.Format "Jan 02 15:04" }}</td>
-                <td class="table-cell">
+            <div
+                style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 600; font-size: 1.1rem;">{{ .Title }}</div>
+                    <div class="text-sm text-muted">{{ .CreatedAt }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-lg font-bold" style="color: var(--primary);">{{ printf "%.0f" .Duration }}m</div>
                     {{ if eq .Status "active" }}
-                    <form action="/focus/stop" method="POST" style="display: inline;">
+                    <span
+                        style="background: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">Active</span>
+                    <form action="/focus/stop" method="POST" style="display: inline-block; margin-left: 0.5rem;">
                         <input type="hidden" name="id" value="{{ .ID }}">
-                        <button type="submit" class="btn btn-danger btn-sm">Stop</button>
+                        <button type="submit" class="btn btn-danger-outline btn-sm">Stop</button>
                     </form>
+                    {{ else }}
+                    <span class="text-sm text-muted">Completed</span>
                     {{ end }}
-                </td>
-            </tr>
+                </div>
+            </div>
             {{ end }}
-        </tbody>
-    </table>
-
-    {{ else }}
-    <p>No recent sessions.</p>
-    {{ end }}
+        </div>
+        {{ else }}
+        <div class="empty-state">
+            <p>No focus sessions recorded yet.</p>
+        </div>
+        {{ end }}
+    </div>
 </div>
-
-<script>
-    let timerInterval;
-    let timeLeft = 25 * 60; // 25 minutes
-    const timerDisplay = document.getElementById('timer');
-    const startBtn = document.getElementById('startBtn');
-
-    function updateDisplay() {
-        const minutes = Math.floor(timeLeft / 60);
-        const seconds = timeLeft % 60;
-        timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
-    }
-
-    startBtn.addEventListener('click', () => {
-        // In a real expanded app, we'd start the session via AJAX first, then start timer.
-        // For this MVP, we just submit the form to creating a session server-side, 
-        // which will reload the page. To make it "live", we'd need more JS.
-        // Let's stick to the server-side flow for simplicity of MVP as per instructions (minimal UI).
-        document.getElementById('sessionForm').submit();
-    });
-</script>
 {{ end }}

@@ -1,0 +1,31 @@
+{{ define "content" }}
+<div class="hero"
+    style="background-image: linear-gradient(rgba(255,255,255,0.9), rgba(255,255,255,0.7)), url('/static/images/about-graded.png'); background-size: cover; background-position: center; padding: 4rem 1.5rem; border-radius: 1rem; box-shadow: var(--shadow-sm);  margin-bottom: 3rem;">
+    <h1 style="margin-bottom: 1.5rem; font-size: 3rem; color: var(--text-main);">About Mindloop</h1>
+    <p style="font-size: 1.2rem; color: var(--text-main);">Mindloop is designed to bring clarity to your chaotic digital
+        life. By simplifying how you track your habits, focus, and intentions, we help you close the loops in your mind.
+    </p>
+</div>
+
+<div class="container" style="max-width: 800px;">
+    <div class="grid" style="margin-bottom: 3rem;">
+        <div class="card" style="height: 100%;">
+            <h3>Philosophy</h3>
+            <p>We believe in "Serene Focus". Tools should not demand your attention; they should help you direct it.
+                Mindloop is built to be minimal, calm, and effective.</p>
+        </div>
+        <div class="card" style="height: 100%;">
+            <h3>Methodology</h3>
+            <p>Combine daily intention setting, time-boxed focus sessions, and consistent habit tracking to build a
+                feedback loop of positive reinforcement.</p>
+        </div>
+    </div>
+
+    <div class="text-center">
+        <img src="/static/images/about-zen.png" alt="Zen Balance"
+            style="max-width: 150px; margin-bottom: 1rem; border-radius: 50%; opacity: 0.8;">
+        <p>Built with Go on the backend and pure HTML/CSS on the frontend.</p>
+        <p class="text-sm text-muted">Version 1.0.0 - Mindfulness Edition</p>
+    </div>
+</div>
+{{ end }}

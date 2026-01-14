@@ -2,34 +2,38 @@
 <div class="card">
     <h2>New Entry</h2>
     <form action="/journal/new" method="POST">
-        <div>
+        <div class="form-group">
             <label for="title">Title</label>
-            <input type="text" id="title" name="title" required>
+            <input type="text" id="title" name="title" required placeholder="Title your thoughts...">
         </div>
-        <div>
+        <div class="form-group">
             <label for="mood">Mood</label>
             <select id="mood" name="mood">
-                <option value="neutral">Neutral</option>
-                <option value="happy">Happy</option>
-                <option value="sad">Sad</option>
-                <option value="energetic">Energetic</option>
-                <option value="calm">Calm</option>
+                <option value="neutral">Neutral 😐</option>
+                <option value="happy">Happy 😊</option>
+                <option value="sad">Sad 😔</option>
+                <option value="energetic">Energetic ⚡</option>
+                <option value="calm">Calm 😌</option>
             </select>
         </div>
-        <div>
+        <div class="form-group">
             <label for="content">Content</label>
-            <textarea id="content" name="content" rows="4" required></textarea>
+            <textarea id="content" name="content" rows="4" required
+                placeholder="Write your daily reflection here..."></textarea>
         </div>
-        <button type="submit" class="btn">Save Entry</button>
+        <div class="flex-center" style="justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary" style="padding-left: 2rem; padding-right: 2rem;">Save
+                Entry</button>
+        </div>
     </form>
 </div>
 
-<div class="entries">
+<div class="entries" style="margin-top: 2rem;">
     <div class="flex-between mb-md">
         <h2 class="mb-0">Recent Entries</h2>
-        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all journal entries?');">
+        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all journal entries?');" class="mb-0">
             <input type="hidden" name="type" value="journal">
-            <button type="submit" class="btn btn-danger-outline btn-sm">Reset Journal</button>
+            <button type="submit" class="btn btn-premium-outline btn-sm">Reset Journal</button>
         </form>
     </div>
     {{ if .Entries }}

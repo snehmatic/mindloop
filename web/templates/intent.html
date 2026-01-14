@@ -1,49 +1,58 @@
 {{ define "content" }}
 
 {{ if .CurrentIntent }}
-<div class="intent-hero">
-    <h1>{{ .CurrentIntent.Name }}</h1>
-    <p>This is your primary focus for today.</p>
+<div class="hero">
+    <div class="text-label mb-sm" style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary);">
+        Today's Focus</div>
+    <h1 style="font-size: 3rem; margin-bottom: 2rem;">{{ .CurrentIntent.Name }}</h1>
 
-    <form action="/intent/complete" method="POST" style="margin-top: 1.5rem;">
-        <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
-        <button type="submit" class="btn"
-            style="background-color: white; color: #6366f1; border: none; font-size: 1rem; padding: 0.75rem 2rem;">Mark
-            as Complete</button>
-    </form>
+    <div class="flex-center">
+        <form action="/intent/complete" method="POST">
+            <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+                Mark as Complete
+            </button>
+        </form>
+    </div>
 </div>
 {{ else }}
-<div class="card" style="text-align: center; padding: 3rem;">
-    <h2 style="margin-bottom: 1rem;">What is your intent for today?</h2>
-    <form action="/intent/set" method="POST" style="max-width: 400px; margin: 0 auto;">
-        <input type="text" name="name" placeholder="e.g. Finish the API Refactor" required
-            style="font-size: 1.25rem; text-align: center;">
-        <button type="submit" class="btn" style="font-size: 1.1rem; width: 100%;">Set Intent</button>
+<div class="hero">
+    <h2>What is your intent for today?</h2>
+    <p>Set a single intention to guide your actions.</p>
+    <form action="/intent/set" method="POST" class="flex-center" style="margin-top: 2rem;">
+        <div class="flex-center gap-sm" style="width: 100%; max-width: 500px;">
+            <input type="text" name="name" placeholder="e.g. Finish the API Refactor" required
+                style="flex: 1; text-align: center;">
+            <button type="submit" class="btn btn-primary">Set Intent</button>
+        </div>
     </form>
 </div>
 {{ end }}
 
 <div class="card">
     <div class="flex-between mb-md">
-        <h3 class="mb-0">History</h3>
-        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all intent history?');">
+        <h3>History</h3>
+        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all intent history?');" class="mb-0">
             <input type="hidden" name="type" value="intent">
             <button type="submit" class="btn btn-danger-outline btn-sm">Clear History</button>
         </form>
     </div>
     {{ if .History }}
-    <ul class="list-none">
+    <ul style="list-style: none; padding: 0; margin: 0;">
         {{ range .History }}
-        <li class="flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--bg-color);">
-            <span class="{{ if eq .Status " done" }}text-done{{ end }}">{{ .Name }}</span>
+        <li class="flex-between"
+            style="padding: 1rem 0; border-bottom: 1px solid var(--border); transition: background-color 0.2s;">
+            <span class="{{ if eq .Status " done" }}text-done{{ end }}" style="font-size: 1.1rem;">
+                {{ .Name }}
+            </span>
             <small class="text-muted">{{ .CreatedAt.Format "Jan 02" }}</small>
         </li>
         {{ end }}
     </ul>
     {{ else }}
-    <p>No intent history found.</p>
+    <div class="empty-state" style="border: none; padding: 1rem 0;">
+        <p>No intent history found.</p>
+    </div>
     {{ end }}
-</div>
-
 </div>
 {{ end }}

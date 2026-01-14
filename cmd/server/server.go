@@ -62,6 +62,7 @@ func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
 
 	// Maintenance
 	r.HandleFunc("/cleanslate", mlh.HandleCleanSlate).Methods("POST")
+	r.HandleFunc("/about", mlh.HandleAbout).Methods("GET")
 
 	return r, nil
 }

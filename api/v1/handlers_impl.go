@@ -313,7 +313,7 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 	var err error
 
 	switch target {
-	case "all":
+	case "all", "": // Default to all if empty
 		// Order matters for FK constraints if any, though we don't have many
 		err1 := mlh.journal.DeleteAll()
 		err2 := mlh.habit.DeleteAll()
@@ -345,4 +345,10 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	http.Redirect(w, r, redirectURL+"?success=Data cleared successfully", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleAbout(w http.ResponseWriter, r *http.Request) {
+	mlh.renderTemplate(w, "about.html", map[string]interface{}{
+		"Title": "About",
+	})
 }

@@ -1,38 +1,47 @@
 {{ define "content" }}
-<div class="card">
-    <div class="flex-start-wrap">
+<div class="card mb-md">
+    <div class="flex-between">
         <div>
             <h1>Summary Report</h1>
-            <p>{{ .Report.DateRange }}</p>
+            <p class="mb-0">{{ .Report.DateRange }}</p>
         </div>
-        <form action="/summary" method="GET" class="filter-form">
+        <form action="/summary" method="GET" style="display: flex; align-items: flex-end; gap: 0.75rem;">
             <div class="flex-col">
-                <label for="start" class="text-xs mb-0">Start</label>
-                <input type="date" id="start" name="start" class="filter-input">
+                <label for="start" class="text-xs mb-0" style="margin-bottom: 0.25rem; font-weight: 600;">Start</label>
+                <input type="date" id="start" name="start"
+                    style="padding: 0.4rem 0.6rem; font-size: 0.85rem; height: 34px;">
             </div>
             <div class="flex-col">
-                <label for="end" class="text-xs mb-0">End</label>
-                <input type="date" id="end" name="end" class="filter-input">
+                <label for="end" class="text-xs mb-0" style="margin-bottom: 0.25rem; font-weight: 600;">End</label>
+                <input type="date" id="end" name="end"
+                    style="padding: 0.4rem 0.6rem; font-size: 0.85rem; height: 34px;">
             </div>
-            <button type="submit" class="btn btn-sm">Filter</button>
+            <div class="flex-col">
+                <label style="visibility: hidden; margin-bottom: 0.25rem; font-weight: 600;">Filter</label>
+                <button type="submit" class="btn btn-secondary btn-sm"
+                    style="height: 34px; line-height: 1;">Filter</button>
+            </div>
         </form>
     </div>
 </div>
 
 <div class="grid">
+    <!-- Focus Stats -->
     <div class="card">
         <h3>Focus</h3>
         <div class="mt-md">
-            <div class="stat-value">{{ .Report.Focus.TotalDuration }}</div>
+            <div class="stat-value">{{ if .Report.Focus.TotalDuration }}{{ .Report.Focus.TotalDuration }}{{ else }}0
+                mins{{ end }}</div>
             <div class="stat-label">Total Focus Time</div>
         </div>
         <div class="mt-md flex-between gap-lg" style="justify-content: flex-start;">
             <div>
-                <div class="text-lg font-bold text-main">{{ .Report.Focus.TotalSessions }}</div>
+                <div class="text-lg font-bold" style="color: var(--primary);">{{ .Report.Focus.TotalSessions }}</div>
                 <div class="stat-label">Sessions</div>
             </div>
             <div>
-                <div class="text-lg font-bold text-main">{{ .Report.Focus.LongestSession }}</div>
+                <div class="text-lg font-bold" style="color: var(--primary);">{{ if .Report.Focus.LongestSession }}{{
+                    .Report.Focus.LongestSession }}{{ else }}0 mins{{ end }}</div>
                 <div class="stat-label">Longest Session</div>
             </div>
         </div>
@@ -41,38 +50,48 @@
     <!-- Intents -->
     <div class="card">
         <h3>Intents & Goals</h3>
-        <ul class="mt-md" style="padding-left: 1.25rem;">
+        {{ if .Report.Intents }}
+        <ul class="mt-md" style="padding-left: 0; list-style: none;">
             {{ range .Report.Intents }}
-            <li class="mb-sm {{ if eq .Status " done" }}text-done{{ end }}">
-                {{ .IntentName }}
+            <li class="mb-sm flex-between {{ if eq .Status " done" }}text-done{{ end }}">
+                <span>{{ .IntentName }}</span>
+                {{ if eq .Status "done" }}<span style="font-size: 0.8em; color: var(--success);">✓</span>{{ end }}
             </li>
-            {{ else }}
-            <li class="text-muted list-none">No intents tracked this week.</li>
             {{ end }}
         </ul>
+        {{ else }}
+        <div class="empty-state mt-md" style="padding: 1rem;">
+            No intents tracked.
+        </div>
+        {{ end }}
     </div>
 </div>
 
-<div class="card">
+<div class="card mt-md">
     <h3>Habit Progress</h3>
     {{ if .Report.Habits }}
-    {{ range .Report.Habits }}
-    <div class="mb-lg">
-        <div class="flex-between mb-sm">
-            <strong>{{ .HabitName }}</strong>
-            <span>{{ printf "%.0f" .CompletionRate }}%</span>
+    <div
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+        {{ range .Report.Habits }}
+        <div>
+            <div class="flex-between mb-sm">
+                <strong>{{ .HabitName }}</strong>
+                <span>{{ printf "%.0f" .CompletionRate }}%</span>
+            </div>
+            <div class="progress-container" style="margin-top: 0.5rem;">
+                <div class="progress-bar" style="--p: {{ .CompletionRate }}%; width: var(--p);"></div>
+            </div>
+            <div class="flex-between mt-sm">
+                <small class="text-muted">{{ .LogsCompleted }} completed</small>
+                <small class="text-muted">{{ .LogsTracked }} tracked</small>
+            </div>
         </div>
-        <div class="progress-bar">
-            <div class="progress-value" style="--completion: {{ .CompletionRate }}%; width: var(--completion);"></div>
-        </div>
-        <div class="flex-between mt-sm">
-            <small class="text-muted">{{ .LogsCompleted }} completed</small>
-            <small class="text-muted">{{ .LogsTracked }} tracked</small>
-        </div>
+        {{ end }}
     </div>
-    {{ end }}
     {{ else }}
-    <p>No habits tracked this week.</p>
+    <div class="empty-state mt-md">
+        No habits tracked this week.
+    </div>
     {{ end }}
 </div>
 {{ end }}
