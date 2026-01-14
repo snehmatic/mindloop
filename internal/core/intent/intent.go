@@ -60,3 +60,7 @@ func (s *Service) EndIntent(idStr string) (*models.Intent, error) {
 
 	return &intent, nil
 }
+
+func (s *Service) DeleteAll() error {
+	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Intent{}).Error
+}

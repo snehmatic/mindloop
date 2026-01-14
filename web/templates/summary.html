@@ -1,0 +1,78 @@
+{{ define "content" }}
+<div class="card">
+    <div class="flex-start-wrap">
+        <div>
+            <h1>Summary Report</h1>
+            <p>{{ .Report.DateRange }}</p>
+        </div>
+        <form action="/summary" method="GET" class="filter-form">
+            <div class="flex-col">
+                <label for="start" class="text-xs mb-0">Start</label>
+                <input type="date" id="start" name="start" class="filter-input">
+            </div>
+            <div class="flex-col">
+                <label for="end" class="text-xs mb-0">End</label>
+                <input type="date" id="end" name="end" class="filter-input">
+            </div>
+            <button type="submit" class="btn btn-sm">Filter</button>
+        </form>
+    </div>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <h3>Focus</h3>
+        <div class="mt-md">
+            <div class="stat-value">{{ .Report.Focus.TotalDuration }}</div>
+            <div class="stat-label">Total Focus Time</div>
+        </div>
+        <div class="mt-md flex-between gap-lg" style="justify-content: flex-start;">
+            <div>
+                <div class="text-lg font-bold text-main">{{ .Report.Focus.TotalSessions }}</div>
+                <div class="stat-label">Sessions</div>
+            </div>
+            <div>
+                <div class="text-lg font-bold text-main">{{ .Report.Focus.LongestSession }}</div>
+                <div class="stat-label">Longest Session</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Intents -->
+    <div class="card">
+        <h3>Intents & Goals</h3>
+        <ul class="mt-md" style="padding-left: 1.25rem;">
+            {{ range .Report.Intents }}
+            <li class="mb-sm {{ if eq .Status " done" }}text-done{{ end }}">
+                {{ .IntentName }}
+            </li>
+            {{ else }}
+            <li class="text-muted list-none">No intents tracked this week.</li>
+            {{ end }}
+        </ul>
+    </div>
+</div>
+
+<div class="card">
+    <h3>Habit Progress</h3>
+    {{ if .Report.Habits }}
+    {{ range .Report.Habits }}
+    <div class="mb-lg">
+        <div class="flex-between mb-sm">
+            <strong>{{ .HabitName }}</strong>
+            <span>{{ printf "%.0f" .CompletionRate }}%</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-value" style="--completion: {{ .CompletionRate }}%; width: var(--completion);"></div>
+        </div>
+        <div class="flex-between mt-sm">
+            <small class="text-muted">{{ .LogsCompleted }} completed</small>
+            <small class="text-muted">{{ .LogsTracked }} tracked</small>
+        </div>
+    </div>
+    {{ end }}
+    {{ else }}
+    <p>No habits tracked this week.</p>
+    {{ end }}
+</div>
+{{ end }}

@@ -1,0 +1,34 @@
+{{ define "content" }}
+<div class="card card-accent">
+    <h1>Welcome to Mindloop</h1>
+    <p class="mb-0">Your personal productivity and mindfulness dashboard.</p>
+</div>
+
+<div class="grid">
+    <div class="card">
+        <div class="stat-value">{{ .Stats.ActiveHabits }}</div>
+        <div class="stat-label">Active Habits</div>
+        <a href="/habits" class="btn-link">Manage Habits &rarr;</a>
+    </div>
+    <div class="card">
+        <div class="stat-value">{{ .Stats.FocusTime }}<span class="text-lg text-muted font-normal"> m</span></div>
+        <div class="stat-label">Focus Today</div>
+        <a href="/focus" class="btn-link">Start Session &rarr;</a>
+    </div>
+    <div class="card">
+        <div class="stat-value text-capitalize" style="font-size: 1.5rem;">{{ .Stats.LastMood }}</div>
+        <div class="stat-label">Last Mood</div>
+        <a href="/journal" class="btn-link">Write Entry &rarr;</a>
+    </div>
+</div>
+
+<div class="card clean-slate-card mt-lg">
+    <h2>Danger Zone</h2>
+    <p>Reset all your data and start fresh using the <strong>Clean Slate</strong> protocol.</p>
+    <form action="/cleanslate" method="POST"
+        onsubmit="return confirm('WARNING: This will delete ALL your data (Journals, Habits, Focus sessions, Intents). This action cannot be undone. Are you absolutely sure?');">
+        <input type="hidden" name="type" value="all">
+        <button type="submit" class="btn btn-danger">Activate Clean Slate (Reset All)</button>
+    </form>
+</div>
+{{ end }}

@@ -37,7 +37,7 @@ func (s *Service) CreateEntry(title, content, mood string) error {
 
 func (s *Service) ListEntries() ([]models.JournalEntry, error) {
 	var entries []models.JournalEntry
-	result := s.DB.Order("created_at DESC").Find(&entries)
+	result := s.DB.Order("CreatedAt DESC").Find(&entries)
 	return entries, result.Error
 }
 
@@ -50,4 +50,8 @@ func (s *Service) GetEntry(id string) (models.JournalEntry, error) {
 func (s *Service) DeleteEntry(id string) error {
 	result := s.DB.Delete(&models.JournalEntry{}, "id = ?", id)
 	return result.Error
+}
+
+func (s *Service) DeleteAll() error {
+	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.JournalEntry{}).Error
 }

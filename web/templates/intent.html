@@ -1,0 +1,49 @@
+{{ define "content" }}
+
+{{ if .CurrentIntent }}
+<div class="intent-hero">
+    <h1>{{ .CurrentIntent.Name }}</h1>
+    <p>This is your primary focus for today.</p>
+
+    <form action="/intent/complete" method="POST" style="margin-top: 1.5rem;">
+        <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
+        <button type="submit" class="btn"
+            style="background-color: white; color: #6366f1; border: none; font-size: 1rem; padding: 0.75rem 2rem;">Mark
+            as Complete</button>
+    </form>
+</div>
+{{ else }}
+<div class="card" style="text-align: center; padding: 3rem;">
+    <h2 style="margin-bottom: 1rem;">What is your intent for today?</h2>
+    <form action="/intent/set" method="POST" style="max-width: 400px; margin: 0 auto;">
+        <input type="text" name="name" placeholder="e.g. Finish the API Refactor" required
+            style="font-size: 1.25rem; text-align: center;">
+        <button type="submit" class="btn" style="font-size: 1.1rem; width: 100%;">Set Intent</button>
+    </form>
+</div>
+{{ end }}
+
+<div class="card">
+    <div class="flex-between mb-md">
+        <h3 class="mb-0">History</h3>
+        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all intent history?');">
+            <input type="hidden" name="type" value="intent">
+            <button type="submit" class="btn btn-danger-outline btn-sm">Clear History</button>
+        </form>
+    </div>
+    {{ if .History }}
+    <ul class="list-none">
+        {{ range .History }}
+        <li class="flex-between" style="padding: 0.75rem 0; border-bottom: 1px solid var(--bg-color);">
+            <span class="{{ if eq .Status " done" }}text-done{{ end }}">{{ .Name }}</span>
+            <small class="text-muted">{{ .CreatedAt.Format "Jan 02" }}</small>
+        </li>
+        {{ end }}
+    </ul>
+    {{ else }}
+    <p>No intent history found.</p>
+    {{ end }}
+</div>
+
+</div>
+{{ end }}
