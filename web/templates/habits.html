@@ -1,0 +1,94 @@
+{{ define "content" }}
+<div class="flex-between mb-md">
+    <div>
+        <h1>Your Habits</h1>
+        <p>Consistent actions create consistent results.</p>
+    </div>
+    <div class="flex-center gap-sm">
+        <button onclick="document.getElementById('new-habit-form').style.display='block'" class="btn btn-primary">
+            + New Habit
+        </button>
+        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all habits and logs?');" class="mb-0">
+            <input type="hidden" name="type" value="habits">
+            <button type="submit" class="btn btn-premium-outline btn-sm">Reset</button>
+        </form>
+    </div>
+</div>
+
+<div id="new-habit-form" class="card mb-md" style="display: none;">
+    <h3 class="mb-md">Create New Habit</h3>
+    <form action="/habits/new" method="POST">
+        <div class="form-group">
+            <label for="title">Habit Title</label>
+            <input type="text" id="title" name="title" required placeholder="e.g. Read 10 pages">
+        </div>
+        <div class="grid"
+            style="grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; align-items: start;">
+            <div class="flex-col">
+                <label for="interval">Interval</label>
+                <select id="interval" name="interval" style="height: 42px;">
+                    <option value="daily">Daily</option>
+                    <option value="weekly">Weekly</option>
+                </select>
+            </div>
+            <div class="flex-col">
+                <label for="target_count">Target Count</label>
+                <input type="number" id="target_count" name="target_count" value="1" min="1" style="height: 42px;">
+            </div>
+        </div>
+        <div class="flex-between">
+            <button type="button" class="btn btn-secondary"
+                onclick="document.getElementById('new-habit-form').style.display='none'">Cancel</button>
+            <button type="submit" class="btn btn-primary">Create Habit</button>
+        </div>
+    </form>
+</div>
+
+<div class="grid">
+    {{ range .Habits }}
+    <div class="card card-hover">
+        <div class="flex-between mb-sm" style="align-items: flex-start;">
+            <div>
+                <h3 class="mb-sm">{{ .Title }}</h3>
+                <div class="text-sm text-muted" style="text-transform: capitalize;">{{ .Interval }} • Target: {{
+                    .TargetCount }}</div>
+            </div>
+            <div class="flex-center gap-sm">
+                {{ if ge .ActualCount .TargetCount }}
+                <form action="/habits/unlog" method="POST" class="mb-0">
+                    <input type="hidden" name="habit_id" value="{{ .ID }}">
+                    <button type="submit" class="btn btn-secondary btn-sm">Undo</button>
+                </form>
+                {{ else }}
+                <form action="/habits/log" method="POST" class="mb-0">
+                    <input type="hidden" name="habit_id" value="{{ .ID }}">
+                    <button type="submit" class="btn btn-primary btn-sm">Check-in</button>
+                </form>
+                {{ end }}
+                <form action="/habits/delete" method="POST" class="mb-0" onsubmit="return confirm('Are you sure?');">
+                    <input type="hidden" name="habit_id" value="{{ .ID }}">
+                    <button type="submit" class="btn btn-danger-outline btn-sm" style="padding: 0.4rem;">🗑️</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="flex-between mb-sm mt-md">
+            <span class="stat-label mt-0">Progress</span>
+            <span class="text-sm font-bold">{{ .ActualCount }} / {{ .TargetCount }}</span>
+        </div>
+        <div class="progress-container">
+            <div class="progress-bar" style="--p: {{ .ProgressPct }}%; width: var(--p);"></div>
+        </div>
+    </div>
+
+    {{ else }}
+    <div class="card text-center" style="grid-column: 1 / -1; padding: 4rem 2rem;">
+        <h3>No habits yet</h3>
+        <p>Start small. Create your first habit today.</p>
+        <button onclick="document.getElementById('new-habit-form').style.display='block'" class="btn btn-primary">
+            Create Habit
+        </button>
+    </div>
+    {{ end }}
+</div>
+{{ end }}

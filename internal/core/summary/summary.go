@@ -43,13 +43,17 @@ func (s *Service) GenerateSummary(start, end time.Time) (models.SummaryReport, e
 
 func (s *Service) GetFocusStats(start, end time.Time) (models.FocusStats, error) {
 	var sessions []models.FocusSession
-	rangeQuery := "created_at >= ? AND created_at <= ?"
+	rangeQuery := "CreatedAt >= ? AND CreatedAt <= ?"
 
 	if err := s.DB.Where(rangeQuery, start, end).Find(&sessions).Error; err != nil {
 		return models.FocusStats{}, err
 	}
 	if len(sessions) == 0 {
-		return models.FocusStats{}, nil
+		return models.FocusStats{
+			TotalSessions:  0,
+			TotalDuration:  "0 mins",
+			LongestSession: "0 mins",
+		}, nil
 	}
 	totalDuration := 0.0
 	longestSession := 0.0
@@ -72,17 +76,19 @@ func (s *Service) GetHabitStats(start, end time.Time) ([]models.HabitStats, erro
 		return nil, err
 	}
 	if len(habits) == 0 {
-		return nil, nil
+		return []models.HabitStats{}, nil
 	}
 
 	var habitLogs []models.HabitLog
-	rangeQuery := "created_at >= ? AND created_at <= ?"
-	if err := s.DB.Where(rangeQuery, start, end).Order("created_at DESC").Find(&habitLogs).Error; err != nil {
+	rangeQuery := "CreatedAt >= ? AND CreatedAt <= ?"
+	if err := s.DB.Where(rangeQuery, start, end).Order("CreatedAt DESC").Find(&habitLogs).Error; err != nil {
 		return nil, err
 	}
 
 	if len(habitLogs) == 0 {
-		return nil, nil
+		// Even if no logs, we should return stats for habits with 0 completion to show they exist
+		// But if no logs exist AT ALL for the period, logic still holds
+		// Better to just continue and calculate 0s
 	}
 
 	totalCompletedLogsForHabit := 0
@@ -114,13 +120,13 @@ func (s *Service) GetHabitStats(start, end time.Time) ([]models.HabitStats, erro
 
 func (s *Service) GetIntentStats(start, end time.Time) ([]models.IntentStats, error) {
 	var intents []models.Intent
-	rangeQuery := "created_at >= ? AND created_at <= ?"
+	rangeQuery := "CreatedAt >= ? AND CreatedAt <= ?"
 	if err := s.DB.Where(rangeQuery, start, end).Find(&intents).Error; err != nil {
 		return nil, err
 	}
 
 	if len(intents) == 0 {
-		return nil, nil
+		return []models.IntentStats{}, nil
 	}
 
 	var stats []models.IntentStats

@@ -1,0 +1,58 @@
+{{ define "content" }}
+<div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
+    <!-- Active Timer Section -->
+    <div class="card text-center" style="padding: 3rem 1.5rem;">
+        <h1 class="mb-md" style="font-size: 3.5rem; font-weight: 800; color: var(--primary);">Focus</h1>
+        <p class="mb-lg">Enter a flow state. Track your deep work.</p>
+
+        <form action="/focus/start" method="POST" class="mb-md">
+            <div class="form-group flex-center">
+                <input type="text" name="title" placeholder="What are you working on?" required
+                    style="max-width: 400px; text-align: center; font-size: 1.25rem;">
+            </div>
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;">
+                Start Session
+            </button>
+        </form>
+    </div>
+
+    <!-- Session History -->
+    <div>
+        <div class="flex-between mb-md">
+            <h3>Recent Sessions</h3>
+            <div class="text-sm text-muted">Last 10 sessions</div>
+        </div>
+
+        {{ if .Sessions }}
+        <div class="card" style="padding: 0;">
+            {{ range .Sessions }}
+            <div
+                style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div style="font-weight: 600; font-size: 1.1rem;">{{ .Title }}</div>
+                    <div class="text-sm text-muted">{{ .CreatedAt }}</div>
+                </div>
+                <div class="text-right">
+                    <div class="text-lg font-bold" style="color: var(--primary);">{{ printf "%.0f" .Duration }}m</div>
+                    {{ if eq .Status "active" }}
+                    <span
+                        style="background: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">Active</span>
+                    <form action="/focus/stop" method="POST" style="display: inline-block; margin-left: 0.5rem;">
+                        <input type="hidden" name="id" value="{{ .ID }}">
+                        <button type="submit" class="btn btn-danger-outline btn-sm">Stop</button>
+                    </form>
+                    {{ else }}
+                    <span class="text-sm text-muted">Completed</span>
+                    {{ end }}
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="empty-state">
+            <p>No focus sessions recorded yet.</p>
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

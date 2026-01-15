@@ -159,6 +159,19 @@ func (s *Service) ListHabitLogs(interval models.IntervalType) ([]models.HabitLog
 	if interval != "" {
 		query = query.Where("interval = ?", interval)
 	}
-	result := query.Order("created_at DESC").Find(&habitLogs)
+	result := query.Order("CreatedAt DESC").Find(&habitLogs)
 	return habitLogs, result.Error
+}
+
+func (s *Service) DeleteAll() error {
+	// Transaction to delete both logs and habits
+	return s.DB.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.HabitLog{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Habit{}).Error; err != nil {
+			return err
+		}
+		return nil
+	})
 }

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ .Title }} - Mindloop</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <nav>
+                <a href="/" class="logo" style="text-decoration: none;">
+                    <span
+                        style="background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Mindloop</span>
+                </a>
+                <ul class="nav-links">
+                    <li><a href="/" class="nav-link">Home</a></li>
+                    <li><a href="/intent" class="nav-link">Intent</a></li>
+                    <li><a href="/habits" class="nav-link">Habits</a></li>
+                    <li><a href="/focus" class="nav-link">Focus</a></li>
+                    <li><a href="/journal" class="nav-link">Journal</a></li>
+                    <li><a href="/summary" class="nav-link">Summary</a></li>
+                    <li><a href="/about" class="nav-link">About</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+    <main class="container">
+        {{ if .SuccessMessage }}
+        <div class="card mb-md" style="border-left: 4px solid var(--success); background: #f0fdf4;">
+            <div style="color: #166534; font-weight: 500;">{{ .SuccessMessage }}</div>
+        </div>
+        {{ end }}
+        {{ if .ErrorMessage }}
+        <div class="card mb-md" style="border-left: 4px solid var(--danger); background: #fef2f2;">
+            <div style="color: #991b1b; font-weight: 500;">{{ .ErrorMessage }}</div>
+        </div>
+        {{ end }}
+        {{ template "content" . }}
+    </main>
+</body>
+
+</html>

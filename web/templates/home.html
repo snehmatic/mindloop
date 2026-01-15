@@ -1,0 +1,45 @@
+{{ define "content" }}
+<div class="hero"
+    style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/hero-graded.png'); background-size: cover; background-position: center; color: white; padding: 6rem 1.5rem; border-radius: 0 0 2rem 2rem; margin: -2rem -1.5rem 3rem -1.5rem;">
+    <h1 style="color: white; font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Find Your
+        Serene Focus</h1>
+    <p style="color: rgba(255,255,255,0.9); font-size: 1.5rem; max-width: 700px;">Organize your thoughts, track your
+        growth, and close the loops in your mind with Mindloop.</p>
+    <div class="flex-center gap-md" style="margin-top: 2.5rem;">
+        <a href="/intent" class="btn btn-primary"
+            style="padding: 1rem 2.5rem; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">Set Today's
+            Intent</a>
+        <a href="/about" class="btn"
+            style="background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4);">Learn
+            More</a>
+    </div>
+</div>
+
+<div class="container">
+    <div class="grid" style="margin-bottom: 4rem;">
+        <a href="/intent" class="card card-hover"
+            style="display: block; text-decoration: none; color: inherit; border-top: 4px solid var(--primary); height: 100%;">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎯</div>
+            <h3>Intent</h3>
+            <p class="text-sm">Set a single daily intention. Focus on one major goal to align your actions with your
+                values.</p>
+        </a>
+
+        <a href="/habits" class="card card-hover"
+            style="display: block; text-decoration: none; color: inherit; border-top: 4px solid var(--success); height: 100%;">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🌱</div>
+            <h3>Habits</h3>
+            <p class="text-sm">Build consistency with daily tracking. Small, repeated actions lead to massive
+                transformation.</p>
+        </a>
+
+        <a href="/focus" class="card card-hover"
+            style="display: block; text-decoration: none; color: inherit; border-top: 4px solid #f59e0b; height: 100%;">
+            <div style="font-size: 2.5rem; margin-bottom: 1rem;">⏱️</div>
+            <h3>Focus</h3>
+            <p class="text-sm">Enter a deep flow state with distraction-free sessions. Measure your deep work
+                capability.</p>
+        </a>
+    </div>
+</div>
+{{ end }}
