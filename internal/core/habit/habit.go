@@ -175,3 +175,57 @@ func (s *Service) DeleteAll() error {
 		return nil
 	})
 }
+func (s *Service) CalculateStreak(habitID uint, interval models.IntervalType) (int, error) {
+	if interval != models.Daily {
+		return 0, nil // fast track for non-daily for now
+	}
+
+	var logs []models.HabitLog
+	// Fetch all logs for this habit ordered by date descending
+	if err := s.DB.Where("HabitID = ?", habitID).Order("CreatedAt desc").Find(&logs).Error; err != nil {
+		return 0, err
+	}
+
+	if len(logs) == 0 {
+		return 0, nil
+	}
+
+	streak := 0
+	today := time.Now().Truncate(24 * time.Hour)
+	// yesterday := today.AddDate(0, 0, -1)
+
+	// We need to check if the sequence is unbroken.
+	// The most recent log could be today or yesterday to keep the streak alive.
+	// If the most recent log is older than yesterday, streak is 0.
+
+	lastLogDate := logs[0].CreatedAt.Truncate(24 * time.Hour)
+	daysDiff := today.Sub(lastLogDate).Hours() / 24
+
+	if daysDiff > 1 {
+		return 0, nil
+	}
+
+	// Iterate and count
+	// We expect dates to be consecutive
+	expectedDate := lastLogDate
+	for _, log := range logs {
+		logDate := log.CreatedAt.Truncate(24 * time.Hour)
+
+		// If multiple logs on same day (shouldn't happen with current logic but safeguards), skip
+		if logDate.Equal(expectedDate) {
+			if log.ActualCount >= log.TargetCount {
+				streak++
+				expectedDate = expectedDate.AddDate(0, 0, -1)
+			}
+		} else if logDate.After(expectedDate) {
+			// duplicate or error, ignore
+			continue
+		} else {
+			// Gap found
+			break
+		}
+	}
+
+	return streak, nil
+
+}

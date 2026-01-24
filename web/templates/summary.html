@@ -94,4 +94,93 @@
     </div>
     {{ end }}
 </div>
+
+<div class="grid" style="grid-template-columns: 1fr 1fr; margin-top: 2rem;">
+    <div class="card">
+        <h3 class="mb-md">Focus Time</h3>
+        <canvas id="focusChart"></canvas>
+    </div>
+    <div class="card">
+        <h3 class="mb-md">Habits Completed</h3>
+        <canvas id="habitChart"></canvas>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Data passed from Go backend
+        const labels = {{ .Charts.Labels | json
+    }};
+    const focusData = {{ .Charts.DailyFocus | json }};
+    const habitData = {{ .Charts.DailyHabits | json }};
+
+    // Chart.js Configuration for Focus
+    const ctxFocus = document.getElementById('focusChart').getContext('2d');
+    new Chart(ctxFocus, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Minutes',
+                data: focusData,
+                backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                borderColor: 'rgba(99, 102, 241, 1)',
+                borderWidth: 1,
+                borderRadius: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { display: false }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+
+    // Chart.js Configuration for Habits
+    const ctxHabit = document.getElementById('habitChart').getContext('2d');
+    new Chart(ctxHabit, {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Habits Completed',
+                data: habitData,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                fill: true,
+                tension: 0.4,
+                pointRadius: 4,
+                pointHoverRadius: 6
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { stepSize: 1 },
+                    grid: { color: 'rgba(0,0,0,0.05)' }
+                },
+                x: {
+                    grid: { display: false }
+                }
+            },
+            plugins: {
+                legend: { display: false }
+            }
+        }
+    });
+    });
+</script>
 {{ end }}

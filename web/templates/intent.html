@@ -1,18 +1,33 @@
 {{ define "content" }}
 
 {{ if .CurrentIntent }}
-<div class="hero">
-    <div class="text-label mb-sm" style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary);">
+<div class="hero"
+    style="padding: 6rem 1.5rem; min-height: 60vh; display: flex; flex-direction: column; justify-content: center;">
+    <div class="text-label mb-sm"
+        style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
         Today's Focus</div>
-    <h1 style="font-size: 3rem; margin-bottom: 2rem;">{{ .CurrentIntent.Name }}</h1>
+    <h1 style="font-size: 3.5rem; margin-bottom: 2rem; line-height: 1.2;">{{ .CurrentIntent.Name }}</h1>
 
-    <div class="flex-center">
-        <form action="/intent/complete" method="POST">
+    <div id="motivation-display" style="display: none; max-width: 600px; margin: 0 auto 2rem auto;"></div>
+
+    <div class="flex-center gap-md">
+        <form action="/intent/complete" method="POST" class="mb-0">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
-            <button type="submit" class="btn btn-primary" style="padding: 1rem 2rem; font-size: 1.1rem;">
+            <button type="submit" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.2rem;">
                 Mark as Complete
             </button>
         </form>
+        <button onclick="showMotivation()" class="btn btn-premium-outline"
+            style="padding: 1rem 2rem; font-size: 1.2rem;">
+            Motivate Me 💡
+        </button>
+    </div>
+
+    <div style="margin-top: 4rem;">
+        <button id="toggle-history-btn" onclick="toggleHistory()" class="btn btn-sm btn-secondary"
+            style="background: transparent; border: none; text-decoration: underline;">
+            Show History
+        </button>
     </div>
 </div>
 {{ else }}
@@ -29,7 +44,7 @@
 </div>
 {{ end }}
 
-<div class="card">
+<div id="history-section" class="card" {{ if .CurrentIntent }}style="display: none;" {{ end }}>
     <div class="flex-between mb-md">
         <h3>History</h3>
         <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all intent history?');" class="mb-0">
@@ -55,4 +70,6 @@
     </div>
     {{ end }}
 </div>
+
+<script src="/static/js/motivation.js"></script>
 {{ end }}

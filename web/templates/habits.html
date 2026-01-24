@@ -15,6 +15,8 @@
     </div>
 </div>
 
+
+
 <div id="new-habit-form" class="card mb-md" style="display: none;">
     <h3 class="mb-md">Create New Habit</h3>
     <form action="/habits/new" method="POST">
@@ -50,8 +52,16 @@
         <div class="flex-between mb-sm" style="align-items: flex-start;">
             <div>
                 <h3 class="mb-sm">{{ .Title }}</h3>
-                <div class="text-sm text-muted" style="text-transform: capitalize;">{{ .Interval }} • Target: {{
-                    .TargetCount }}</div>
+                <div class="flex-center gap-sm" style="flex-wrap: wrap; justify-content: flex-start;">
+                    <span class="text-sm text-muted" style="text-transform: capitalize;">{{ .Interval }} • Target: {{
+                        .TargetCount }}</span>
+                    {{ if gt .Streak 0 }}
+                    <span
+                        style="background: #ffedd5; color: #c2410c; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid #fed7aa;">
+                        🔥 {{ .Streak }} Day Streak
+                    </span>
+                    {{ end }}
+                </div>
             </div>
             <div class="flex-center gap-sm">
                 {{ if ge .ActualCount .TargetCount }}

@@ -1,10 +1,15 @@
 :root {
-    /* Serene Focus Palette */
-    /* Serene Focus Palette */
+    /* Premium Focus Palette */
     --primary: #6366f1;
-    /* Fallback */
-    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
-    --gradient-hover: linear-gradient(135deg, #4f46e5 0%, #9333ea 100%);
+    /* Indigo-500 */
+    --primary-rgb: 99, 102, 241;
+
+    /* Vibrant Gradients */
+    --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+    /* Indigo -> Violet -> Fuchsia */
+    --gradient-hover: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #c026d3 100%);
+    --gradient-glass: linear-gradient(180deg, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0.3) 100%);
+
     --primary-light: #e0e7ff;
     /* Indigo-100 */
     --primary-dark: #4338ca;
@@ -22,27 +27,57 @@
 
     --bg-body: #f8fafc;
     /* Slate-50 */
-    --bg-surface: #ffffff;
-    --bg-glass: rgba(255, 255, 255, 0.85);
+    --bg-surface: rgba(255, 255, 255, 0.75);
+    --bg-glass: rgba(255, 255, 255, 0.6);
+    --bg-header: rgba(255, 255, 255, 0.75);
 
-    --text-main: #1e293b;
-    /* Slate-800 */
+    --text-main: #0f172a;
+    /* Slate-900 */
     --text-muted: #64748b;
     /* Slate-500 */
     --text-light: #94a3b8;
     /* Slate-400 */
 
-    --border: #e2e8f0;
-    /* Slate-200 */
-    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+    --border: rgba(226, 232, 240, 0.8);
+    /* Slate-200 with opacity */
 
-    --radius-md: 0.5rem;
-    --radius-lg: 1rem;
+    /* Premium Shadows */
+    --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.02);
+    --shadow-md: 0 8px 16px -4px rgba(99, 102, 241, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.03);
+    --shadow-lg: 0 20px 25px -5px rgba(99, 102, 241, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    --shadow-glow: 0 0 15px rgba(99, 102, 241, 0.3);
+
+    --radius-md: 0.75rem;
+    --radius-lg: 1.25rem;
     --radius-full: 9999px;
 
-    --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-sans: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body.dark-mode {
+    --bg-body: #020617;
+    /* Slate-950 */
+    --bg-surface: rgba(15, 23, 42, 0.8);
+    --bg-glass: rgba(15, 23, 42, 0.7);
+    --bg-header: rgba(2, 6, 23, 0.8);
+
+    --text-main: #f1f5f9;
+    /* Slate-100 */
+    --text-muted: #94a3b8;
+    /* Slate-400 */
+    --text-light: #64748b;
+    /* Slate-500 */
+
+    --border: rgba(51, 65, 85, 0.5);
+    /* Slate-700 with opacity */
+
+    --primary-light: rgba(99, 102, 241, 0.2);
+    --secondary-light: rgba(51, 65, 85, 0.5);
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.2);
 }
 
 /* Reset & Base */
@@ -56,9 +91,12 @@ body {
     margin: 0;
     font-family: var(--font-sans);
     background-color: var(--bg-body);
+    /* Aesthetic Mesh Gradient Background */
     background-image:
-        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.08) 0px, transparent 50%),
-        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.08) 0px, transparent 50%);
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(217, 70, 239, 0.15) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.15) 0px, transparent 50%),
+        radial-gradient(at 0% 100%, rgba(99, 102, 241, 0.15) 0px, transparent 50%);
     background-attachment: fixed;
     color: var(--text-main);
     line-height: 1.6;
@@ -114,12 +152,16 @@ a:hover {
     padding: 0 1.5rem;
 }
 
+main.container {
+    padding-top: 2rem;
+}
+
 /* Header */
 header {
     position: sticky;
     top: 0;
     z-index: 50;
-    background-color: rgba(255, 255, 255, 0.7);
+    background-color: var(--bg-header);
     /* More transparent */
     backdrop-filter: blur(8px);
     /* Less blur */
@@ -203,7 +245,7 @@ nav {
 }
 
 .btn-secondary {
-    background-color: white;
+    background-color: var(--bg-surface);
     border-color: var(--border);
     color: var(--text-main);
 }
@@ -259,17 +301,19 @@ nav {
 
 .card {
     background-color: var(--bg-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border);
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);
-    transition: box-shadow 0.2s ease, transform 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .card-hover:hover {
     box-shadow: var(--shadow-lg);
-    transform: translateY(-2px);
-    border-color: var(--primary-light);
+    transform: translateY(-4px);
+    border-color: rgba(99, 102, 241, 0.3);
 }
 
 /* Forms */
@@ -387,6 +431,26 @@ textarea:focus {
     flex-direction: column;
 }
 
+/* Tabs */
+.tab-link {
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    font-weight: 600;
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    transition: all 0.2s ease;
+}
+
+.tab-link:hover {
+    color: var(--primary);
+}
+
+.tab-link.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
 /* Specifics */
 .progress-container {
     background-color: var(--secondary-light);
@@ -448,4 +512,20 @@ textarea:focus {
     max-width: 600px;
     margin: 0 auto 2rem;
     color: var(--text-muted);
+}
+
+.about-hero {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    margin-bottom: 3rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+
+    background-image: linear-gradient(var(--bg-glass), var(--bg-glass)), url('/static/images/about-graded.png');
+    background-size: cover;
+    background-position: center;
+}
+
+body.dark-mode .about-hero {
+    background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('/static/images/about-graded.png');
 }

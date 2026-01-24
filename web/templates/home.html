@@ -1,45 +1,90 @@
 {{ define "content" }}
-<div class="hero"
-    style="background-image: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('/static/images/hero-graded.png'); background-size: cover; background-position: center; color: white; padding: 6rem 1.5rem; border-radius: 0 0 2rem 2rem; margin: -2rem -1.5rem 3rem -1.5rem;">
-    <h1 style="color: white; font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 0 2px 4px rgba(0,0,0,0.3);">Find Your
-        Serene Focus</h1>
-    <p style="color: rgba(255,255,255,0.9); font-size: 1.5rem; max-width: 700px;">Organize your thoughts, track your
-        growth, and close the loops in your mind with Mindloop.</p>
-    <div class="flex-center gap-md" style="margin-top: 2.5rem;">
-        <a href="/intent" class="btn btn-primary"
-            style="padding: 1rem 2.5rem; font-size: 1.1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.2);">Set Today's
-            Intent</a>
-        <a href="/about" class="btn"
-            style="background: rgba(255,255,255,0.2); color: white; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.4);">Learn
-            More</a>
+<div class="mb-md">
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+
+        <!-- Active Intent or Call to Action -->
+        {{ if .Dashboard.CurrentIntent }}
+        <div class="card"
+            style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; display: flex; flex-direction: column; justify-content: center;">
+            <div class="text-label mb-sm"
+                style="opacity: 0.9; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem;">Today's
+                Focus</div>
+            <h2 style="color: white; font-size: 2rem; margin-bottom: 1.5rem;">{{ .Dashboard.CurrentIntent.Name }}</h2>
+            <div>
+                <a href="/intent" class="btn"
+                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px);">
+                    View Details
+                </a>
+            </div>
+        </div>
+        {{ else }}
+        <div class="card flex-center flex-col text-center"
+            style="border: 2px dashed var(--primary-light); background: var(--bg-surface);">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+            <h3 class="mb-sm">No Intent Set</h3>
+            <p class="text-sm text-muted mb-md">What is your main focus for today?</p>
+            <a href="/intent" class="btn btn-primary">Set Intent</a>
+        </div>
+        {{ end }}
+
+        <!-- Stats Column -->
+        <div class="flex-col gap-md">
+            <!-- Focus Time -->
+            <div class="card">
+                <div class="flex-between mb-sm">
+                    <span class="stat-label mt-0">Focus Time</span>
+                    <span style="font-size: 1.5rem;">⏱️</span>
+                </div>
+                <div class="stat-value">{{ .Dashboard.FocusMinutes }} <span class="text-sm text-muted"
+                        style="font-weight: 400; font-size: 1rem;">min</span></div>
+            </div>
+
+            <!-- Habit Progress -->
+            <div class="card">
+                <div class="flex-between mb-sm">
+                    <span class="stat-label mt-0">Habits</span>
+                    <span style="font-size: 1.5rem;">🌱</span>
+                </div>
+                <div class="flex-between">
+                    <div class="stat-value">{{ .Dashboard.CompletedHabits }} <span class="text-muted"
+                            style="font-size: 1.25rem;">/ {{ .Dashboard.TotalHabits }}</span></div>
+                    {{ if gt .Dashboard.TotalHabits 0 }}
+                    <a href="/habits" class="text-sm font-bold" style="text-decoration: underline;">View</a>
+                    {{ end }}
+                </div>
+                {{ if eq .Dashboard.TotalHabits 0 }}
+                <div class="text-sm text-muted mt-md"><a href="/habits/new">Create a habit</a> to start tracking.</div>
+                {{ end }}
+            </div>
+        </div>
     </div>
 </div>
 
-<div class="container">
-    <div class="grid" style="margin-bottom: 4rem;">
-        <a href="/intent" class="card card-hover"
-            style="display: block; text-decoration: none; color: inherit; border-top: 4px solid var(--primary); height: 100%;">
-            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🎯</div>
-            <h3>Intent</h3>
-            <p class="text-sm">Set a single daily intention. Focus on one major goal to align your actions with your
-                values.</p>
-        </a>
+<!-- Shortcuts / Navigation Grid -->
+<h3 class="mb-md">Quick Access</h3>
+<div class="grid">
+    <a href="/intent" class="card card-hover" style="text-decoration: none; color: inherit;">
+        <div class="flex-center"
+            style="background: var(--primary-light); width: 48px; height: 48px; border-radius: 12px; margin-bottom: 1rem; color: var(--primary); font-size: 1.5rem;">
+            🎯</div>
+        <h3>Intent</h3>
+        <p class="text-sm">Manage your daily focus.</p>
+    </a>
 
-        <a href="/habits" class="card card-hover"
-            style="display: block; text-decoration: none; color: inherit; border-top: 4px solid var(--success); height: 100%;">
-            <div style="font-size: 2.5rem; margin-bottom: 1rem;">🌱</div>
-            <h3>Habits</h3>
-            <p class="text-sm">Build consistency with daily tracking. Small, repeated actions lead to massive
-                transformation.</p>
-        </a>
+    <a href="/habits" class="card card-hover" style="text-decoration: none; color: inherit;">
+        <div class="flex-center"
+            style="background: #dcfce7; width: 48px; height: 48px; border-radius: 12px; margin-bottom: 1rem; color: var(--success); font-size: 1.5rem;">
+            🌱</div>
+        <h3>Habits</h3>
+        <p class="text-sm">Track your daily routines.</p>
+    </a>
 
-        <a href="/focus" class="card card-hover"
-            style="display: block; text-decoration: none; color: inherit; border-top: 4px solid #f59e0b; height: 100%;">
-            <div style="font-size: 2.5rem; margin-bottom: 1rem;">⏱️</div>
-            <h3>Focus</h3>
-            <p class="text-sm">Enter a deep flow state with distraction-free sessions. Measure your deep work
-                capability.</p>
-        </a>
-    </div>
+    <a href="/focus" class="card card-hover" style="text-decoration: none; color: inherit;">
+        <div class="flex-center"
+            style="background: #fef3c7; width: 48px; height: 48px; border-radius: 12px; margin-bottom: 1rem; color: #d97706; font-size: 1.5rem;">
+            ⏱️</div>
+        <h3>Focus</h3>
+        <p class="text-sm">Start a deep work session.</p>
+    </a>
 </div>
 {{ end }}

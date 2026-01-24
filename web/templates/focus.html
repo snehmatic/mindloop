@@ -1,19 +1,85 @@
 {{ define "content" }}
 <div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
     <!-- Active Timer Section -->
-    <div class="card text-center" style="padding: 3rem 1.5rem;">
-        <h1 class="mb-md" style="font-size: 3.5rem; font-weight: 800; color: var(--primary);">Focus</h1>
-        <p class="mb-lg">Enter a flow state. Track your deep work.</p>
+    <!-- Active Timer Section -->
+    <div class="card text-center" style="padding: 3rem 1.5rem; position: relative; overflow: hidden;">
+        <!-- Background Glow -->
+        <div
+            style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; background: var(--primary); opacity: 0.1; filter: blur(80px); border-radius: 50%; z-index: 0;">
+        </div>
 
-        <form action="/focus/start" method="POST" class="mb-md">
-            <div class="form-group flex-center">
-                <input type="text" name="title" placeholder="What are you working on?" required
-                    style="max-width: 400px; text-align: center; font-size: 1.25rem;">
+        <div style="position: relative; z-index: 1;">
+            {{ $activeSession := "" }}
+            {{ range .Sessions }}
+            {{ if eq .Status "active" }}
+            {{ $activeSession = . }}
+            {{ end }}
+            {{ end }}
+
+            {{ if $activeSession }}
+            <!-- Active Timer UI -->
+            <h2 class="mb-sm" style="color: var(--primary);">Focusing...</h2>
+            <p class="mb-lg">{{ $activeSession.Title }}</p>
+
+            <div class="mb-lg" style="position: relative; display: inline-block;">
+                <!-- Timer Display -->
+                <div id="timer-display"
+                    style="font-size: 5rem; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -2px; line-height: 1;">
+                    00:00:00
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary" style="padding: 1rem 3rem; font-size: 1.1rem;">
-                Start Session
-            </button>
-        </form>
+
+            <form action="/focus/stop" method="POST">
+                <input type="hidden" name="id" value="{{ $activeSession.ID }}">
+                <button type="submit" class="btn btn-danger-outline" style="padding: 0.75rem 2rem;">
+                    Stop Session
+                </button>
+            </form>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    const startTime = new Date("{{ $activeSession.CreatedAt }}").getTime();
+                    const timerDisplay = document.getElementById('timer-display');
+
+                    function updateTimer() {
+                        const now = new Date().getTime();
+                        const diff = now - startTime;
+
+                        if (diff < 0) return;
+
+                        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+                        timerDisplay.innerText =
+                            (hours < 10 ? "0" + hours : hours) + ":" +
+                            (minutes < 10 ? "0" + minutes : minutes) + ":" +
+                            (seconds < 10 ? "0" + seconds : seconds);
+                    }
+
+                    setInterval(updateTimer, 1000);
+                    updateTimer();
+                });
+            </script>
+            {{ else }}
+            <!-- Start Form -->
+            <h1 class="mb-md"
+                style="font-size: 3.5rem; font-weight: 800; color: var(--text-main); background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                Focus</h1>
+            <p class="mb-lg">Enter a flow state. Track your deep work.</p>
+
+            <form action="/focus/start" method="POST" class="mb-md">
+                <div class="form-group flex-center">
+                    <input type="text" name="title" placeholder="What are you working on?" required
+                        style="max-width: 400px; text-align: center; font-size: 1.25rem; background: rgba(255,255,255,0.5);">
+                </div>
+                <button type="submit" class="btn btn-primary"
+                    style="padding: 1rem 3rem; font-size: 1.1rem; box-shadow: var(--shadow-glow);">
+                    Start Session
+                </button>
+            </form>
+            {{ end }}
+        </div>
     </div>
 
     <!-- Session History -->

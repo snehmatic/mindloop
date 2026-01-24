@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"encoding/json"
 	"html/template"
 	"net/http"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/utils"
+	"github.com/snehmatic/mindloop/models"
 )
 
 type MindloopHandler struct {
@@ -61,7 +63,14 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 		filepath.Join(cwd, "web/templates/", tmpl),
 	}
 
-	ts, err := template.ParseFiles(files...)
+	ts := template.New("layout.html").Funcs(template.FuncMap{
+		"json": func(v interface{}) template.JS {
+			a, _ := json.Marshal(v)
+			return template.JS(a)
+		},
+	})
+
+	ts, err := ts.ParseFiles(files...)
 	if err != nil {
 		log.Error().Err(err).Msg("Error parsing templates")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
@@ -76,29 +85,44 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 }
 
 func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
-	// Gather Dashboard Stats
-	// 1. Active Habits
-	habits, _ := mlh.habit.ListHabits("")
-	activeHabits := len(habits)
+	// 1. Active Intent
+	activeIntents, _ := mlh.intent.ListActiveIntents()
+	var currentIntent *models.Intent
+	if len(activeIntents) > 0 {
+		currentIntent = &activeIntents[0]
+	}
 
 	// 2. Focus Time Today
 	now := time.Now()
 	todayStart := now.Truncate(24 * time.Hour)
 	focusStats, _ := mlh.summary.GetFocusStats(todayStart, now)
+	focusMinutes := int(focusStats.RawDuration)
 
-	// 3. Last Journal Mood
-	entries, _ := mlh.journal.ListEntries()
-	lastMood := "N/A"
-	if len(entries) > 0 {
-		lastMood = entries[0].Mood // Assuming sorted by desc
+	// 3. Habit Progress (Completed Today / Total Active Daily Habits)
+	habits, _ := mlh.habit.ListHabits(models.Daily)
+	habitLogs, _ := mlh.habit.ListHabitLogs(models.Daily)
+
+	completedHabits := 0
+	totalHabits := 0
+
+	for _, h := range habits {
+		totalHabits++
+		// Check if completed today
+		for _, l := range habitLogs {
+			if l.HabitID == h.ID && l.CreatedAt.After(todayStart) && l.ActualCount >= h.TargetCount {
+				completedHabits++
+				break
+			}
+		}
 	}
 
 	mlh.renderTemplate(w, "home.html", map[string]interface{}{
 		"Title": "Home",
-		"Stats": map[string]interface{}{
-			"ActiveHabits": activeHabits,
-			"FocusTime":    focusStats.TotalDuration,
-			"LastMood":     lastMood,
+		"Dashboard": map[string]interface{}{
+			"CurrentIntent":   currentIntent,
+			"FocusMinutes":    focusMinutes,
+			"CompletedHabits": completedHabits,
+			"TotalHabits":     totalHabits,
 		},
 	})
 }

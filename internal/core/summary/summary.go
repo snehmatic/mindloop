@@ -66,6 +66,7 @@ func (s *Service) GetFocusStats(start, end time.Time) (models.FocusStats, error)
 	return models.FocusStats{
 		TotalSessions:  len(sessions),
 		TotalDuration:  utils.FormatMinutes(totalDuration),
+		RawDuration:    totalDuration,
 		LongestSession: utils.FormatMinutes(longestSession),
 	}, nil
 }
@@ -136,5 +137,70 @@ func (s *Service) GetIntentStats(start, end time.Time) ([]models.IntentStats, er
 			Status:     intent.Status,
 		})
 	}
+	return stats, nil
+}
+
+// GetFocusSeries returns daily focus duration for the given range
+func (s *Service) GetFocusSeries(start, end time.Time) ([]float64, []string, error) {
+	// Calculate number of days
+	days := int(end.Sub(start).Hours()/24) + 1
+	if days < 1 {
+		days = 1
+	}
+
+	stats := make([]float64, days)
+	labels := make([]string, days)
+
+	for i := 0; i < days; i++ {
+		date := start.AddDate(0, 0, i)
+		labels[i] = date.Format("Jan 02")
+	}
+
+	var sessions []models.FocusSession
+	if err := s.DB.Where("CreatedAt >= ? AND CreatedAt <= ?", start, end).Find(&sessions).Error; err != nil {
+		return nil, nil, err
+	}
+
+	for _, session := range sessions {
+		// Calculate index
+		// We truncate everything to midnight to compare dates
+		sessionDate := session.CreatedAt.Truncate(24 * time.Hour)
+		startDate := start.Truncate(24 * time.Hour)
+
+		diff := int(sessionDate.Sub(startDate).Hours() / 24)
+		if diff >= 0 && diff < days {
+			stats[diff] += session.Duration
+		}
+	}
+
+	return stats, labels, nil
+}
+
+// GetHabitSeries returns daily habit completion count for the given range
+func (s *Service) GetHabitSeries(start, end time.Time) ([]int, error) {
+	days := int(end.Sub(start).Hours()/24) + 1
+	if days < 1 {
+		days = 1
+	}
+
+	stats := make([]int, days)
+
+	var logs []models.HabitLog
+	if err := s.DB.Where("CreatedAt >= ? AND CreatedAt <= ?", start, end).Find(&logs).Error; err != nil {
+		return nil, err
+	}
+
+	for _, log := range logs {
+		if log.ActualCount >= log.TargetCount {
+			logDate := log.CreatedAt.Truncate(24 * time.Hour)
+			startDate := start.Truncate(24 * time.Hour)
+			diff := int(logDate.Sub(startDate).Hours() / 24)
+
+			if diff >= 0 && diff < days {
+				stats[diff]++
+			}
+		}
+	}
+
 	return stats, nil
 }

@@ -14,9 +14,6 @@ import (
 
 func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Request) {
 	interval := r.URL.Query().Get("interval")
-	if interval == "" {
-		interval = string(models.Daily)
-	}
 
 	habits, err := mlh.habit.ListHabits(models.IntervalType(interval))
 	if err != nil {
@@ -35,6 +32,7 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 		models.Habit
 		ActualCount int
 		ProgressPct int
+		Streak      int
 	}
 
 	var habitViews []HabitView
@@ -78,16 +76,21 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 		if pct > 100 {
 			pct = 100
 		}
+
+		streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+
 		habitViews = append(habitViews, HabitView{
 			Habit:       h,
 			ActualCount: actual,
 			ProgressPct: pct,
+			Streak:      streak,
 		})
 	}
 
 	data := map[string]interface{}{
-		"Title":  "Habits",
-		"Habits": habitViews,
+		"Title":           "Habits",
+		"Habits":          habitViews,
+		"CurrentInterval": interval,
 	}
 
 	// Pass query params as simple alerts
@@ -297,9 +300,18 @@ func (mlh *MindloopHandler) HandleSummary(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	// Charts Data
+	dailyFocus, labels, _ := mlh.summary.GetFocusSeries(start, now)
+	dailyHabits, _ := mlh.summary.GetHabitSeries(start, now)
+
 	mlh.renderTemplate(w, "summary.html", map[string]interface{}{
 		"Title":  "Summary",
 		"Report": report,
+		"Charts": map[string]interface{}{
+			"Labels":      labels,
+			"DailyFocus":  dailyFocus,
+			"DailyHabits": dailyHabits,
+		},
 	})
 }
 

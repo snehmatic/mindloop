@@ -229,6 +229,7 @@ func IsValidMode(mode string) bool {
 type FocusStats struct {
 	TotalSessions  int
 	TotalDuration  string
+	RawDuration    float64
 	LongestSession string
 }
 
