@@ -39,6 +39,7 @@ func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
 	// Journal Routes
 	r.HandleFunc("/journal", mlh.HandleJournalList).Methods("GET")
 	r.HandleFunc("/journal/new", mlh.HandleJournalCreate).Methods("POST")
+	r.HandleFunc("/journal/delete", mlh.HandleJournalDelete).Methods("POST")
 
 	// Habit Routes
 	r.HandleFunc("/habits", mlh.HandleHabitList).Methods("GET")
@@ -51,14 +52,19 @@ func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
 	r.HandleFunc("/focus", mlh.HandleFocus).Methods("GET")
 	r.HandleFunc("/focus/start", mlh.HandleFocusStart).Methods("POST")
 	r.HandleFunc("/focus/stop", mlh.HandleFocusStop).Methods("POST")
+	r.HandleFunc("/focus/delete", mlh.HandleFocusDelete).Methods("POST")
 
 	// Intent Routes
 	r.HandleFunc("/intent", mlh.HandleIntent).Methods("GET")
 	r.HandleFunc("/intent/set", mlh.HandleIntentSet).Methods("POST")
 	r.HandleFunc("/intent/complete", mlh.HandleIntentComplete).Methods("POST")
+	r.HandleFunc("/intent/delete", mlh.HandleIntentDelete).Methods("POST")
 
 	// Summary Route
 	r.HandleFunc("/summary", mlh.HandleSummary).Methods("GET")
+
+	// Quote Route
+	r.HandleFunc("/api/quote", mlh.HandleQuote).Methods("GET")
 
 	// Maintenance
 	r.HandleFunc("/cleanslate", mlh.HandleCleanSlate).Methods("POST")

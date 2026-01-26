@@ -60,7 +60,14 @@
             <span class="{{ if eq .Status " done" }}text-done{{ end }}" style="font-size: 1.1rem;">
                 {{ .Name }}
             </span>
-            <small class="text-muted">{{ .CreatedAt.Format "Jan 02" }}</small>
+            <div class="flex-center gap-sm">
+                <small class="text-muted">{{ .CreatedAt.Format "Jan 02" }}</small>
+                <form action="/intent/delete" method="POST" style="margin: 0;"
+                    onsubmit="return confirm('Delete this intent?');">
+                    <input type="hidden" name="id" value="{{ .ID }}">
+                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete">🗑️</button>
+                </form>
+            </div>
         </li>
         {{ end }}
     </ul>

@@ -98,6 +98,7 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, err
 	} else if !errors.Is(res.Error, gorm.ErrRecordNotFound) {
 		return nil, nil, res.Error
 	}
+	// If ErrRecordNotFound, we just proceed to create a new one.
 
 	// Create new log
 	habitLog := &models.HabitLog{
@@ -183,6 +184,9 @@ func (s *Service) CalculateStreak(habitID uint, interval models.IntervalType) (i
 	var logs []models.HabitLog
 	// Fetch all logs for this habit ordered by date descending
 	if err := s.DB.Where("HabitID = ?", habitID).Order("CreatedAt desc").Find(&logs).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return 0, nil
+		}
 		return 0, err
 	}
 

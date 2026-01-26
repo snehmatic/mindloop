@@ -68,6 +68,9 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 			a, _ := json.Marshal(v)
 			return template.JS(a)
 		},
+		"iso8601": func(t time.Time) string {
+			return t.Format(time.RFC3339)
+		},
 	})
 
 	ts, err := ts.ParseFiles(files...)

@@ -81,6 +81,10 @@ func (s *Service) RateSession(id int, rating int) (*models.FocusSession, error) 
 	return &session, nil
 }
 
+func (s *Service) DeleteSession(id int) error {
+	return s.DB.Delete(&models.FocusSession{}, id).Error
+}
+
 func (s *Service) DeleteAll() error {
 	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.FocusSession{}).Error
 }

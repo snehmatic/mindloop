@@ -1,14 +1,33 @@
 package v1
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
 	"time"
 
 	"github.com/rs/zerolog/log"
+	"github.com/snehmatic/mindloop/internal/core/motivation"
 	"github.com/snehmatic/mindloop/models"
 )
+
+// --- Quote Handler ---
+
+func (mlh *MindloopHandler) HandleQuote(w http.ResponseWriter, r *http.Request) {
+	quote, err := motivation.FetchRandomQuote()
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching quote")
+		http.Error(w, "Failed to fetch quote", http.StatusServiceUnavailable)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(quote); err != nil {
+		log.Error().Err(err).Msg("Error encoding quote response")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	}
+}
 
 // --- Habit Handlers ---
 
@@ -224,6 +243,18 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 	http.Redirect(w, r, "/intent", http.StatusSeeOther)
 }
 
+func (mlh *MindloopHandler) HandleIntentDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/intent", http.StatusSeeOther)
+		return
+	}
+	id := r.FormValue("id")
+	if err := mlh.intent.DeleteIntent(id); err != nil {
+		log.Error().Err(err).Msg("Error deleting intent")
+	}
+	http.Redirect(w, r, "/intent", http.StatusSeeOther)
+}
+
 // --- Focus Handlers ---
 
 func (mlh *MindloopHandler) HandleFocus(w http.ResponseWriter, r *http.Request) {
@@ -262,6 +293,19 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 	_, err := mlh.focus.EndSession(id)
 	if err != nil {
 		log.Error().Err(err).Msg("Error ending focus session")
+	}
+	http.Redirect(w, r, "/focus", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleFocusDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/focus", http.StatusSeeOther)
+		return
+	}
+	idStr := r.FormValue("id")
+	id, _ := strconv.Atoi(idStr)
+	if err := mlh.focus.DeleteSession(id); err != nil {
+		log.Error().Err(err).Msg("Error deleting focus session")
 	}
 	http.Redirect(w, r, "/focus", http.StatusSeeOther)
 }
@@ -357,6 +401,18 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 		return
 	}
 	http.Redirect(w, r, redirectURL+"?success=Data cleared successfully", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleJournalDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/journal", http.StatusSeeOther)
+		return
+	}
+	id := r.FormValue("id")
+	if err := mlh.journal.DeleteEntry(id); err != nil {
+		log.Error().Err(err).Msg("Error deleting journal entry")
+	}
+	http.Redirect(w, r, "/journal", http.StatusSeeOther)
 }
 
 func (mlh *MindloopHandler) HandleAbout(w http.ResponseWriter, r *http.Request) {
