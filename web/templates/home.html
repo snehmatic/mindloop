@@ -5,14 +5,17 @@
         <!-- Active Intent or Call to Action -->
         {{ if .Dashboard.CurrentIntent }}
         <div class="card"
-            style="background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%); color: white; border: none; display: flex; flex-direction: column; justify-content: center;">
+            style="background: var(--bg-surface); backdrop-filter: blur(12px); border: 1px solid var(--border); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
+            <div
+                style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gradient-primary);">
+            </div>
             <div class="text-label mb-sm"
-                style="opacity: 0.9; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem;">Today's
-                Focus</div>
-            <h2 style="color: white; font-size: 2rem; margin-bottom: 1.5rem;">{{ .Dashboard.CurrentIntent.Name }}</h2>
+                style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
+                Today's Focus
+            </div>
+            <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">{{ .Dashboard.CurrentIntent.Name }}</h2>
             <div>
-                <a href="/intent" class="btn"
-                    style="background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px);">
+                <a href="/intent" class="btn btn-primary">
                     View Details
                 </a>
             </div>

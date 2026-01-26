@@ -10,10 +10,22 @@
     <link rel="icon" type="image/png" sizes="32x32" href="/static/favicon_io/favicon-32x32.png">
     <link rel="apple-touch-icon" sizes="180x180" href="/static/favicon_io/apple-touch-icon.png">
     <link rel="manifest" href="/static/favicon_io/site.webmanifest">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href='{{ asset "/static/css/style.css" }}'>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        // Check for saved user preference early to prevent flash
+        (function () {
+            const currentTheme = localStorage.getItem('theme');
+            if (currentTheme) {
+                document.documentElement.classList.add(currentTheme);
+                if (currentTheme === 'dark-mode') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                }
+            }
+        })();
+    </script>
 </head>
 
 <body>
@@ -54,29 +66,29 @@
 
 
     <script>
-        const themeToggle = document.getElementById('theme-toggle');
-        const body = document.body;
-        const icon = themeToggle;
+        document.addEventListener('DOMContentLoaded', () => {
+            const themeToggle = document.getElementById('theme-toggle');
+            const html = document.documentElement;
+            const icon = themeToggle;
 
-        // Check for saved user preference, if any, on load of the website
-        const currentTheme = localStorage.getItem('theme');
-        if (currentTheme) {
-            body.classList.add(currentTheme);
-            if (currentTheme === 'dark-mode') {
+            // Sync icon on load
+            if (html.classList.contains('dark-mode')) {
                 icon.textContent = '☀️';
             }
-        }
 
-        themeToggle.addEventListener('click', function () {
-            body.classList.toggle('dark-mode');
-            let theme = 'light';
-            if (body.classList.contains('dark-mode')) {
-                theme = 'dark-mode';
-                icon.textContent = '☀️';
-            } else {
-                icon.textContent = '🌙';
-            }
-            localStorage.setItem('theme', theme);
+            themeToggle.addEventListener('click', function () {
+                html.classList.toggle('dark-mode');
+                let theme = 'light';
+                if (html.classList.contains('dark-mode')) {
+                    theme = 'dark-mode';
+                    html.setAttribute('data-theme', 'dark');
+                    icon.textContent = '☀️';
+                } else {
+                    html.removeAttribute('data-theme');
+                    icon.textContent = '🌙';
+                }
+                localStorage.setItem('theme', theme);
+            });
         });
     </script>
 </body>

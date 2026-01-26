@@ -2,6 +2,7 @@ package v1
 
 import (
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
 	"os"
@@ -70,6 +71,13 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 		},
 		"iso8601": func(t time.Time) string {
 			return t.Format(time.RFC3339)
+		},
+		"asset": func(path string) string {
+			cfg := config.GetConfig()
+			if cfg.Mode == config.Local {
+				return fmt.Sprintf("%s?v=%d", path, time.Now().Unix())
+			}
+			return fmt.Sprintf("%s?v=1.0.0", path)
 		},
 	})
 
