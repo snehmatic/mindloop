@@ -53,7 +53,7 @@
         {{ if .Report.Intents }}
         <ul class="mt-md" style="padding-left: 0; list-style: none;">
             {{ range .Report.Intents }}
-            <li class="mb-sm flex-between {{ if eq .Status " done" }}text-done{{ end }}">
+            <li class='mb-sm flex-between {{ if eq .Status "done" }}text-done{{ end }}'>
                 <span>{{ .IntentName }}</span>
                 {{ if eq .Status "done" }}<span style="font-size: 0.8em; color: var(--success);">✓</span>{{ end }}
             </li>
@@ -107,80 +107,82 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script type="application/json" id="data-labels">{{ .Charts.Labels | json }}</script>
+<script type="application/json" id="data-focus">{{ .Charts.DailyFocus | json }}</script>
+<script type="application/json" id="data-habits">{{ .Charts.DailyHabits | json }}</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Data passed from Go backend
-        const labels = {{ .Charts.Labels | json
-    }};
-    const focusData = {{ .Charts.DailyFocus | json }};
-    const habitData = {{ .Charts.DailyHabits | json }};
+        const labels = JSON.parse(document.getElementById('data-labels').textContent);
+        const focusData = JSON.parse(document.getElementById('data-focus').textContent);
+        const habitData = JSON.parse(document.getElementById('data-habits').textContent);
 
-    // Chart.js Configuration for Focus
-    const ctxFocus = document.getElementById('focusChart').getContext('2d');
-    new Chart(ctxFocus, {
-        type: 'bar',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Minutes',
-                data: focusData,
-                backgroundColor: 'rgba(99, 102, 241, 0.5)',
-                borderColor: 'rgba(99, 102, 241, 1)',
-                borderWidth: 1,
-                borderRadius: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    grid: { display: false }
-                },
-                x: {
-                    grid: { display: false }
-                }
+        // Chart.js Configuration for Focus
+        const ctxFocus = document.getElementById('focusChart').getContext('2d');
+        new Chart(ctxFocus, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Minutes',
+                    data: focusData,
+                    backgroundColor: 'rgba(99, 102, 241, 0.5)',
+                    borderColor: 'rgba(99, 102, 241, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
             },
-            plugins: {
-                legend: { display: false }
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { display: false }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
             }
-        }
-    });
+        });
 
-    // Chart.js Configuration for Habits
-    const ctxHabit = document.getElementById('habitChart').getContext('2d');
-    new Chart(ctxHabit, {
-        type: 'line',
-        data: {
-            labels: labels,
-            datasets: [{
-                label: 'Habits Completed',
-                data: habitData,
-                borderColor: '#10b981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                fill: true,
-                tension: 0.4,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: { stepSize: 1 },
-                    grid: { color: 'rgba(0,0,0,0.05)' }
-                },
-                x: {
-                    grid: { display: false }
-                }
+        // Chart.js Configuration for Habits
+        const ctxHabit = document.getElementById('habitChart').getContext('2d');
+        new Chart(ctxHabit, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Habits Completed',
+                    data: habitData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
             },
-            plugins: {
-                legend: { display: false }
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
             }
-        }
-    });
+        });
     });
 </script>
 {{ end }}

@@ -488,7 +488,6 @@ textarea:focus {
 }
 
 .text-done {
-    text-decoration: line-through;
     color: var(--text-light);
 }
 
