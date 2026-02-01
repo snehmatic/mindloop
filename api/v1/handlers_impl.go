@@ -420,3 +420,9 @@ func (mlh *MindloopHandler) HandleAbout(w http.ResponseWriter, r *http.Request) 
 		"Title": "About",
 	})
 }
+
+func (mlh *MindloopHandler) HandleVoid(w http.ResponseWriter, r *http.Request) {
+	mlh.renderTemplate(w, "void.html", map[string]interface{}{
+		"Title": "The Void",
+	})
+}

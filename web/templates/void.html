@@ -1,0 +1,242 @@
+{{ define "content" }}
+<style>
+    :root {
+        --void-bg: #050505;
+        --void-text: #e0e0e0;
+        --void-accent: #666;
+    }
+
+    body.void-mode {
+        background-color: var(--void-bg) !important;
+        color: var(--void-text) !important;
+        transition: background-color 2s ease;
+    }
+
+    .void-container {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: var(--void-bg);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        color: var(--void-text);
+        font-family: 'Inter', sans-serif;
+    }
+
+    .breathing-circle {
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        /* High visibility: White border with a soft inner/outer glow */
+        background: rgba(255, 255, 255, 0.05);
+        border: 3px solid rgba(255, 255, 255, 0.4);
+        box-shadow: 0 0 30px rgba(255, 255, 255, 0.1);
+        margin-bottom: 4rem;
+        /* 12s cycle: 4s inhale, 4s hold, 4s exhale */
+        animation: breathe 12s infinite ease-in-out;
+    }
+
+    @keyframes breathe {
+        0% { transform: scale(1); opacity: 0.4; border-color: rgba(255,255,255,0.2); }      /* Start Inhale */
+        33% { transform: scale(1.7); opacity: 1; border-color: rgba(255,255,255,0.8); }    /* End Inhale / Start Hold */
+        66% { transform: scale(1.7); opacity: 1; border-color: rgba(255,255,255,0.8); }    /* End Hold / Start Exhale */
+        100% { transform: scale(1); opacity: 0.4; border-color: rgba(255,255,255,0.2); }   /* End Exhale */
+    }
+
+    .void-timer {
+        font-size: 3rem; /* Larger */
+        font-weight: 400; /* Bolder */
+        letter-spacing: 0.2rem;
+        margin-bottom: 1rem;
+        color: var(--void-text);
+        text-shadow: 0 0 10px rgba(255,255,255,0.1);
+    }
+
+    .void-status {
+        font-size: 1rem;
+        text-transform: uppercase;
+        letter-spacing: 0.3rem;
+        height: 2rem;
+        color: #888;
+        font-weight: 500;
+    }
+
+    .void-controls {
+        margin-top: 3rem;
+        display: flex;
+        gap: 1.5rem;
+    }
+
+    .btn-void {
+        background: transparent;
+        border: 1px solid var(--void-accent);
+        color: var(--void-text);
+        padding: 0.75rem 2rem;
+        cursor: pointer;
+        border-radius: 6px;
+        font-size: 1rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .btn-void:hover {
+        border-color: #fff;
+        background: rgba(255,255,255,0.1);
+        color: #fff;
+    }
+
+    .void-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.95); /* darker overlay */
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(10px);
+        z-index: 10000;
+    }
+
+    #exit-btn {
+        position: absolute;
+        bottom: 3rem;
+        opacity: 0.4;
+        transition: opacity 0.3s;
+        border: none;
+        text-transform: lowercase;
+        letter-spacing: 0.1rem;
+    }
+
+    #exit-btn:hover {
+        opacity: 1;
+        background: transparent;
+        border: none;
+    }
+</style>
+
+<div class="void-container" id="void-main">
+    <div id="setup-view" style="text-align: center;">
+        <h1 style="font-weight: 300; font-size: 2.5rem; margin-bottom: 1rem; color: #fff;">Enter The Void</h1>
+        <p style="margin-bottom: 3rem; color: #aaa; font-size: 1.1rem;">Disconnect to reconnect.</p>
+        <div class="void-controls">
+            <button class="btn-void" onclick="startVoid(5)">5m</button>
+            <button class="btn-void" onclick="startVoid(10)">10m</button>
+            <button class="btn-void" onclick="startVoid(15)">15m</button>
+        </div>
+        <a href="/" style="display: block; margin-top: 3rem; color: #666; text-decoration: none; font-size: 0.9rem;">Nevermind</a>
+    </div>
+
+    <div id="active-view" style="display: none; flex-direction: column; align-items: center;">
+        <div class="breathing-circle"></div>
+        <div class="void-timer" id="timer-display">00:00</div>
+        <div class="void-status" id="status-display">Focus on your breathing</div>
+        
+        <button id="exit-btn" class="btn-void" onclick="location.href='/'">exit</button>
+    </div>
+
+    <div class="void-overlay" id="pause-overlay">
+        <h1 style="font-weight: 300; font-size: 4rem; margin: 0;">⏸️</h1>
+        <h2 style="font-weight: 300; color: #fff; margin-top: 2rem;">The void demands your attention.</h2>
+        <p style="color: #aaa; margin-top: 1rem;">Time is frozen while you are away.</p>
+    </div>
+</div>
+
+<script>
+    let timeLeft = 0;
+    let timerId = null;
+    let isPaused = false;
+    let audioCtx = null;
+
+    function startVoid(minutes) {
+        document.getElementById('setup-view').style.display = 'none';
+        document.getElementById('active-view').style.display = 'flex';
+        
+        // Init Audio Context (must happen on user interaction)
+        if (!audioCtx) {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        timeLeft = minutes * 60;
+        updateDisplay();
+        
+        timerId = setInterval(tick, 1000);
+    }
+
+    function tick() {
+        if (isPaused) return;
+
+        if (timeLeft > 0) {
+            timeLeft--;
+            updateDisplay();
+        } else {
+            completeVoid();
+        }
+    }
+
+    function updateDisplay() {
+        const mins = Math.floor(timeLeft / 60);
+        const secs = timeLeft % 60;
+        const display = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        document.getElementById('timer-display').textContent = display;
+        document.title = display + " - The Void";
+    }
+
+    function completeVoid() {
+        clearInterval(timerId);
+        document.getElementById('status-display').textContent = "Welcome back.";
+        document.getElementById('status-display').style.color = "#fff";
+        document.querySelector('.breathing-circle').style.animation = "none";
+        document.querySelector('.breathing-circle').style.opacity = "1";
+        document.querySelector('.breathing-circle').style.transform = "scale(1)";
+        document.getElementById('exit-btn').style.opacity = "1";
+        
+        playSingingBowl();
+    }
+
+    function playSingingBowl() {
+        if (!audioCtx) return;
+
+        const oscillator = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(440, audioCtx.currentTime); // A4
+        
+        // Bell envelope
+        gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.1); // Attack
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 4); // Long decay
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 4);
+    }
+
+    document.addEventListener("visibilitychange", () => {
+        if (timeLeft <= 0) return;
+
+        if (document.hidden) {
+            isPaused = true;
+            document.getElementById('pause-overlay').style.display = 'flex';
+            document.title = "⏸️ Time is frozen";
+        } else {
+            isPaused = false;
+            document.getElementById('pause-overlay').style.display = 'none';
+            updateDisplay();
+        }
+    });
+
+    // Disable right click to reduce distraction
+    document.addEventListener('contextmenu', event => event.preventDefault());
+</script>
+{{ end }}
