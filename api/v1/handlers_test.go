@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	v1 "github.com/snehmatic/mindloop/api/v1"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
@@ -20,6 +21,9 @@ import (
 )
 
 func setupTestServer(t *testing.T) *v1.MindloopHandler {
+	// Initialize global config for tests
+	config.InitConfig("MindloopTest", "local", ":8765")
+
 	// Use in-memory DB for testing
 	database, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
 		NamingStrategy: schema.NamingStrategy{
@@ -151,7 +155,7 @@ func TestSummaryGeneration(t *testing.T) {
 		t.Errorf("Summary failed with status %d", w.Code)
 	}
 
-	if !strings.Contains(w.Body.String(), "Weekly Summary") {
+	if !strings.Contains(w.Body.String(), "Summary Report") {
 		t.Errorf("Summary page content missing expected title")
 	}
 }
