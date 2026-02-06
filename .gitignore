@@ -39,3 +39,6 @@ mindloop.log
 # Server process management
 .mindloop-server.pid
 server.log
+
+.gemini/
+gha-creds-*.json

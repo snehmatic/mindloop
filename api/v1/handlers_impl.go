@@ -264,10 +264,19 @@ func (mlh *MindloopHandler) HandleFocus(w http.ResponseWriter, r *http.Request) 
 		sessions[i], sessions[j] = sessions[j], sessions[i]
 	}
 
-	mlh.renderTemplate(w, "focus.html", map[string]interface{}{
+	data := map[string]interface{}{
 		"Title":    "Focus",
 		"Sessions": sessions,
-	})
+	}
+
+	if success := r.URL.Query().Get("success"); success == "true" {
+		data["SuccessMessage"] = "Action completed successfully"
+	}
+	if errStr := r.URL.Query().Get("error"); errStr != "" {
+		data["ErrorMessage"] = errStr
+	}
+
+	mlh.renderTemplate(w, "focus.html", data)
 }
 
 func (mlh *MindloopHandler) HandleFocusStart(w http.ResponseWriter, r *http.Request) {
@@ -279,8 +288,10 @@ func (mlh *MindloopHandler) HandleFocusStart(w http.ResponseWriter, r *http.Requ
 	_, err := mlh.focus.StartSession(title)
 	if err != nil {
 		log.Error().Err(err).Msg("Error starting focus session")
+		http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
+		return
 	}
-	http.Redirect(w, r, "/focus", http.StatusSeeOther)
+	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
 }
 
 func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Request) {
@@ -293,8 +304,10 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 	_, err := mlh.focus.EndSession(id)
 	if err != nil {
 		log.Error().Err(err).Msg("Error ending focus session")
+		http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
+		return
 	}
-	http.Redirect(w, r, "/focus", http.StatusSeeOther)
+	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
 }
 
 func (mlh *MindloopHandler) HandleFocusDelete(w http.ResponseWriter, r *http.Request) {
@@ -306,8 +319,10 @@ func (mlh *MindloopHandler) HandleFocusDelete(w http.ResponseWriter, r *http.Req
 	id, _ := strconv.Atoi(idStr)
 	if err := mlh.focus.DeleteSession(id); err != nil {
 		log.Error().Err(err).Msg("Error deleting focus session")
+		http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
+		return
 	}
-	http.Redirect(w, r, "/focus", http.StatusSeeOther)
+	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
 }
 
 // --- Summary Handler ---

@@ -21,6 +21,11 @@ func (s *Service) StartSession(title string) (*models.FocusSession, error) {
 		return nil, errors.New("title cannot be empty")
 	}
 
+	var activeSession models.FocusSession
+	if err := s.DB.Where("status = ?", "active").First(&activeSession).Error; err == nil {
+		return nil, errors.New("a focus session is already active")
+	}
+
 	session := &models.FocusSession{
 		Title:  title,
 		Status: "active",
