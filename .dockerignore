@@ -1,0 +1,10 @@
+.git
+.github
+bin
+mindloop
+mindloop-server
+mindloop_local.db
+user_config.yaml
+*.log
+.mindloop-server.pid
+.gemini

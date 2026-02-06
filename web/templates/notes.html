@@ -1,0 +1,72 @@
+{{ define "content" }}
+<div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
+    <!-- New Note Section -->
+    <div class="card">
+        <h2 class="mb-md">Capture a Note</h2>
+        <form action="/notes/new" method="POST">
+            <div class="form-group">
+                <label for="title">Title (Optional)</label>
+                <input type="text" id="title" name="title" placeholder="A brief title for your note">
+            </div>
+            <div class="form-group">
+                <label for="labels">Labels (Optional, comma-separated)</label>
+                <input type="text" id="labels" name="labels" placeholder="work, idea, snippet">
+            </div>
+            <div class="form-group">
+                <label for="content">Content</label>
+                <textarea id="content" name="content" rows="5" placeholder="What's on your mind? (Supports Markdown)" required></textarea>
+            </div>
+            <div class="flex-end">
+                <button type="submit" class="btn btn-primary">Save Note</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Notes History -->
+    <div>
+        <div class="flex-between mb-md">
+            <h3>Recent Notes</h3>
+        </div>
+
+        {{ if .Notes }}
+        <div class="grid">
+            {{ range .Notes }}
+            <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="flex-between mb-sm">
+                        <h3 style="margin-bottom: 0;">{{ if .Title }}{{ .Title }}{{ else }}Untitled Note{{ end }}</h3>
+                        <span class="text-xs text-muted">{{ .UpdatedAt.Format "Jan 02, 2006" }}</span>
+                    </div>
+                    
+                    <!-- Labels -->
+                    <div class="mb-md" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
+                        {{ if .Labels }}
+                            {{ range (split .Labels ",") }}
+                            <span style="background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">{{ . }}</span>
+                            {{ end }}
+                        {{ end }}
+                    </div>
+
+                    <p class="text-sm" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1.5rem;">
+                        {{ .Content }}
+                    </p>
+                </div>
+
+                <div class="flex-between mt-auto">
+                    <a href="/notes/view/{{ .ID }}" class="btn btn-sm btn-secondary">View Full</a>
+                    <form action="/notes/delete" method="POST" style="margin: 0;" onsubmit="return confirm('Delete this note?');">
+                        <input type="hidden" name="id" value="{{ .ID }}">
+                        <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete">🗑️</button>
+                    </form>
+                </div>
+            </div>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="empty-state">
+            <p>No notes captured yet. Start by writing something above!</p>
+        </div>
+        {{ end }}
+    </div>
+</div>
+{{ end }}

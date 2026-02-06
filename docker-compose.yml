@@ -1,0 +1,16 @@
+services:
+  mindloop:
+    build: .
+    image: mindloop:latest
+    container_name: mindloop
+    ports:
+      - "8765:8765"
+    volumes:
+      - mindloop_data:/app
+    environment:
+      - PORT=8765
+      - MODE=local
+    restart: unless-stopped
+
+volumes:
+  mindloop_data:

@@ -1,0 +1,121 @@
+{{ define "content" }}
+<div class="card">
+    <div class="flex-between mb-lg">
+        <div>
+            <h1>Settings</h1>
+            <p class="text-muted">Configure your profile and database connection.</p>
+        </div>
+    </div>
+
+    <form action="/settings/update" method="POST">
+        <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+            <!-- Profile Section -->
+            <div>
+                <h3>Profile</h3>
+                <div class="mt-md">
+                    <label for="name">Preferred Username</label>
+                    <input type="text" id="name" name="name" value="{{ .Config.Name }}" placeholder="Enter your name" required>
+                </div>
+
+                <div class="mt-md">
+                    <label for="mode">Operating Mode</label>
+                    <select id="mode" name="mode" onchange="toggleDbSettings(this.value)">
+                        {{ $currentMode := .Config.Mode }}
+                        {{ range .AllModes }}
+                        <option value="{{ . }}" {{ if eq . $currentMode }}selected{{ end }}>{{ . }}</option>
+                        {{ end }}
+                    </select>
+                </div>
+
+                <h3 class="mt-xl">Feature Sync (Cloud)</h3>
+                <div class="mt-md card" style="padding: 1rem;">
+                    <div class="flex-between mb-sm">
+                        <label for="focus_cloud">Focus Session Sync</label>
+                        <input type="checkbox" id="focus_cloud" name="focus_cloud" {{ if .Config.FeatureFlags.FocusCloud }}checked{{ end }} style="width: auto;">
+                    </div>
+                    <div class="flex-between mb-sm">
+                        <label for="habit_cloud">Habit Sync</label>
+                        <input type="checkbox" id="habit_cloud" name="habit_cloud" {{ if .Config.FeatureFlags.HabitCloud }}checked{{ end }} style="width: auto;">
+                    </div>
+                    <div class="flex-between mb-sm">
+                        <label for="intent_cloud">Intent Sync</label>
+                        <input type="checkbox" id="intent_cloud" name="intent_cloud" {{ if .Config.FeatureFlags.IntentCloud }}checked{{ end }} style="width: auto;">
+                    </div>
+                    <div class="flex-between mb-sm">
+                        <label for="journal_cloud">Journal Sync</label>
+                        <input type="checkbox" id="journal_cloud" name="journal_cloud" {{ if .Config.FeatureFlags.JournalCloud }}checked{{ end }} style="width: auto;">
+                    </div>
+                    <div class="flex-between mb-sm">
+                        <label for="note_cloud">Note Sync</label>
+                        <input type="checkbox" id="note_cloud" name="note_cloud" {{ if .Config.FeatureFlags.NoteCloud }}checked{{ end }} style="width: auto;">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Database Section -->
+            <div id="db-settings" style='display: {{ if eq .Config.Mode "byodb" }}block{{ else }}none{{ end }};'>
+                <h3>Database (BYODB)</h3>
+                <div class="mt-md">
+                    <label for="db_host">Host</label>
+                    <input type="text" id="db_host" name="db_host" value="{{ .Config.DbConfig.Host }}" placeholder="localhost">
+                </div>
+                <div class="mt-md">
+                    <label for="db_port">Port</label>
+                    <input type="text" id="db_port" name="db_port" value="{{ .Config.DbConfig.Port }}" placeholder="5432">
+                </div>
+                <div class="mt-md">
+                    <label for="db_user">User</label>
+                    <input type="text" id="db_user" name="db_user" value="{{ .Config.DbConfig.User }}" placeholder="postgres">
+                </div>
+                <div class="mt-md">
+                    <label for="db_pass">Password</label>
+                    <input type="password" id="db_pass" name="db_pass" value="{{ .Config.DbConfig.Password }}">
+                </div>
+                <div class="mt-md">
+                    <label for="db_name">Database Name</label>
+                    <input type="text" id="db_name" name="db_name" value="{{ .Config.DbConfig.Name }}" placeholder="mindloop">
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-xl flex-end">
+            <button type="submit" class="btn btn-primary">Save Settings</button>
+        </div>
+    </form>
+
+    <hr style="margin: 3rem 0; border: 0; border-top: 1px solid var(--border);">
+
+    <!-- Backup & Restore Section -->
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem;">
+        <div>
+            <h3>Backup Data</h3>
+            <p class="text-sm text-muted">Export all your local data (intents, habits, focus sessions, journal, and notes) to a JSON file for safe-keeping.</p>
+            <a href="/backup/export" class="btn btn-secondary">
+                📥 Export Backup (.json)
+            </a>
+        </div>
+
+        <div>
+            <h3>Restore Data</h3>
+            <p class="text-sm text-muted">Restore your data from a backup file. <strong>Warning: This will replace all your current local data!</strong></p>
+            <form action="/backup/import" method="POST" enctype="multipart/form-data" class="flex-center gap-sm" style="justify-content: flex-start;">
+                <input type="file" name="backup_file" accept=".json" required style="width: auto; font-size: 0.85rem; padding: 0.5rem;">
+                <button type="submit" class="btn btn-danger-outline btn-sm" onclick="return confirm('Are you sure you want to restore? ALL current data will be overwritten.')">
+                    📤 Restore
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function toggleDbSettings(mode) {
+        const dbSettings = document.getElementById('db-settings');
+        if (mode === 'byodb') {
+            dbSettings.style.display = 'block';
+        } else {
+            dbSettings.style.display = 'none';
+        }
+    }
+</script>
+{{ end }}
