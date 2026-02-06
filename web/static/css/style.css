@@ -571,3 +571,62 @@ textarea:focus {
     background-size: cover;
     background-position: center;
 }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    nav {
+        flex-direction: column;
+        height: auto;
+        padding: 1rem 0;
+        gap: 1rem;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .nav-link {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .hero {
+        padding: 2rem 1rem;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .about-hero {
+        padding: 2rem 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+    }
+
+    .flex-between.mobile-stack {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
