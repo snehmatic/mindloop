@@ -3,14 +3,34 @@ package v1
 import (
 	"encoding/json"
 	"errors"
+	"html/template"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/rs/zerolog/log"
+	"github.com/gomarkdown/markdown"
+	"github.com/gomarkdown/markdown/html"
+	"github.com/gomarkdown/markdown/parser"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/motivation"
 	"github.com/snehmatic/mindloop/models"
 )
+
+func mdToHTML(md []byte) []byte {
+	// create markdown parser with extensions
+	extensions := parser.CommonExtensions | parser.AutoHeadingIDs | parser.NoEmptyLineBeforeBlock
+	p := parser.NewWithExtensions(extensions)
+	doc := p.Parse(md)
+
+	// create HTML renderer with extensions
+	htmlFlags := html.CommonFlags | html.HrefTargetBlank
+	opts := html.RendererOptions{Flags: htmlFlags}
+	renderer := html.NewRenderer(opts)
+
+	return markdown.Render(doc, renderer)
+}
 
 // --- Quote Handler ---
 
@@ -390,7 +410,8 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 		err2 := mlh.habit.DeleteAll()
 		err3 := mlh.focus.DeleteAll()
 		err4 := mlh.intent.DeleteAll()
-		if err1 != nil || err2 != nil || err3 != nil || err4 != nil {
+		err5 := mlh.note.DeleteAll()
+		if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil {
 			err = errors.New("failed to delete all data") // Force non-nil error if any failed
 			log.Error().Msg("Error in clean slate all")
 		}
@@ -402,6 +423,8 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 		err = mlh.focus.DeleteAll()
 	case "intent":
 		err = mlh.intent.DeleteAll()
+	case "notes":
+		err = mlh.note.DeleteAll()
 	default:
 		// Unknown type
 	}
@@ -430,6 +453,91 @@ func (mlh *MindloopHandler) HandleJournalDelete(w http.ResponseWriter, r *http.R
 	http.Redirect(w, r, "/journal", http.StatusSeeOther)
 }
 
+// --- Note Handlers ---
+
+func (mlh *MindloopHandler) HandleNoteList(w http.ResponseWriter, r *http.Request) {
+	notes, err := mlh.note.ListNotes()
+	if err != nil {
+		log.Error().Err(err).Msg("Error listing notes")
+		http.Error(w, "Error fetching notes", http.StatusInternalServerError)
+		return
+	}
+
+	data := map[string]interface{}{
+		"Title": "Notes",
+		"Notes": notes,
+	}
+
+	if success := r.URL.Query().Get("success"); success == "true" {
+		data["SuccessMessage"] = "Action completed successfully"
+	}
+	if errStr := r.URL.Query().Get("error"); errStr != "" {
+		data["ErrorMessage"] = errStr
+	}
+
+	mlh.renderTemplate(w, "notes.html", data)
+}
+
+func (mlh *MindloopHandler) HandleNoteCreate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/notes", http.StatusSeeOther)
+		return
+	}
+
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+	labels := r.FormValue("labels")
+
+	_, err := mlh.note.CreateNote(title, content, labels)
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating note")
+		http.Redirect(w, r, "/notes?error="+err.Error(), http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/notes?success=true", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleNoteView(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	idStr := vars["id"]
+	id, _ := strconv.Atoi(idStr)
+
+	n, err := mlh.note.GetNote(id)
+	if err != nil {
+		log.Error().Err(err).Msg("Error fetching note")
+		http.Redirect(w, r, "/notes?error=Note not found", http.StatusSeeOther)
+		return
+	}
+
+	htmlContent := mdToHTML([]byte(n.Content))
+
+	mlh.renderTemplate(w, "note_view.html", map[string]interface{}{
+		"Title":       "View Note",
+		"Note":        n,
+		"HTMLContent": template.HTML(htmlContent),
+	})
+}
+
+func (mlh *MindloopHandler) HandleNoteDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/notes", http.StatusSeeOther)
+		return
+	}
+
+	idStr := r.FormValue("id")
+	id, _ := strconv.Atoi(idStr)
+
+	err := mlh.note.DeleteNote(id)
+	if err != nil {
+		log.Error().Err(err).Msg("Error deleting note")
+		http.Redirect(w, r, "/notes?error="+err.Error(), http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/notes?success=true", http.StatusSeeOther)
+}
+
 func (mlh *MindloopHandler) HandleAbout(w http.ResponseWriter, r *http.Request) {
 	mlh.renderTemplate(w, "about.html", map[string]interface{}{
 		"Title": "About",
@@ -440,4 +548,62 @@ func (mlh *MindloopHandler) HandleVoid(w http.ResponseWriter, r *http.Request) {
 	mlh.renderTemplate(w, "void.html", map[string]interface{}{
 		"Title": "The Void",
 	})
+}
+
+// --- Settings Handlers ---
+
+func (mlh *MindloopHandler) HandleSettings(w http.ResponseWriter, r *http.Request) {
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML() // Ignore error if file doesn't exist
+
+	data := map[string]interface{}{
+		"Title":    "Settings",
+		"Config":   uc,
+		"AllModes": config.AllModes,
+	}
+
+	if success := r.URL.Query().Get("success"); success == "true" {
+		data["SuccessMessage"] = "Settings updated successfully"
+	}
+	if errStr := r.URL.Query().Get("error"); errStr != "" {
+		data["ErrorMessage"] = errStr
+	}
+
+	mlh.renderTemplate(w, "settings.html", data)
+}
+
+func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/settings", http.StatusSeeOther)
+		return
+	}
+
+	name := r.FormValue("name")
+	mode := r.FormValue("mode")
+
+	uc := config.UserConfig{
+		Name: name,
+		Mode: mode,
+		FeatureFlags: config.FeatureFlags{
+			FocusCloud:   r.FormValue("focus_cloud") == "on",
+			HabitCloud:   r.FormValue("habit_cloud") == "on",
+			IntentCloud:  r.FormValue("intent_cloud") == "on",
+			JournalCloud: r.FormValue("journal_cloud") == "on",
+			NoteCloud:    r.FormValue("note_cloud") == "on",
+		},
+	}
+
+	if mode == "byodb" {
+		uc.DbConfig = config.DBConfig{
+			Host:     r.FormValue("db_host"),
+			Port:     r.FormValue("db_port"),
+			User:     r.FormValue("db_user"),
+			Password: r.FormValue("db_pass"),
+			Name:     r.FormValue("db_name"),
+		}
+	}
+
+	uc.WriteToYAML()
+
+	http.Redirect(w, r, "/settings?success=true", http.StatusSeeOther)
 }

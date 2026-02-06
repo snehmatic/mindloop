@@ -87,6 +87,7 @@ func MigrateDB(db *gorm.DB) error {
 		&models.Habit{},
 		&models.HabitLog{},
 		&models.JournalEntry{},
+		&models.Note{},
 	)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to migrate DB")

@@ -1,0 +1,71 @@
+{{ define "content" }}
+<div class="mb-lg">
+    <a href="/notes" class="text-sm">← Back to Notes</a>
+</div>
+
+<div class="card">
+    <div class="flex-between mb-lg" style="border-bottom: 1px solid var(--border); padding-bottom: 1.5rem;">
+        <div>
+            <h1 class="mb-xs">{{ if .Note.Title }}{{ .Note.Title }}{{ else }}Untitled Note{{ end }}</h1>
+            <div class="flex-center gap-md" style="justify-content: flex-start;">
+                <span class="text-sm text-muted">Created: {{ .Note.CreatedAt.Format "Jan 02, 2006 15:04" }}</span>
+                {{ if ne .Note.CreatedAt .Note.UpdatedAt }}
+                <span class="text-sm text-muted">Updated: {{ .Note.UpdatedAt.Format "Jan 02, 2006 15:04" }}</span>
+                {{ end }}
+            </div>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+            <!-- Labels in View -->
+            {{ if .Note.Labels }}
+                {{ range (split .Note.Labels ",") }}
+                <span style="background: var(--primary-light); color: var(--primary); padding: 0.2rem 0.8rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600;">{{ . }}</span>
+                {{ end }}
+            {{ end }}
+        </div>
+    </div>
+
+    <!-- Markdown Content -->
+    <div class="markdown-body">
+        {{ .HTMLContent }}
+    </div>
+</div>
+
+<style>
+    .markdown-body {
+        line-height: 1.8;
+        font-size: 1.1rem;
+    }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    .markdown-body p {
+        margin-bottom: 1.5rem;
+    }
+    .markdown-body ul, .markdown-body ol {
+        margin-bottom: 1.5rem;
+        padding-left: 2rem;
+    }
+    .markdown-body code {
+        background: var(--secondary-light);
+        padding: 0.2rem 0.4rem;
+        border-radius: 4px;
+        font-family: monospace;
+    }
+    .markdown-body pre {
+        background: #1e293b;
+        color: #f8fafc;
+        padding: 1.5rem;
+        border-radius: var(--radius-md);
+        overflow-x: auto;
+        margin-bottom: 1.5rem;
+    }
+    .markdown-body blockquote {
+        border-left: 4px solid var(--primary);
+        padding-left: 1.5rem;
+        margin-left: 0;
+        color: var(--text-muted);
+        font-style: italic;
+    }
+</style>
+{{ end }}

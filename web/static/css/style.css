@@ -218,6 +218,45 @@ nav {
     color: var(--primary);
 }
 
+/* Dropdown */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--bg-surface);
+    min-width: 160px;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    z-index: 100;
+    top: calc(100% + 5px);
+    left: 0;
+    backdrop-filter: blur(12px);
+    padding: 0.5rem 0;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-item {
+    color: var(--text-muted);
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    display: block;
+    font-size: 0.925rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
 /* Components */
 .btn {
     display: inline-flex;

@@ -13,6 +13,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
+	"github.com/snehmatic/mindloop/internal/core/note"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/driver/sqlite"
@@ -48,6 +49,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 	}
 
 	journalService := journal.NewService(database)
+	noteService := note.NewService(database)
 	focusService := focus.NewService(database)
 	intentService := intent.NewService(database)
 	summaryService := summary.NewService(database)
@@ -55,6 +57,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 
 	return v1.NewMindloopHandler(
 		journalService,
+		noteService,
 		habitService,
 		focusService,
 		intentService,
