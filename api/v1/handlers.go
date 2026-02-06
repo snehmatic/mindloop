@@ -7,14 +7,17 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/rs/zerolog/log"
 	"github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/core/backup"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
+	"github.com/snehmatic/mindloop/internal/core/note"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
@@ -23,26 +26,32 @@ import (
 type MindloopHandler struct {
 	config  *config.Config
 	journal *journal.Service
+	note    *note.Service
 	habit   *habit.Service
 	focus   *focus.Service
 	intent  *intent.Service
 	summary *summary.Service
+	backup  *backup.Service
 }
 
 func NewMindloopHandler(
 	journal *journal.Service,
+	note *note.Service,
 	habit *habit.Service,
 	focus *focus.Service,
 	intent *intent.Service,
 	summary *summary.Service,
+	backup *backup.Service,
 ) *MindloopHandler {
 	return &MindloopHandler{
 		config:  config.GetConfig(),
 		journal: journal,
+		note:    note,
 		habit:   habit,
 		focus:   focus,
 		intent:  intent,
 		summary: summary,
+		backup:  backup,
 	}
 }
 
@@ -71,6 +80,20 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 		},
 		"iso8601": func(t time.Time) string {
 			return t.Format(time.RFC3339)
+		},
+		"split": func(s, sep string) []string {
+			if s == "" {
+				return nil
+			}
+			parts := strings.Split(s, sep)
+			var trimmed []string
+			for _, p := range parts {
+				t := strings.TrimSpace(p)
+				if t != "" {
+					trimmed = append(trimmed, t)
+				}
+			}
+			return trimmed
 		},
 		"asset": func(path string) string {
 			cfg := config.GetConfig()
