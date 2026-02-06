@@ -249,19 +249,28 @@ func FileDelete(filename string) error {
 }
 
 func CaptureJournalWithEditor() (string, error) {
+	header := "# Mindloop Journal\n# Write your thoughts below. Lines starting with # will be ignored.\n\n"
+	return CaptureWithEditor("mindloop_journal_*.md", header, "")
+}
+
+func CaptureWithEditor(filenamePattern, header, initialContent string) (string, error) {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
 		editor = "vi"
 	}
 
-	tmpFile, err := os.CreateTemp("", "mindloop_journal_*.md")
+	tmpFile, err := os.CreateTemp("", filenamePattern)
 	if err != nil {
 		return "", err
 	}
 	defer os.Remove(tmpFile.Name())
 
-	header := "# Mindloop Journal\n# Write your thoughts below. Lines starting with # will be ignored.\n\n"
-	tmpFile.WriteString(header)
+	if header != "" {
+		tmpFile.WriteString(header)
+	}
+	if initialContent != "" {
+		tmpFile.WriteString(initialContent)
+	}
 	tmpFile.Close()
 
 	cmd := exec.Command(editor, tmpFile.Name())

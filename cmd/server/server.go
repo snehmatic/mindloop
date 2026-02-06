@@ -15,10 +15,12 @@ import (
 	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/snehmatic/mindloop/db"
 	"github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/core/backup"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
+	"github.com/snehmatic/mindloop/internal/core/note"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 )
 
@@ -42,6 +44,12 @@ func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
 	r.HandleFunc("/journal/new", mlh.HandleJournalCreate).Methods("POST")
 	r.HandleFunc("/journal/delete", mlh.HandleJournalDelete).Methods("POST")
 
+	// Note Routes
+	r.HandleFunc("/notes", mlh.HandleNoteList).Methods("GET")
+	r.HandleFunc("/notes/new", mlh.HandleNoteCreate).Methods("POST")
+	r.HandleFunc("/notes/view/{id}", mlh.HandleNoteView).Methods("GET")
+	r.HandleFunc("/notes/delete", mlh.HandleNoteDelete).Methods("POST")
+
 	// Habit Routes
 	r.HandleFunc("/habits", mlh.HandleHabitList).Methods("GET")
 	r.HandleFunc("/habits/new", mlh.HandleHabitCreate).Methods("POST")
@@ -63,6 +71,14 @@ func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
 
 	// Summary Route
 	r.HandleFunc("/summary", mlh.HandleSummary).Methods("GET")
+
+	// Settings Route
+	r.HandleFunc("/settings", mlh.HandleSettings).Methods("GET")
+	r.HandleFunc("/settings/update", mlh.HandleSettingsUpdate).Methods("POST")
+
+	// Backup Routes
+	r.HandleFunc("/backup/export", mlh.HandleBackupExport).Methods("GET")
+	r.HandleFunc("/backup/import", mlh.HandleBackupImport).Methods("POST")
 
 	// Quote Route
 	r.HandleFunc("/api/quote", mlh.HandleQuote).Methods("GET")
@@ -127,6 +143,8 @@ func main() {
 
 	// Initialize core services
 	journalService := journal.NewService(database)
+	noteService := note.NewService(database)
+	backupService := backup.NewService(database)
 	focusService := focus.NewService(database)
 	intentService := intent.NewService(database)
 	summaryService := summary.NewService(database)
@@ -134,10 +152,12 @@ func main() {
 
 	mlh := v1.NewMindloopHandler(
 		journalService,
+		noteService,
 		habitService,
 		focusService,
 		intentService,
 		summaryService,
+		backupService,
 	)
 
 	ServeMindloop(mlh)

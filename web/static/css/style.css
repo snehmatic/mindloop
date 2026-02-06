@@ -218,6 +218,45 @@ nav {
     color: var(--primary);
 }
 
+/* Dropdown */
+.dropdown {
+    position: relative;
+}
+
+.dropdown-content {
+    display: none;
+    position: absolute;
+    background-color: var(--bg-surface);
+    min-width: 160px;
+    box-shadow: var(--shadow-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    z-index: 100;
+    top: calc(100% + 5px);
+    left: 0;
+    backdrop-filter: blur(12px);
+    padding: 0.5rem 0;
+}
+
+.dropdown:hover .dropdown-content {
+    display: block;
+}
+
+.dropdown-item {
+    color: var(--text-muted);
+    padding: 0.6rem 1rem;
+    text-decoration: none;
+    display: block;
+    font-size: 0.925rem;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+
+.dropdown-item:hover {
+    background-color: var(--primary-light);
+    color: var(--primary);
+}
+
 /* Components */
 .btn {
     display: inline-flex;
@@ -531,4 +570,63 @@ textarea:focus {
     background-image: linear-gradient(var(--bg-glass), var(--bg-glass)), url('/static/images/about-graded.png');
     background-size: cover;
     background-position: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 1rem;
+    }
+
+    nav {
+        flex-direction: column;
+        height: auto;
+        padding: 1rem 0;
+        gap: 1rem;
+    }
+
+    .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 100%;
+    }
+
+    .nav-link {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.85rem;
+    }
+
+    h1 {
+        font-size: 2rem;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .hero {
+        padding: 2rem 1rem;
+    }
+
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+
+    .about-hero {
+        padding: 2rem 1rem;
+    }
+
+    .stat-value {
+        font-size: 1.75rem;
+    }
+
+    .flex-between.mobile-stack {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
 }
