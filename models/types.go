@@ -217,6 +217,31 @@ func ToJournalEntryView(entry JournalEntry) JournalEntryView {
 	}
 }
 
+type Note struct {
+	gorm.Model
+	Title   string `gorm:"type:varchar(200)" json:"title"`
+	Content string `gorm:"type:text" json:"content"`
+	Labels  string `gorm:"type:varchar(200)" json:"labels"` // comma separated
+}
+
+type NoteView struct {
+	ID        uint   `json:"id"`
+	Title     string `json:"title"`
+	Labels    string `json:"labels"`
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
+func ToNoteView(n Note) NoteView {
+	return NoteView{
+		ID:        n.ID,
+		Title:     n.Title,
+		Labels:    n.Labels,
+		CreatedAt: n.CreatedAt.Format("2006-01-02 15:04:05"),
+		UpdatedAt: n.UpdatedAt.Format("2006-01-02 15:04:05"),
+	}
+}
+
 func IsValidMode(mode string) bool {
 	for _, item := range config.AllModes {
 		if item == mode {
