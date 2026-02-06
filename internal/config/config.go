@@ -82,9 +82,18 @@ func GetConfig() *Config {
 }
 
 type UserConfig struct {
-	Name     string   `yaml:"name"`
-	Mode     string   `yaml:"mode"`
-	DbConfig DBConfig `yaml:"db_config"`
+	Name         string       `yaml:"name"`
+	Mode         string       `yaml:"mode"`
+	DbConfig     DBConfig     `yaml:"db_config"`
+	FeatureFlags FeatureFlags `yaml:"feature_flags"`
+}
+
+type FeatureFlags struct {
+	FocusCloud   bool `yaml:"focus_cloud"`
+	HabitCloud   bool `yaml:"habit_cloud"`
+	IntentCloud  bool `yaml:"intent_cloud"`
+	JournalCloud bool `yaml:"journal_cloud"`
+	NoteCloud    bool `yaml:"note_cloud"`
 }
 
 func ValidateUserConfig(cmd *cobra.Command) {

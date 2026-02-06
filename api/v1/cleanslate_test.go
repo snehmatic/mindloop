@@ -7,10 +7,12 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/snehmatic/mindloop/internal/core/backup"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
+	"github.com/snehmatic/mindloop/internal/core/note"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/driver/sqlite"
@@ -30,6 +32,7 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 		&models.HabitLog{},
 		&models.FocusSession{},
 		&models.Intent{},
+		&models.Note{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate: %v", err)
@@ -37,11 +40,13 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 
 	hService := habit.NewService(db)
 	jService := journal.NewService(db)
+	nService := note.NewService(db)
 	fService := focus.NewService(db)
 	iService := intent.NewService(db)
 	sService := summary.NewService(db)
+	bService := backup.NewService(db)
 
-	mlh := NewMindloopHandler(jService, hService, fService, iService, sService)
+	mlh := NewMindloopHandler(jService, nService, hService, fService, iService, sService, bService)
 	return mlh, db
 }
 

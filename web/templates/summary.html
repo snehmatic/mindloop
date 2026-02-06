@@ -1,11 +1,11 @@
 {{ define "content" }}
 <div class="card mb-md">
-    <div class="flex-between">
+    <div class="flex-between mobile-stack">
         <div>
             <h1>Summary Report</h1>
             <p class="mb-0">{{ .Report.DateRange }}</p>
         </div>
-        <form action="/summary" method="GET" style="display: flex; align-items: flex-end; gap: 0.75rem;">
+        <form action="/summary" method="GET" style="display: flex; align-items: flex-end; gap: 0.75rem; flex-wrap: wrap;">
             <div class="flex-col">
                 <label for="start" class="text-xs mb-0" style="margin-bottom: 0.25rem; font-weight: 600;">Start</label>
                 <input type="date" id="start" name="start"
