@@ -71,6 +71,10 @@ func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
 	// Summary Route
 	r.HandleFunc("/summary", mlh.HandleSummary).Methods("GET")
 
+	// Settings Route
+	r.HandleFunc("/settings", mlh.HandleSettings).Methods("GET")
+	r.HandleFunc("/settings/update", mlh.HandleSettingsUpdate).Methods("POST")
+
 	// Quote Route
 	r.HandleFunc("/api/quote", mlh.HandleQuote).Methods("GET")
 
