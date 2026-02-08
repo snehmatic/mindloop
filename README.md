@@ -14,6 +14,12 @@ Set a single-threaded goal to maintain absolute focus. **One thing at a time.**
 - Track lifecycle of your intents (Active, Completed, Failed).
 - Prevent context switching by committing to a single objective.
 
+### Side Quests
+Manage ad-hoc tasks that interrupt your main flow without losing your place.
+- Pause your active Intent and Focus session automatically.
+- Capture quick notes on ad-hoc work (e.g., "Investigating prod outage").
+- Seamlessly resume your main path once the quest is complete.
+
 ### Focus Sessions
 Break your intents into deep work chunks with a built-in timer.
 - Track duration and frequency of deep work.
@@ -42,6 +48,7 @@ Mindloop follows a clean architecture pattern, separating core business logic fr
 *   **Core Services (Business Logic):**
     Located in `internal/core`, this layer isolates the rules for each domain:
     *   `intent`: Manages single-threaded work goals and lifecycles.
+    *   `quest`: Handles ad-hoc "side quests" that shadow main intents.
     *   `focus`: Handles deep work session timers and tracking.
     *   `habit`: Logic for daily/weekly habit tracking and streaks.
     *   `journal`: Manages daily reflections and mood logging.
