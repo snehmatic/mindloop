@@ -70,17 +70,22 @@
                 </div>
             </div>
             <div class="flex-center gap-sm">
-                {{ if ge .ActualCount .TargetCount }}
-                <form action="/habits/unlog" method="POST" class="mb-0">
-                    <input type="hidden" name="habit_id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-secondary btn-sm" style="min-width: 80px;">Undo</button>
-                </form>
-                {{ else }}
+                {{ if lt .ActualCount .TargetCount }}
                 <form action="/habits/log" method="POST" class="mb-0">
                     <input type="hidden" name="habit_id" value="{{ .ID }}">
                     <button type="submit" class="btn btn-primary btn-sm" style="min-width: 80px;">Check-in</button>
                 </form>
+                {{ else }}
+                <div class="badge badge-success" style="background: var(--success); color: white; padding: 0.4rem 0.8rem; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">Done ✅</div>
                 {{ end }}
+
+                {{ if gt .ActualCount 0 }}
+                <form action="/habits/unlog" method="POST" class="mb-0">
+                    <input type="hidden" name="habit_id" value="{{ .ID }}">
+                    <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.6rem;" title="Undo latest check-in">－</button>
+                </form>
+                {{ end }}
+
                 <div class="dropdown-actions" style="position: relative;" id="dropdown-{{ .ID }}">
                     <button class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.6rem;" onclick="event.stopPropagation(); toggleDropdown('{{ .ID }}')">⋮</button>
                     <div class="dropdown-content" style="right: 0; left: auto; min-width: 120px;">
@@ -181,7 +186,7 @@
 
     // Close dropdowns on click outside
     window.addEventListener('click', function(e) {
-        if (!e.target.matches('.dropdown-actions button')) {
+        if (!e.target.closest('.dropdown-actions')) {
             document.querySelectorAll('.dropdown-actions').forEach(d => {
                 d.classList.remove('active');
             });
