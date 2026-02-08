@@ -70,15 +70,15 @@ func (s *Service) ListQuests() ([]models.SideQuest, error) {
 }
 
 func (s *Service) GetActiveQuest() (*models.SideQuest, error) {
-	var quest models.SideQuest
-	err := s.DB.Where("status = ?", "active").First(&quest).Error
+	var quests []models.SideQuest
+	err := s.DB.Where("status = ?", "active").Limit(1).Find(&quests).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, err
 	}
-	return &quest, nil
+	if len(quests) == 0 {
+		return nil, nil
+	}
+	return &quests[0], nil
 }
 
 func (s *Service) DeleteQuest(id uint) error {

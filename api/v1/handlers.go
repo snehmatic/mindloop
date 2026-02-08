@@ -70,7 +70,8 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 			a, _ := json.Marshal(v)
 			return template.JS(a)
 		},
-		"title": func(s string) string {
+		"title": func(v interface{}) string {
+			s := fmt.Sprintf("%v", v)
 			if s == "" {
 				return ""
 			}
@@ -109,11 +110,15 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 		return
 	}
 
-	err = ts.Execute(w, data)
+	var buf strings.Builder
+	err = ts.Execute(&buf, data)
 	if err != nil {
 		log.Error().Err(err).Msg("Error executing template")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
 	}
+
+	_, _ = fmt.Fprint(w, buf.String())
 }
 
 func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {

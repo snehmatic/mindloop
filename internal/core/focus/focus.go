@@ -144,13 +144,13 @@ func (s *Service) ResumeSession(id uint) (*models.FocusSession, error) {
 }
 
 func (s *Service) GetActiveSession() (*models.FocusSession, error) {
-	var session models.FocusSession
-	err := s.DB.Where("status = ?", "active").First(&session).Error
+	var sessions []models.FocusSession
+	err := s.DB.Where("status = ?", "active").Limit(1).Find(&sessions).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, err
 	}
-	return &session, nil
+	if len(sessions) == 0 {
+		return nil, nil
+	}
+	return &sessions[0], nil
 }
