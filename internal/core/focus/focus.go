@@ -21,8 +21,11 @@ func (s *Service) StartSession(title string) (*models.FocusSession, error) {
 		return nil, errors.New("title cannot be empty")
 	}
 
-	var activeSession models.FocusSession
-	if err := s.DB.Where("status = ?", "active").First(&activeSession).Error; err == nil {
+	var activeSessions []models.FocusSession
+	if err := s.DB.Where("status = ?", "active").Limit(1).Find(&activeSessions).Error; err != nil {
+		return nil, err
+	}
+	if len(activeSessions) > 0 {
 		return nil, errors.New("a focus session is already active")
 	}
 
@@ -142,7 +145,11 @@ func (s *Service) ResumeSession(id uint) (*models.FocusSession, error) {
 
 func (s *Service) GetActiveSession() (*models.FocusSession, error) {
 	var session models.FocusSession
-	if err := s.DB.Where("status = ?", "active").First(&session).Error; err != nil {
+	err := s.DB.Where("status = ?", "active").First(&session).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &session, nil

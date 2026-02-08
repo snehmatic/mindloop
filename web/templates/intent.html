@@ -33,7 +33,7 @@
 </div>
 {{ else if .CurrentIntent }}
 <div class="hero"
-    style="padding: 6rem 1.5rem; min-height: 60vh; display: flex; flex-direction: column; justify-content: center;">
+    style="padding: 6rem 1.5rem; min-height: 60vh; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; text-align: left;">
     <div class="text-label mb-sm"
         style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
         Today's Focus</div>
@@ -43,18 +43,18 @@
     </div>
 
     <!-- Edit Form (Hidden) -->
-    <div id="intent-edit-form" style="display: none; max-width: 600px; margin: 0 auto 2rem auto;">
-        <form action="/intent/update" method="POST" class="flex-center gap-sm">
+    <div id="intent-edit-form" style="display: none; max-width: 600px; margin-bottom: 2rem;">
+        <form action="/intent/update" method="POST" class="flex-center gap-sm" style="justify-content: flex-start;">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
-            <input type="text" name="name" value="{{ .CurrentIntent.Name }}" required style="font-size: 1.5rem; text-align: center;">
+            <input type="text" name="name" value="{{ .CurrentIntent.Name }}" required style="font-size: 1.5rem; text-align: left;">
             <button type="submit" class="btn btn-primary">Save</button>
             <button type="button" class="btn btn-secondary" onclick="toggleEditIntent()">Cancel</button>
         </form>
     </div>
 
-    <div id="motivation-display" style="display: none; max-width: 600px; margin: 0 auto 2rem auto;"></div>
+    <div id="motivation-display" style="display: none; max-width: 600px; margin-bottom: 2rem;"></div>
 
-    <div class="flex-center gap-md">
+    <div class="flex-center gap-md" style="justify-content: flex-start;">
         <form action="/intent/complete" method="POST" class="mb-0">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
             <button type="submit" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.2rem;">

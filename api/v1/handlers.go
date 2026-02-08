@@ -69,6 +69,12 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 			a, _ := json.Marshal(v)
 			return template.JS(a)
 		},
+		"title": func(s string) string {
+			if s == "" {
+				return ""
+			}
+			return strings.Title(s)
+		},
 		"iso8601": func(t time.Time) string {
 			return t.Format(time.RFC3339)
 		},
