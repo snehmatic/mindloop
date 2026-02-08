@@ -45,6 +45,23 @@ Mindloop follows a clean architecture pattern, separating core business logic fr
 
 ### Installation
 
+#### Option 1: Homebrew (macOS/Linux)
+The easiest way to install and keep Mindloop updated.
+```bash
+brew tap snehmatic/mindloop
+brew install mindloop
+```
+
+#### Option 2: Go Install
+If you have Go installed, you can install the latest version directly:
+```bash
+go install github.com/snehmatic/mindloop@latest
+```
+
+#### Option 3: Download Binaries
+Download the latest pre-compiled binary for your OS from the [Releases Page](https://github.com/snehmatic/mindloop/releases).
+
+#### Option 4: Build from Source
 1.  **Clone the repository:**
     ```bash
     git clone https://github.com/snehmatic/mindloop.git
@@ -52,7 +69,6 @@ Mindloop follows a clean architecture pattern, separating core business logic fr
     ```
 
 2.  **Build:**
-    You can build both the CLI and Server binaries using the Makefile.
     ```bash
     make build
     ```
