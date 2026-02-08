@@ -1,93 +1,86 @@
 {{ define "content" }}
-<div class="container-sm">
-    <div class="mb-lg">
-        <a href="/habits" class="text-sm">← Back to Habits</a>
-    </div>
+<div class="mb-lg">
+    <a href="/habits" class="text-sm">← Back to Habits</a>
+</div>
 
-    <div class="card mb-md" style="border-top: 4px solid var(--primary);">
-        <div class="flex-between mobile-stack">
-            <div>
-                <div class="text-label mb-xs" style="color: var(--primary);">Habit Overview</div>
-                <h1 class="mb-xs" style="font-size: 2.5rem;">{{ .Habit.Title }}</h1>
-                <p class="text-muted mb-0">{{ .Habit.Interval | title }} • Target: {{ .Habit.TargetCount }}</p>
-            </div>
-            <div class="flex-center gap-md">
-                {{ if gt .Streak 0 }}
-                <div class="stat-card"
-                    style="text-align: center; background: #ffedd5; border: 1px solid #fed7aa; padding: 0.75rem 1.5rem; border-radius: var(--radius-md);">
-                    <div style="font-size: 1.75rem;">🔥 {{ .Streak }}</div>
-                    <div class="text-xs" style="color: #c2410c; font-weight: 700; text-transform: uppercase;">Current Streak</div>
-                </div>
-                {{ end }}
-                <button onclick="toggleEditHabit('{{ .Habit.ID }}')" class="btn btn-secondary">Edit ✏️</button>
-            </div>
+<div class="card mb-md" style="border-top: 4px solid var(--primary);">
+    <div class="flex-between mobile-stack">
+        <div>
+            <div class="text-label mb-xs" style="color: var(--primary);">Habit Overview</div>
+            <h1 class="mb-xs" style="font-size: 2.5rem;">{{ .Habit.Title }}</h1>
+            <p class="text-muted mb-0">{{ .Habit.Interval | title }} • Target: {{ .Habit.TargetCount }}</p>
         </div>
-
-        <!-- Edit Form (Hidden) -->
-        <div id="edit-habit-{{ .Habit.ID }}"
-            style="display: none; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem; animation: slideDown 0.2s ease-out;">
-            <h3 class="mb-md">Edit Habit Details</h3>
-            <form action="/habits/update" method="POST" style="max-width: 600px;">
-                <input type="hidden" name="id" value="{{ .Habit.ID }}">
-                <div class="form-group">
-                    <label for="title">Title</label>
-                    <input type="text" name="title" value="{{ .Habit.Title }}" required>
-                </div>
-                <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
-                    <div class="flex-col">
-                        <label for="interval">Interval</label>
-                        <select name="interval">
-                            <option value="daily" {{ if eq .Habit.Interval "daily" }}selected{{ end }}>Daily</option>
-                            <option value="weekly" {{ if eq .Habit.Interval "weekly" }}selected{{ end }}>Weekly</option>
-                        </select>
-                    </div>
-                    <div class="flex-col">
-                        <label for="target_count">Target Count</label>
-                        <input type="number" name="target_count" value="{{ .Habit.TargetCount }}" min="1">
-                    </div>
-                </div>
-                <div class="flex-center gap-sm" style="justify-content: flex-start;">
-                    <button type="submit" class="btn btn-primary">Save Changes</button>
-                    <button type="button" class="btn btn-secondary"
-                        onclick="toggleEditHabit('{{ .Habit.ID }}')">Cancel</button>
-                </div>
-            </form>
+        <div class="flex-center gap-md">
+            {{ if gt .Streak 0 }}
+            <div class="stat-card"
+                style="text-align: center; background: #ffedd5; border: 1px solid #fed7aa; padding: 0.75rem 1.5rem; border-radius: var(--radius-md);">
+                <div style="font-size: 1.75rem;">🔥 {{ .Streak }}</div>
+                <div class="text-xs" style="color: #c2410c; font-weight: 700; text-transform: uppercase;">Current Streak</div>
+            </div>
+            {{ end }}
+            <button onclick="toggleEditHabit('{{ .Habit.ID }}')" class="btn btn-secondary">Edit ✏️</button>
         </div>
     </div>
 
-    <div class="card">
-        <div class="flex-between mb-lg">
-            <h3 class="mb-0">Activity Heatmap</h3>
-            <div class="text-sm text-muted">Showing consistency over the last year</div>
-        </div>
-
-        <div id="heatmap-container" style="overflow-x: auto; padding-bottom: 1rem; border-radius: 8px;">
-            <div id="habit-heatmap" class="heatmap"></div>
-        </div>
-
-        <div class="flex-between mt-md">
-            <div class="flex-center gap-md" style="justify-content: flex-start;">
-                <span class="text-xs text-muted">Less</span>
-                <div style="display: flex; gap: 4px;">
-                    <div class="heatmap-cell" style="background: var(--secondary-light);"></div>
-                    <div class="heatmap-cell" style="background: #c7d2fe;"></div>
-                    <div class="heatmap-cell" style="background: #818cf8;"></div>
-                    <div class="heatmap-cell" style="background: #4f46e5;"></div>
-                    <div class="heatmap-cell" style="background: var(--primary);"></div>
-                </div>
-                <span class="text-xs text-muted">More</span>
+    <!-- Edit Form (Hidden) -->
+    <div id="edit-habit-{{ .Habit.ID }}"
+        style="display: none; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem; animation: slideDown 0.2s ease-out;">
+        <h3 class="mb-md">Edit Habit Details</h3>
+        <form action="/habits/update" method="POST" style="max-width: 600px;">
+            <input type="hidden" name="id" value="{{ .Habit.ID }}">
+            <div class="form-group">
+                <label for="title">Title</label>
+                <input type="text" name="title" value="{{ .Habit.Title }}" required>
             </div>
-            <div class="text-xs text-muted">Total Active Days: <span id="total-days" class="font-bold">0</span></div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <div class="flex-col">
+                    <label for="interval">Interval</label>
+                    <select name="interval">
+                        <option value="daily" {{ if eq .Habit.Interval "daily" }}selected{{ end }}>Daily</option>
+                        <option value="weekly" {{ if eq .Habit.Interval "weekly" }}selected{{ end }}>Weekly</option>
+                    </select>
+                </div>
+                <div class="flex-col">
+                    <label for="target_count">Target Count</label>
+                    <input type="number" name="target_count" value="{{ .Habit.TargetCount }}" min="1">
+                </div>
+            </div>
+            <div class="flex-center gap-sm" style="justify-content: flex-start;">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <button type="button" class="btn btn-secondary"
+                    onclick="toggleEditHabit('{{ .Habit.ID }}')">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="card">
+    <div class="flex-between mb-lg">
+        <h3 class="mb-0">Activity Heatmap</h3>
+        <div class="text-sm text-muted">Showing consistency over the last year</div>
+    </div>
+
+    <div id="heatmap-container" style="overflow-x: auto; padding-bottom: 1rem; border-radius: 8px;">
+        <div id="habit-heatmap" class="heatmap"></div>
+    </div>
+
+    <div class="flex-between mt-md">
+        <div class="flex-center gap-md" style="justify-content: flex-start;">
+            <span class="text-xs text-muted">Less</span>
+            <div style="display: flex; gap: 4px;">
+                <div class="heatmap-cell" style="background: var(--secondary-light);"></div>
+                <div class="heatmap-cell" style="background: #c7d2fe;"></div>
+                <div class="heatmap-cell" style="background: #818cf8;"></div>
+                <div class="heatmap-cell" style="background: #4f46e5;"></div>
+                <div class="heatmap-cell" style="background: var(--primary);"></div>
+            </div>
+            <span class="text-xs text-muted">More</span>
         </div>
+        <div class="text-xs text-muted">Total Active Days: <span id="total-days" class="font-bold">0</span></div>
     </div>
 </div>
 
 <style>
-    .container-sm {
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
     @keyframes slideDown {
         from { opacity: 0; transform: translateY(-10px); }
         to { opacity: 1; transform: translateY(0); }
