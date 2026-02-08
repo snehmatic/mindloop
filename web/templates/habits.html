@@ -81,10 +81,10 @@
                     <button type="submit" class="btn btn-primary btn-sm" style="min-width: 80px;">Check-in</button>
                 </form>
                 {{ end }}
-                <div class="dropdown" style="position: relative;">
-                    <button class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.6rem;">⋮</button>
+                <div class="dropdown" style="position: relative;" id="dropdown-{{ .ID }}">
+                    <button class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.6rem;" onclick="event.stopPropagation(); toggleDropdown('{{ .ID }}')">⋮</button>
                     <div class="dropdown-content" style="right: 0; left: auto; min-width: 120px;">
-                        <button onclick="toggleEditHabit('{{ .ID }}')" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">✏️ Edit</button>
+                        <button onclick="event.stopPropagation(); toggleEditHabit('{{ .ID }}')" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">✏️ Edit</button>
                         <form action="/habits/delete" method="POST" class="mb-0" onsubmit="return confirm('Are you sure?');">
                             <input type="hidden" name="habit_id" value="{{ .ID }}">
                             <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem; color: var(--danger);">🗑️ Delete</button>
@@ -162,9 +162,30 @@
         const form = document.getElementById('edit-habit-' + id);
         if (form.style.display === 'none') {
             form.style.display = 'block';
+            // Close dropdown when opening edit form
+            const dropdown = document.getElementById('dropdown-' + id);
+            if (dropdown) dropdown.classList.remove('active');
         } else {
             form.style.display = 'none';
         }
     }
+
+    function toggleDropdown(id) {
+        const dropdown = document.getElementById('dropdown-' + id);
+        // Close other dropdowns
+        document.querySelectorAll('.dropdown').forEach(d => {
+            if (d.id !== 'dropdown-' + id) d.classList.remove('active');
+        });
+        dropdown.classList.toggle('active');
+    }
+
+    // Close dropdowns on click outside
+    window.addEventListener('click', function(e) {
+        if (!e.target.matches('.dropdown button')) {
+            document.querySelectorAll('.dropdown').forEach(d => {
+                d.classList.remove('active');
+            });
+        }
+    });
 </script>
 {{ end }}

@@ -242,6 +242,10 @@ nav {
     display: block;
 }
 
+.dropdown.active .dropdown-content {
+    display: block;
+}
+
 .dropdown-item {
     color: var(--text-muted);
     padding: 0.6rem 1rem;
