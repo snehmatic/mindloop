@@ -1,6 +1,37 @@
 {{ define "content" }}
 
-{{ if .CurrentIntent }}
+{{ if .CurrentQuest }}
+<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem 0; min-height: 60vh; align-items: center;">
+    
+    <!-- Active Intent (Paused) -->
+    <div style="opacity: 0.6; filter: grayscale(0.5);">
+        {{ if .CurrentIntent }}
+        <div class="text-label mb-sm"
+            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700;">
+            ⏸️ Paused Intent</div>
+        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; line-height: 1.2;">{{ .CurrentIntent.Name }}</h1>
+        <div class="text-muted">Resumes when quest is complete</div>
+        {{ else }}
+        <div class="text-label mb-sm"
+            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700;">
+            No Active Intent</div>
+        {{ end }}
+    </div>
+
+    <!-- Active Side Quest -->
+    <div class="card" style="border: 2px solid var(--primary); background: var(--bg-surface); padding: 2rem;">
+        <div class="text-label mb-sm"
+            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
+            ⚔️ Active Side Quest</div>
+        <h1 style="font-size: 3rem; margin-bottom: 1.5rem; line-height: 1.2;">{{ .CurrentQuest.Title }}</h1>
+        <p class="text-muted mb-md">Finish this quest to return to your main path.</p>
+        
+        <div class="p-md" style="background: var(--bg-body); border-radius: 8px; margin-bottom: 1rem;">
+            <code>mindloop quest stop</code> to complete.
+        </div>
+    </div>
+</div>
+{{ else if .CurrentIntent }}
 <div class="hero"
     style="padding: 6rem 1.5rem; min-height: 60vh; display: flex; flex-direction: column; justify-content: center;">
     <div class="text-label mb-sm"

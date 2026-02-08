@@ -3,7 +3,27 @@
     <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
 
         <!-- Active Intent or Call to Action -->
-        {{ if .Dashboard.CurrentIntent }}
+        {{ if .Dashboard.CurrentQuest }}
+        <div class="card"
+            style="background: var(--bg-surface); border: 2px solid var(--primary); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
+            <div class="text-label mb-sm"
+                style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
+                ⚔️ Side Quest Active
+            </div>
+            <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ .Dashboard.CurrentQuest.Title }}</h2>
+            <div class="text-muted text-sm mb-md">Main Intent Paused</div>
+            {{ if .Dashboard.CurrentIntent }}
+            <div style="opacity: 0.6; font-size: 0.9rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
+                ⏸️ {{ .Dashboard.CurrentIntent.Name }}
+            </div>
+            {{ end }}
+            <div class="mt-md">
+                <a href="/intent" class="btn btn-primary">
+                    View Quest
+                </a>
+            </div>
+        </div>
+        {{ else if .Dashboard.CurrentIntent }}
         <div class="card"
             style="background: var(--bg-surface); backdrop-filter: blur(12px); border: 1px solid var(--border); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
             <div

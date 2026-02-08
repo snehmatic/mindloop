@@ -16,6 +16,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
@@ -29,6 +30,7 @@ type MindloopHandler struct {
 	habit   *habit.Service
 	focus   *focus.Service
 	intent  *intent.Service
+	quest   *quest.Service
 	summary *summary.Service
 	backup  *backup.Service
 }
@@ -39,6 +41,7 @@ func NewMindloopHandler(
 	habit *habit.Service,
 	focus *focus.Service,
 	intent *intent.Service,
+	quest *quest.Service,
 	summary *summary.Service,
 	backup *backup.Service,
 ) *MindloopHandler {
@@ -49,6 +52,7 @@ func NewMindloopHandler(
 		habit:   habit,
 		focus:   focus,
 		intent:  intent,
+		quest:   quest,
 		summary: summary,
 		backup:  backup,
 	}
@@ -113,6 +117,12 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		currentIntent = &activeIntents[0]
 	}
 
+	// 1b. Active Side Quest
+	var currentQuest *models.SideQuest
+	if q, err := mlh.quest.GetActiveQuest(); err == nil {
+		currentQuest = q
+	}
+
 	// 2. Focus Time Today
 	now := time.Now()
 	todayStart := now.Truncate(24 * time.Hour)
@@ -141,6 +151,7 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		"Title": "Home",
 		"Dashboard": map[string]interface{}{
 			"CurrentIntent":   currentIntent,
+			"CurrentQuest":    currentQuest,
 			"FocusMinutes":    focusMinutes,
 			"CompletedHabits": completedHabits,
 			"TotalHabits":     totalHabits,

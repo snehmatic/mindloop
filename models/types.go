@@ -289,3 +289,35 @@ type SummaryReport struct {
 	Habits    []HabitStats
 	Intents   []IntentStats
 }
+
+type SideQuest struct {
+	gorm.Model
+	Title  string     `gorm:"not null" json:"title"`
+	Status string     `gorm:"default:active" json:"status"` // active, done
+	Note   string     `gorm:"type:text" json:"note"`
+	EndedAt *time.Time `json:"ended_at,omitempty"`
+}
+
+type SideQuestView struct {
+	ID      uint   `json:"id"`
+	Title   string `json:"title"`
+	Status  string `json:"status"`
+	Note    string `json:"note"`
+	EndedAt string `json:"ended_at"`
+}
+
+func ToSideQuestView(sq SideQuest) SideQuestView {
+	var ended string
+	if sq.EndedAt != nil {
+		ended = sq.EndedAt.Format("2006-01-02 15:04")
+	} else {
+		ended = "-"
+	}
+	return SideQuestView{
+		ID:      sq.ID,
+		Title:   sq.Title,
+		Status:  sq.Status,
+		Note:    sq.Note,
+		EndedAt: ended,
+	}
+}

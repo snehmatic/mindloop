@@ -7,6 +7,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/server"
 	v1 "github.com/snehmatic/mindloop/api/v1"
@@ -27,6 +28,7 @@ var serverCmd = &cobra.Command{
 		backupService := backup.NewService(gdb)
 		focusService := focus.NewService(gdb)
 		intentService := intent.NewService(gdb)
+		questService := quest.NewService(gdb)
 		summaryService := summary.NewService(gdb)
 		habitService := habit.NewService(gdb)
 
@@ -36,6 +38,7 @@ var serverCmd = &cobra.Command{
 			habitService,
 			focusService,
 			intentService,
+			questService,
 			summaryService,
 			backupService,
 		)

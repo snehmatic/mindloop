@@ -321,9 +321,15 @@ func (mlh *MindloopHandler) HandleIntent(w http.ResponseWriter, r *http.Request)
 		currentIntent = &activeIntents[0] // Just take the first active one
 	}
 
+	var currentQuest *models.SideQuest
+	if q, err := mlh.quest.GetActiveQuest(); err == nil {
+		currentQuest = q
+	}
+
 	mlh.renderTemplate(w, "intent.html", map[string]interface{}{
 		"Title":         "Intent",
 		"CurrentIntent": currentIntent,
+		"CurrentQuest":  currentQuest,
 		"History":       allIntents,
 	})
 }

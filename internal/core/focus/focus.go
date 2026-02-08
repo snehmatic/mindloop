@@ -105,3 +105,45 @@ func (s *Service) DeleteSession(id int) error {
 func (s *Service) DeleteAll() error {
 	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.FocusSession{}).Error
 }
+
+func (s *Service) PauseSession(id uint) (*models.FocusSession, error) {
+	var session models.FocusSession
+	if err := s.DB.First(&session, id).Error; err != nil {
+		return nil, err
+	}
+
+	if session.Status != "active" {
+		return nil, errors.New("focus session is not active")
+	}
+
+	session.Status = "paused"
+	if err := s.DB.Save(&session).Error; err != nil {
+		return nil, err
+	}
+	return &session, nil
+}
+
+func (s *Service) ResumeSession(id uint) (*models.FocusSession, error) {
+	var session models.FocusSession
+	if err := s.DB.First(&session, id).Error; err != nil {
+		return nil, err
+	}
+
+	if session.Status != "paused" {
+		return nil, errors.New("focus session is not paused")
+	}
+
+	session.Status = "active"
+	if err := s.DB.Save(&session).Error; err != nil {
+		return nil, err
+	}
+	return &session, nil
+}
+
+func (s *Service) GetActiveSession() (*models.FocusSession, error) {
+	var session models.FocusSession
+	if err := s.DB.Where("status = ?", "active").First(&session).Error; err != nil {
+		return nil, err
+	}
+	return &session, nil
+}

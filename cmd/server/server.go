@@ -21,6 +21,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/web"
 )
@@ -155,6 +156,7 @@ func main() {
 	backupService := backup.NewService(database)
 	focusService := focus.NewService(database)
 	intentService := intent.NewService(database)
+	questService := quest.NewService(database)
 	summaryService := summary.NewService(database)
 	habitService := habit.NewService(database)
 
@@ -164,6 +166,7 @@ func main() {
 		habitService,
 		focusService,
 		intentService,
+		questService,
 		summaryService,
 		backupService,
 	)
