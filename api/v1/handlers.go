@@ -275,7 +275,14 @@ func (mlh *MindloopHandler) HandleIntentResume(w http.ResponseWriter, r *http.Re
 	idStr := r.FormValue("id")
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 
+	// 1. Resume the intent
 	_, _ = mlh.intent.ResumeIntent(uint(id))
+
+	// 2. Automatically complete any active side quest
+	activeQuest, _ := mlh.quest.GetActiveQuest()
+	if activeQuest != nil {
+		_, _ = mlh.quest.StopQuest(activeQuest.ID, "Resumed main intent")
+	}
 
 	http.Redirect(w, r, "/intent", http.StatusSeeOther)
 }
