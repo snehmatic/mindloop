@@ -1,16 +1,39 @@
 # Mindloop
 
-_P.S. A constant WIP_
+![CI Status](https://github.com/snehmatic/mindloop/actions/workflows/ci.yml/badge.svg)
+![Release Version](https://img.shields.io/github/v/release/snehmatic/mindloop)
+![License](https://img.shields.io/github/license/snehmatic/mindloop)
+![Go Version](https://img.shields.io/github/go-mod/go-version/snehmatic/mindloop)
 
 **Mindloop** is a comprehensive productivity suite designed for local-first workflow management. It operates as a **CLI tool**, a **local API**, and a **UI**, utilizing a local SQLite database with BYODB (Bring Your Own Database) support.
 
 ## Features
 
-*   **Intents:** Set a single-threaded goal to maintain absolute focus. One thing at a time.
-*   **Focus Sessions:** Break your intents into deep work chunks with a built-in timer.
-*   **Habits:** Track daily and weekly habits to build consistency.
-*   **Journal:** A dedicated space for reflections, end-of-day closure, or gratitude logging.
-*   **Summary:** High-level metrics and a bird's-eye view of your productivity data with date filtering.
+### 🎯 Intents
+Set a single-threaded goal to maintain absolute focus. **One thing at a time.**
+- Track lifecycle of your intents (Active, Completed, Failed).
+- Prevent context switching by committing to a single objective.
+
+### ⏱️ Focus Sessions
+Break your intents into deep work chunks with a built-in timer.
+- Track duration and frequency of deep work.
+- Associate sessions directly with your active Intent.
+
+### ✅ Habits
+Track daily and weekly habits to build consistency.
+- Simple check-in system.
+- Track streaks and completion rates.
+
+### 📓 Journal
+A dedicated space for reflections, end-of-day closure, or gratitude logging.
+- Markdown support for rich text entries.
+- "Close the loop" at the end of your workday.
+
+### 📊 Summary
+High-level metrics and a bird's-eye view of your productivity data.
+- Visualize time spent in focus.
+- Review completed intents and habit consistency.
+- Filter data by date ranges.
 
 ## Architecture
 
