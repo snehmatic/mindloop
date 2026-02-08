@@ -76,20 +76,24 @@
                     <button type="submit" class="btn btn-primary btn-sm" style="min-width: 80px;">Check-in</button>
                 </form>
                 {{ else }}
-                <div class="badge badge-success" style="background: var(--success); color: white; padding: 0.4rem 0.8rem; border-radius: var(--radius-full); font-size: 0.8rem; font-weight: 600;">Done ✅</div>
-                {{ end }}
-
-                {{ if gt .ActualCount 0 }}
                 <form action="/habits/unlog" method="POST" class="mb-0">
                     <input type="hidden" name="habit_id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-secondary btn-sm" style="padding: 0.4rem 0.6rem;" title="Undo latest check-in">－</button>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="min-width: 80px;">Undo</button>
                 </form>
                 {{ end }}
 
                 <div class="dropdown-actions" style="position: relative;" id="dropdown-{{ .ID }}">
                     <button class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.6rem;" onclick="event.stopPropagation(); toggleDropdown('{{ .ID }}')">⋮</button>
-                    <div class="dropdown-content" style="right: 0; left: auto; min-width: 120px;">
+                    <div class="dropdown-content" style="right: 0; left: auto; min-width: 140px;">
                         <button onclick="event.stopPropagation(); toggleEditHabit('{{ .ID }}')" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">✏️ Edit</button>
+                        
+                        {{ if and (gt .ActualCount 0) (lt .ActualCount .TargetCount) }}
+                        <form action="/habits/unlog" method="POST" class="mb-0">
+                            <input type="hidden" name="habit_id" value="{{ .ID }}">
+                            <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">↩️ Undo Latest</button>
+                        </form>
+                        {{ end }}
+
                         <form action="/habits/delete" method="POST" class="mb-0" onsubmit="return confirm('Are you sure?');">
                             <input type="hidden" name="habit_id" value="{{ .ID }}">
                             <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem; color: var(--danger);">🗑️ Delete</button>
