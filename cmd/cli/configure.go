@@ -17,7 +17,7 @@ var confCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Placeholder for configuration logic
 		// This could involve setting user preferences, etc.
-		_, _ = PrintRocketln("Welcome to Mindloop configuration!")
+		PrintRocketln("Welcome to Mindloop configuration!")
 		fmt.Print("Please enter your preferred username: ")
 		var username string
 		_, _ = fmt.Scanln(&username)
@@ -28,7 +28,7 @@ var confCmd = &cobra.Command{
 			if models.IsValidMode(mode) {
 				break
 			}
-			_, _ = PrintWarnln("Invalid mode. Please choose from: local, byodb.")
+			PrintWarnln("Invalid mode. Please choose from: local, byodb.")
 		}
 
 		dbConfig := &config.DBConfig{}
@@ -62,7 +62,7 @@ var confCmd = &cobra.Command{
 
 		CreateUserConfigYAML(username, mode, dbConfig)
 
-		_, _ = PrintSuccessf("Configuration complete! Your username is set to: %s, using mode: %s\n", username, mode)
+		PrintSuccessf("Configuration complete! Your username is set to: %s, using mode: %s\n", username, mode)
 	},
 }
 
@@ -78,13 +78,13 @@ func CreateUserConfigYAML(username, mode string, dbConfig *config.DBConfig) {
 
 	if mode == "byodb" {
 		if dbConfig == nil {
-			_, _ = PrintWarnln("Database configuration is required for 'byodb' mode. Please try again.")
+			PrintWarnln("Database configuration is required for 'byodb' mode. Please try again.")
 			return
 		}
 		uc.DbConfig = *dbConfig
 	}
 
 	uc.WriteToYAML()
-	_, _ = PrintSuccessln("User config created successfully!")
-	_, _ = PrintInfoln("You can find your config as user_config.yaml")
+	PrintSuccessln("User config created successfully!")
+	PrintInfoln("You can find your config as user_config.yaml")
 }

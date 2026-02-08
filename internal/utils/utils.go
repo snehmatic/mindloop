@@ -100,100 +100,100 @@ func PrintTable(data interface{}) {
 	logger.Info().Msgf("Rendered table with %d records of type %s", v.Len(), first.Type())
 }
 
-func PrintSuccessln(a ...any) (n int, err error) {
+func PrintSuccessln(a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintln(os.Stdout, greenTick)
+		_, _ = fmt.Fprintln(os.Stdout, greenTick)
+		return
 	}
-
-	return fmt.Fprintln(os.Stdout, append([]any{greenTick}, a...)...)
+	_, _ = fmt.Fprintln(os.Stdout, append([]any{greenTick}, a...)...)
 }
 
-func PrintSuccessf(format string, a ...any) (n int, err error) {
+func PrintSuccessf(format string, a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintf(os.Stdout, greenTick+" "+format, a...)
+		_, _ = fmt.Fprintf(os.Stdout, greenTick+" "+format, a...)
+		return
 	}
-
-	return fmt.Fprintf(os.Stdout, greenTick+" "+format, a...)
+	_, _ = fmt.Fprintf(os.Stdout, greenTick+" "+format, a...)
 }
 
-func PrintRocketln(a ...any) (n int, err error) {
+func PrintRocketln(a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintln(os.Stdout, rocket)
+		_, _ = fmt.Fprintln(os.Stdout, rocket)
+		return
 	}
-
-	return fmt.Fprintln(os.Stdout, append([]any{rocket}, a...)...)
+	_, _ = fmt.Fprintln(os.Stdout, append([]any{rocket}, a...)...)
 }
 
-func PrintRocketf(format string, a ...any) (n int, err error) {
+func PrintRocketf(format string, a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
+		_, _ = fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
+		return
 	}
-
-	return fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
+	_, _ = fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
 }
 
-func PrintInfoln(a ...any) (n int, err error) {
+func PrintInfoln(a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintln(os.Stdout, bulb)
+		_, _ = fmt.Fprintln(os.Stdout, bulb)
+		return
 	}
-
-	return fmt.Fprintln(os.Stdout, append([]any{bulb}, a...)...)
+	_, _ = fmt.Fprintln(os.Stdout, append([]any{bulb}, a...)...)
 }
 
-func PrintInfof(format string, a ...any) (n int, err error) {
+func PrintInfof(format string, a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintf(os.Stdout, bulb+" "+format, a...)
+		_, _ = fmt.Fprintf(os.Stdout, bulb+" "+format, a...)
+		return
 	}
-
-	return fmt.Fprintf(os.Stdout, bulb+" "+format, a...)
+	_, _ = fmt.Fprintf(os.Stdout, bulb+" "+format, a...)
 }
 
-func PrintLoadingln(a ...any) (n int, err error) {
+func PrintLoadingln(a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintln(os.Stdout, timeSand)
+		_, _ = fmt.Fprintln(os.Stdout, timeSand)
+		return
 	}
-
-	return fmt.Fprintln(os.Stdout, append([]any{timeSand}, a...)...)
+	_, _ = fmt.Fprintln(os.Stdout, append([]any{timeSand}, a...)...)
 }
 
-func PrintLoadingf(format string, a ...any) (n int, err error) {
+func PrintLoadingf(format string, a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
+		_, _ = fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
+		return
 	}
-
-	return fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
+	_, _ = fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
 }
 
-func PrintWarnln(a ...any) (n int, err error) {
+func PrintWarnln(a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintln(os.Stdout, warn)
+		_, _ = fmt.Fprintln(os.Stdout, warn)
+		return
 	}
-
-	return fmt.Fprintln(os.Stdout, append([]any{warn}, a...)...)
+	_, _ = fmt.Fprintln(os.Stdout, append([]any{warn}, a...)...)
 }
 
-func PrintWarnf(format string, a ...any) (n int, err error) {
+func PrintWarnf(format string, a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintf(os.Stdout, warn+" "+format, a...)
+		_, _ = fmt.Fprintf(os.Stdout, warn+" "+format, a...)
+		return
 	}
-
-	return fmt.Fprintf(os.Stdout, warn+" "+format, a...)
+	_, _ = fmt.Fprintf(os.Stdout, warn+" "+format, a...)
 }
 
-func PrintErrorln(a ...any) (n int, err error) {
+func PrintErrorln(a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintln(os.Stdout, redCross)
+		_, _ = fmt.Fprintln(os.Stdout, redCross)
+		return
 	}
-
-	return fmt.Fprintln(os.Stdout, append([]any{redCross}, a...)...)
+	_, _ = fmt.Fprintln(os.Stdout, append([]any{redCross}, a...)...)
 }
 
-func PrintErrorf(format string, a ...any) (n int, err error) {
+func PrintErrorf(format string, a ...any) {
 	if len(a) == 0 {
-		return fmt.Fprintf(os.Stdout, redCross+" "+format, a...)
+		_, _ = fmt.Fprintf(os.Stdout, redCross+" "+format, a...)
+		return
 	}
-
-	return fmt.Fprintf(os.Stdout, redCross+" "+format, a...)
+	_, _ = fmt.Fprintf(os.Stdout, redCross+" "+format, a...)
 }
 
 func WriteResponse(data interface{}, respWriter http.ResponseWriter, status int) {
