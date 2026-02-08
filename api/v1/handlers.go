@@ -70,12 +70,12 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 			a, _ := json.Marshal(v)
 			return template.JS(a)
 		},
-		"title": func(v interface{}) string {
-			s := fmt.Sprintf("%v", v)
-			if s == "" {
+		"title": func(v any) string {
+			s := fmt.Sprint(v)
+			if len(s) == 0 {
 				return ""
 			}
-			return strings.Title(s)
+			return strings.ToUpper(s[:1]) + strings.ToLower(s[1:])
 		},
 		"iso8601": func(t time.Time) string {
 			return t.Format(time.RFC3339)

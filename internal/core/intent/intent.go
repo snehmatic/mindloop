@@ -45,15 +45,15 @@ func (s *Service) ListActiveIntents() ([]models.Intent, error) {
 }
 
 func (s *Service) GetOngoingIntent() (*models.Intent, error) {
-	var intent models.Intent
-	result := s.DB.Where("status IN ?", []string{"active", "paused"}).First(&intent)
+	var intents []models.Intent
+	result := s.DB.Where("status IN ?", []string{"active", "paused"}).Limit(1).Find(&intents)
 	if result.Error != nil {
-		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
 		return nil, result.Error
 	}
-	return &intent, nil
+	if len(intents) == 0 {
+		return nil, nil
+	}
+	return &intents[0], nil
 }
 
 func (s *Service) GetIntent(id string) (*models.Intent, error) {

@@ -52,10 +52,12 @@
 
 <div class="grid">
     {{ range .Habits }}
-    <div class="card card-hover" onclick="window.location='/habits/view/{{ .ID }}'" style="cursor: pointer;">
+    <div class="card card-hover" style="position: relative;">
         <div class="flex-between mb-sm" style="align-items: flex-start;">
-            <div>
-                <h3 class="mb-sm">{{ .Title }}</h3>
+            <div style="flex: 1;">
+                <h3 class="mb-sm">
+                    <a href="/habits/view/{{ .ID }}" style="text-decoration: none; color: inherit;">{{ .Title }}</a>
+                </h3>
                 <div class="flex-center gap-sm" style="flex-wrap: wrap; justify-content: flex-start;">
                     <span class="text-sm text-muted" style="text-transform: capitalize;">{{ .Interval }} • Target: {{
                         .TargetCount }}</span>
@@ -71,19 +73,24 @@
                 {{ if ge .ActualCount .TargetCount }}
                 <form action="/habits/unlog" method="POST" class="mb-0">
                     <input type="hidden" name="habit_id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-secondary btn-sm">Undo</button>
+                    <button type="submit" class="btn btn-secondary btn-sm" style="min-width: 80px;">Undo</button>
                 </form>
                 {{ else }}
                 <form action="/habits/log" method="POST" class="mb-0">
                     <input type="hidden" name="habit_id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-primary btn-sm">Check-in</button>
+                    <button type="submit" class="btn btn-primary btn-sm" style="min-width: 80px;">Check-in</button>
                 </form>
                 {{ end }}
-                <form action="/habits/delete" method="POST" class="mb-0" onsubmit="return confirm('Are you sure?');">
-                    <input type="hidden" name="habit_id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-danger-outline btn-sm" style="padding: 0.4rem;">🗑️</button>
-                </form>
-                <button onclick="toggleEditHabit('{{ .ID }}')" class="btn btn-secondary btn-sm" style="padding: 0.4rem;" title="Edit">✏️</button>
+                <div class="dropdown" style="position: relative;">
+                    <button class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.6rem;">⋮</button>
+                    <div class="dropdown-content" style="right: 0; left: auto; min-width: 120px;">
+                        <button onclick="toggleEditHabit('{{ .ID }}')" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">✏️ Edit</button>
+                        <form action="/habits/delete" method="POST" class="mb-0" onsubmit="return confirm('Are you sure?');">
+                            <input type="hidden" name="habit_id" value="{{ .ID }}">
+                            <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem; color: var(--danger);">🗑️ Delete</button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
 
