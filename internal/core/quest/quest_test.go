@@ -69,10 +69,13 @@ func TestQuestService(t *testing.T) {
 		t.Errorf("Expected note 'Fixed it', got '%s'", completed.Note)
 	}
 
-	// 5. Get Active Quest (Should fail or return error)
-	_, err = s.GetActiveQuest()
-	if err == nil {
-		t.Error("Expected error getting active quest when none exist, got nil")
+	// 5. Get Active Quest (Should return nil, nil)
+	active, err = s.GetActiveQuest()
+	if err != nil {
+		t.Fatalf("Expected no error when getting non-existent active quest, got %v", err)
+	}
+	if active != nil {
+		t.Error("Expected nil quest when none is active")
 	}
 
 	// 6. List Quests

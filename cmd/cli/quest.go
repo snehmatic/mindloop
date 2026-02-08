@@ -82,6 +82,10 @@ var questStopCmd = &cobra.Command{
 		// Get active quest
 		q, err := questService.GetActiveQuest()
 		if err != nil {
+			PrintErrorln("Error checking active side quest:", err)
+			return
+		}
+		if q == nil {
 			PrintErrorln("No active side quest found.")
 			return
 		}

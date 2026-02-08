@@ -22,8 +22,11 @@ func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 	}
 
 	// Check if there is already an active quest
-	var activeQuest models.SideQuest
-	if err := s.DB.Where("status = ?", "active").First(&activeQuest).Error; err == nil {
+	var quests []models.SideQuest
+	if err := s.DB.Where("status = ?", "active").Limit(1).Find(&quests).Error; err != nil {
+		return nil, err
+	}
+	if len(quests) > 0 {
 		return nil, errors.New("a side quest is already active")
 	}
 
@@ -68,7 +71,11 @@ func (s *Service) ListQuests() ([]models.SideQuest, error) {
 
 func (s *Service) GetActiveQuest() (*models.SideQuest, error) {
 	var quest models.SideQuest
-	if err := s.DB.Where("status = ?", "active").First(&quest).Error; err != nil {
+	err := s.DB.Where("status = ?", "active").First(&quest).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 		return nil, err
 	}
 	return &quest, nil
