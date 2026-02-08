@@ -80,7 +80,8 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, err
 	}
 
 	var existingLog models.HabitLog
-	today := time.Now().Truncate(24 * time.Hour)
+	now := time.Now()
+	today := now.Truncate(24 * time.Hour)
 	endedAt := today
 
 	var res *gorm.DB
@@ -88,10 +89,15 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, err
 	case models.Daily:
 		res = s.DB.Where("HabitID = ? AND EndedAt = ?", habit.ID, today).Limit(1).Find(&existingLog)
 	case models.Weekly:
-		startOfWeek := time.Now().AddDate(0, 0, -int(time.Now().Weekday()))
-		endOfWeek := startOfWeek.AddDate(0, 0, 6).Truncate(24 * time.Hour)
+		// ISO Week: Monday to Sunday
+		weekday := int(now.Weekday())
+		if weekday == 0 {
+			weekday = 7 // Sunday
+		}
+		startOfWeek := today.AddDate(0, 0, -(weekday - 1))
+		endOfWeek := startOfWeek.AddDate(0, 0, 6)
 		endedAt = endOfWeek
-		res = s.DB.Where("HabitID = ? AND CreatedAt >= ? AND EndedAt <= ?", habit.ID, startOfWeek, endOfWeek).Limit(1).Find(&existingLog)
+		res = s.DB.Where("HabitID = ? AND CreatedAt >= ? AND CreatedAt <= ?", habit.ID, startOfWeek, endOfWeek.Add(23*time.Hour+59*time.Minute+59*time.Second)).Limit(1).Find(&existingLog)
 	}
 
 	if res.Error != nil {
@@ -105,13 +111,15 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, err
 		}
 
 		existingLog.ActualCount++
-		existingLog.EndedAt = endedAt
+		// If it's weekly, keep the same endedAt (end of week)
+		if habit.Interval == models.Daily {
+			existingLog.EndedAt = today
+		}
 		if err := s.DB.Save(&existingLog).Error; err != nil {
 			return nil, nil, err
 		}
 		return &habit, &existingLog, nil
 	}
-	// If no record found (RowsAffected == 0), we just proceed to create a new one.
 
 	// Create new log
 	habitLog := &models.HabitLog{
@@ -136,14 +144,19 @@ func (s *Service) UnlogHabit(habitID string) (*models.Habit, error) {
 	}
 
 	var existingLog models.HabitLog
-	today := time.Now().Format("2006-01-02")
+	now := time.Now()
+	today := now.Truncate(24 * time.Hour)
 	var res *gorm.DB
 
 	switch habit.Interval {
 	case models.Daily:
-		res = s.DB.Where("HabitID = ? AND DATE(CreatedAt) = ?", habit.ID, today).First(&existingLog)
+		res = s.DB.Where("HabitID = ? AND EndedAt = ?", habit.ID, today).First(&existingLog)
 	case models.Weekly:
-		startOfWeek := time.Now().AddDate(0, 0, -int(time.Now().Weekday()))
+		weekday := int(now.Weekday())
+		if weekday == 0 {
+			weekday = 7
+		}
+		startOfWeek := today.AddDate(0, 0, -(weekday - 1))
 		res = s.DB.Where("HabitID = ? AND CreatedAt >= ?", habit.ID, startOfWeek).First(&existingLog)
 	}
 
