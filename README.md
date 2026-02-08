@@ -9,27 +9,27 @@
 
 ## Features
 
-### 🎯 Intents
+### Intents
 Set a single-threaded goal to maintain absolute focus. **One thing at a time.**
 - Track lifecycle of your intents (Active, Completed, Failed).
 - Prevent context switching by committing to a single objective.
 
-### ⏱️ Focus Sessions
+### Focus Sessions
 Break your intents into deep work chunks with a built-in timer.
 - Track duration and frequency of deep work.
 - Associate sessions directly with your active Intent.
 
-### ✅ Habits
+### Habits
 Track daily and weekly habits to build consistency.
 - Simple check-in system.
 - Track streaks and completion rates.
 
-### 📓 Journal
+### Journal
 A dedicated space for reflections, end-of-day closure, or gratitude logging.
 - Markdown support for rich text entries.
 - "Close the loop" at the end of your workday.
 
-### 📊 Summary
+### Summary
 High-level metrics and a bird's-eye view of your productivity data.
 - Visualize time spent in focus.
 - Review completed intents and habit consistency.
