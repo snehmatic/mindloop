@@ -96,7 +96,7 @@ func PrintTable(data interface{}) {
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header(headers)
 	_ = table.Bulk(rows)
-	table.Render()
+	_ = table.Render()
 	logger.Info().Msgf("Rendered table with %d records of type %s", v.Len(), first.Type())
 }
 
