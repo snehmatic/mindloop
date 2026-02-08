@@ -313,13 +313,8 @@ func (mlh *MindloopHandler) HandleHabitDelete(w http.ResponseWriter, r *http.Req
 // --- Intent Handlers ---
 
 func (mlh *MindloopHandler) HandleIntent(w http.ResponseWriter, r *http.Request) {
-	activeIntents, _ := mlh.intent.ListActiveIntents()
+	currentIntent, _ := mlh.intent.GetOngoingIntent()
 	allIntents, _ := mlh.intent.ListIntents()
-
-	var currentIntent *models.Intent
-	if len(activeIntents) > 0 {
-		currentIntent = &activeIntents[0] // Just take the first active one
-	}
 
 	var currentQuest *models.SideQuest
 	if q, err := mlh.quest.GetActiveQuest(); err == nil {

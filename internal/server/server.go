@@ -61,6 +61,12 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/intent/update", mlh.HandleIntentUpdate).Methods("POST")
 	r.HandleFunc("/intent/complete", mlh.HandleIntentComplete).Methods("POST")
 	r.HandleFunc("/intent/delete", mlh.HandleIntentDelete).Methods("POST")
+	r.HandleFunc("/intent/resume", mlh.HandleIntentResume).Methods("POST")
+
+	// Quest Routes
+	r.HandleFunc("/quest/start", mlh.HandleQuestStart).Methods("POST")
+	r.HandleFunc("/quest/stop", mlh.HandleQuestStop).Methods("POST")
+	r.HandleFunc("/quest/delete", mlh.HandleQuestDelete).Methods("POST")
 
 	// Summary Route
 	r.HandleFunc("/summary", mlh.HandleSummary).Methods("GET")

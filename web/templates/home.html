@@ -5,21 +5,23 @@
         <!-- Active Intent or Call to Action -->
         {{ if .Dashboard.CurrentQuest }}
         <div class="card"
-            style="background: var(--bg-surface); border: 2px solid var(--primary); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
+            style="background: var(--bg-surface); border: 2px solid var(--primary); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; min-height: 200px;">
             <div class="text-label mb-sm"
                 style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
                 ⚔️ Side Quest Active
             </div>
-            <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">{{ .Dashboard.CurrentQuest.Title }}</h2>
-            <div class="text-muted text-sm mb-md">Main Intent Paused</div>
-            {{ if .Dashboard.CurrentIntent }}
-            <div style="opacity: 0.6; font-size: 0.9rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
-                ⏸️ {{ .Dashboard.CurrentIntent.Name }}
+            <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text-main);">{{ .Dashboard.CurrentQuest.Title }}</h2>
+            
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                <span class="badge badge-warning" style="font-size: 0.7rem;">Main Intent Paused</span>
+                {{ if .Dashboard.CurrentIntent }}
+                <span class="text-muted text-xs">⏸️ {{ .Dashboard.CurrentIntent.Name }}</span>
+                {{ end }}
             </div>
-            {{ end }}
-            <div class="mt-md">
-                <a href="/intent" class="btn btn-primary">
-                    View Quest
+            
+            <div class="mt-auto">
+                <a href="/intent" class="btn btn-primary btn-sm">
+                    Go to Quest
                 </a>
             </div>
         </div>

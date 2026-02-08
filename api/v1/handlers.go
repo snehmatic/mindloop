@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -116,12 +117,8 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 }
 
 func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
-	// 1. Active Intent
-	activeIntents, _ := mlh.intent.ListActiveIntents()
-	var currentIntent *models.Intent
-	if len(activeIntents) > 0 {
-		currentIntent = &activeIntents[0]
-	}
+	// 1. Ongoing Intent (Active or Paused)
+	currentIntent, _ := mlh.intent.GetOngoingIntent()
 
 	// 1b. Active Side Quest
 	var currentQuest *models.SideQuest
@@ -199,4 +196,81 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 
 func (mlh *MindloopHandler) HandleHealthz(w http.ResponseWriter, r *http.Request) {
 	utils.WriteResponse([]byte("OK"), w, http.StatusOK)
+}
+
+// --- Quest Handlers ---
+
+func (mlh *MindloopHandler) HandleQuestStart(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/intent", http.StatusSeeOther)
+		return
+	}
+
+	title := r.FormValue("title")
+
+	// 1. Pause Intent
+	currentIntent, _ := mlh.intent.GetOngoingIntent()
+	if currentIntent != nil && currentIntent.Status == "active" {
+		_, _ = mlh.intent.PauseIntent(currentIntent.ID)
+	}
+
+	// 2. Pause Focus
+	activeFocus, _ := mlh.focus.GetActiveSession()
+	if activeFocus != nil {
+		_, _ = mlh.focus.PauseSession(activeFocus.ID)
+	}
+
+	// 3. Start Quest
+	_, _ = mlh.quest.StartQuest(title)
+
+	http.Redirect(w, r, "/intent", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/intent", http.StatusSeeOther)
+		return
+	}
+
+	idStr := r.FormValue("id")
+	id, _ := strconv.ParseUint(idStr, 10, 32)
+	note := r.FormValue("note")
+
+	_, _ = mlh.quest.StopQuest(uint(id), note)
+
+	// Auto-resume intent if one is paused
+	currentIntent, _ := mlh.intent.GetOngoingIntent()
+	if currentIntent != nil && currentIntent.Status == "paused" {
+		_, _ = mlh.intent.ResumeIntent(currentIntent.ID)
+	}
+
+	http.Redirect(w, r, "/intent", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleQuestDelete(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/intent", http.StatusSeeOther)
+		return
+	}
+
+	idStr := r.FormValue("id")
+	id, _ := strconv.ParseUint(idStr, 10, 32)
+
+	_ = mlh.quest.DeleteQuest(uint(id))
+
+	http.Redirect(w, r, "/intent", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleIntentResume(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/intent", http.StatusSeeOther)
+		return
+	}
+
+	idStr := r.FormValue("id")
+	id, _ := strconv.ParseUint(idStr, 10, 32)
+
+	_, _ = mlh.intent.ResumeIntent(uint(id))
+
+	http.Redirect(w, r, "/intent", http.StatusSeeOther)
 }

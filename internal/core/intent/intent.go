@@ -44,6 +44,18 @@ func (s *Service) ListActiveIntents() ([]models.Intent, error) {
 	return intents, result.Error
 }
 
+func (s *Service) GetOngoingIntent() (*models.Intent, error) {
+	var intent models.Intent
+	result := s.DB.Where("status IN ?", []string{"active", "paused"}).First(&intent)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &intent, nil
+}
+
 func (s *Service) GetIntent(id string) (*models.Intent, error) {
 	var intent models.Intent
 	if err := s.DB.Where("id = ?", id).First(&intent).Error; err != nil {
