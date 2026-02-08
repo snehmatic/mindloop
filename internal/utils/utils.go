@@ -19,14 +19,8 @@ import (
 var logger = log.Get()
 
 var (
-	green          = "\033[32m"
-	red            = "\033[31m"
-	reset          = "\033[0m"
-	tick           = "✓"
-	cross          = "✖"
-	loading        = "↻"
-	greenTickSmall = fmt.Sprintf("%s%s%s", green, tick, reset)
-	redCrossSmall  = fmt.Sprintf("%s%s%s", red, cross, reset)
+	green = "\033[32m"
+	reset = "\033[0m"
 
 	// emojis
 	greenTick = "✅"
@@ -101,7 +95,7 @@ func PrintTable(data interface{}) {
 	// Print in table format
 	table := tablewriter.NewWriter(os.Stdout)
 	table.Header(headers)
-	table.Bulk(rows)
+	_ = table.Bulk(rows)
 	table.Render()
 	logger.Info().Msgf("Rendered table with %d records of type %s", v.Len(), first.Type())
 }
@@ -205,7 +199,7 @@ func PrintErrorf(format string, a ...any) (n int, err error) {
 func WriteResponse(data interface{}, respWriter http.ResponseWriter, status int) {
 	respWriter.Header().Set("content-type", "application/json; charset=utf-8")
 	respWriter.WriteHeader(status)
-	json.NewEncoder(respWriter).Encode(data)
+	_ = json.NewEncoder(respWriter).Encode(data)
 }
 
 func GetEnvOrDie(key string) string {
@@ -266,10 +260,10 @@ func CaptureWithEditor(filenamePattern, header, initialContent string) (string, 
 	defer os.Remove(tmpFile.Name())
 
 	if header != "" {
-		tmpFile.WriteString(header)
+		_, _ = tmpFile.WriteString(header)
 	}
 	if initialContent != "" {
-		tmpFile.WriteString(initialContent)
+		_, _ = tmpFile.WriteString(initialContent)
 	}
 	tmpFile.Close()
 

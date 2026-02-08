@@ -87,7 +87,9 @@ func TestCalculateStreak(t *testing.T) {
 	s := habit.NewService(db)
 
 	h := &models.Habit{Title: "Run", TargetCount: 1, Interval: models.Daily}
-	s.CreateHabit(h)
+	if err := s.CreateHabit(h); err != nil {
+		t.Fatalf("Failed to create habit: %v", err)
+	}
 
 	// Create manual logs for 3 consecutive days (including today)
 	today := time.Now().Truncate(24 * time.Hour)

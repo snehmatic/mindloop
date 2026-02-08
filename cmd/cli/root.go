@@ -33,8 +33,8 @@ var rootCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.PrettyPrintBanner()
-		utils.PrintRocketln("Welcome to Mindloop! Use 'mindloop help' to see available commands.")
-		utils.PrintInfoln("For starters, try 'mindloop configure' to set up your profile.")
+		_, _ = utils.PrintRocketln("Welcome to Mindloop! Use 'mindloop help' to see available commands.")
+		_, _ = utils.PrintInfoln("For starters, try 'mindloop configure' to set up your profile.")
 		ac.Logger.Info().Msg("User accessed root command, prompting for help.")
 	},
 	PersistentPostRun: func(cmd *cobra.Command, args []string) {
@@ -59,9 +59,9 @@ func initConfig() {
 	// Initialize local db
 	db, err := db.ConnectToDb(*ac)
 	if err != nil {
-		utils.PrintErrorf("Error connecting to DB: %v\n", err)
+		_, _ = utils.PrintErrorf("Error connecting to DB: %v\n", err)
 		ac.Logger.Error().Msgf("Error connecting to DB: %v", err)
-		utils.PrintErrorln("Please check your database connection or configuration.")
+		_, _ = utils.PrintErrorln("Please check your database connection or configuration.")
 		ac.Logger.Warn().Msg("Exiting due to DB connection error.")
 		os.Exit(1)
 	}

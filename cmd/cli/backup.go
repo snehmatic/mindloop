@@ -22,12 +22,12 @@ var backupCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]
-		PrintRocketf("Exporting data to %s...\n", filePath)
+		_, _ = PrintRocketf("Exporting data to %s...\n", filePath)
 		if err := backupService.Export(filePath); err != nil {
-			PrintErrorln("Backup failed:", err)
+			_, _ = PrintErrorln("Backup failed:", err)
 			return
 		}
-		PrintSuccessln("Backup completed successfully!")
+		_, _ = PrintSuccessln("Backup completed successfully!")
 	},
 }
 
@@ -42,21 +42,21 @@ var restoreCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]
-		PrintWarnf("Restoring data from %s. All existing local data will be replaced!\n", filePath)
-		PrintInfoln("Type 'yes' to confirm:")
+		_, _ = PrintWarnf("Restoring data from %s. All existing local data will be replaced!\n", filePath)
+		_, _ = PrintInfoln("Type 'yes' to confirm:")
 		var confirm string
-		fmt.Scanln(&confirm)
+		_, _ = fmt.Scanln(&confirm)
 		if confirm != "yes" {
-			PrintInfoln("Restore cancelled.")
+			_, _ = PrintInfoln("Restore cancelled.")
 			return
 		}
 
-		PrintRocketln("Importing data...")
+		_, _ = PrintRocketln("Importing data...")
 		if err := backupService.Import(filePath); err != nil {
-			PrintErrorln("Restore failed:", err)
+			_, _ = PrintErrorln("Restore failed:", err)
 			return
 		}
-		PrintSuccessln("Restore completed successfully!")
+		_, _ = PrintSuccessln("Restore completed successfully!")
 	},
 }
 

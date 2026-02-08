@@ -13,7 +13,6 @@ import (
 )
 
 var (
-	all          *bool
 	daily        *bool
 	weekly       *bool
 	interactive  *bool
@@ -314,7 +313,7 @@ func init() {
 	habitLogCmd.AddCommand(habitLogShowCmd)
 
 	// flags
-	all = habitCmd.PersistentFlags().BoolP("all", "A", false, "Select all habits") // not using now
+	// all = habitCmd.PersistentFlags().BoolP("all", "A", false, "Select all habits") // not using now
 	daily = habitCmd.PersistentFlags().BoolP("daily", "d", false, "Set habit as daily")
 	weekly = habitCmd.PersistentFlags().BoolP("weekly", "w", false, "Set habit as weekly")
 	interactive = habitCmd.PersistentFlags().BoolP("interactive", "i", false, "Interactive mode for adding habit")

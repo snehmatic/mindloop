@@ -86,12 +86,6 @@ func (s *Service) GetHabitStats(start, end time.Time) ([]models.HabitStats, erro
 		return nil, err
 	}
 
-	if len(habitLogs) == 0 {
-		// Even if no logs, we should return stats for habits with 0 completion to show they exist
-		// But if no logs exist AT ALL for the period, logic still holds
-		// Better to just continue and calculate 0s
-	}
-
 	totalCompletedLogsForHabit := 0
 	totalLogsForHabit := 0
 

@@ -17,37 +17,37 @@ var confCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		// Placeholder for configuration logic
 		// This could involve setting user preferences, etc.
-		PrintRocketln("Welcome to Mindloop configuration!")
+		_, _ = PrintRocketln("Welcome to Mindloop configuration!")
 		fmt.Print("Please enter your preferred username: ")
 		var username string
-		fmt.Scanln(&username)
+		_, _ = fmt.Scanln(&username)
 		var mode string
 		for {
 			fmt.Print("Please enter your preferred mode [local/byodb]: ")
-			fmt.Scanln(&mode)
+			_, _ = fmt.Scanln(&mode)
 			if models.IsValidMode(mode) {
 				break
 			}
-			PrintWarnln("Invalid mode. Please choose from: local, byodb.")
+			_, _ = PrintWarnln("Invalid mode. Please choose from: local, byodb.")
 		}
 
 		dbConfig := &config.DBConfig{}
 		if mode == "byodb" {
 			fmt.Print("Please enter your database host name: ")
 			var dbHost string
-			fmt.Scanln(&dbHost)
+			_, _ = fmt.Scanln(&dbHost)
 			fmt.Print("Please enter your database port: ")
 			var dbPort string
-			fmt.Scanln(&dbPort)
+			_, _ = fmt.Scanln(&dbPort)
 			fmt.Print("Please enter your database user name: ")
 			var dbUser string
-			fmt.Scanln(&dbUser)
+			_, _ = fmt.Scanln(&dbUser)
 			fmt.Print("Please enter your database password: ")
 			var dbPass string
-			fmt.Scanln(&dbPass)
+			_, _ = fmt.Scanln(&dbPass)
 			fmt.Print("Please enter your database name [mindloop]: ")
 			var dbName string
-			fmt.Scanln(&dbName)
+			_, _ = fmt.Scanln(&dbName)
 			if dbName == "" {
 				dbName = "mindloop" // default
 			}
@@ -62,7 +62,7 @@ var confCmd = &cobra.Command{
 
 		CreateUserConfigYAML(username, mode, dbConfig)
 
-		PrintSuccessf("Configuration complete! Your username is set to: %s, using mode: %s\n", username, mode)
+		_, _ = PrintSuccessf("Configuration complete! Your username is set to: %s, using mode: %s\n", username, mode)
 	},
 }
 
@@ -78,13 +78,13 @@ func CreateUserConfigYAML(username, mode string, dbConfig *config.DBConfig) {
 
 	if mode == "byodb" {
 		if dbConfig == nil {
-			PrintWarnln("Database configuration is required for 'byodb' mode. Please try again.")
+			_, _ = PrintWarnln("Database configuration is required for 'byodb' mode. Please try again.")
 			return
 		}
 		uc.DbConfig = *dbConfig
 	}
 
 	uc.WriteToYAML()
-	PrintSuccessln("User config created successfully!")
-	PrintInfoln("You can find your config as user_config.yaml")
+	_, _ = PrintSuccessln("User config created successfully!")
+	_, _ = PrintInfoln("You can find your config as user_config.yaml")
 }
