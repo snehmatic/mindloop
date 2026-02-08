@@ -358,7 +358,7 @@ func BuildHabitFromInteractiveMode(hb *models.Habit) *models.Habit {
 
 	fmt.Print("Enter target count (default 1): ")
 	var targetCount int
-	fmt.Scanln(&targetCount)
+	_, _ = fmt.Scanln(&targetCount)
 	if targetCount > 0 {
 		hb.TargetCount = targetCount
 	}
@@ -366,7 +366,7 @@ func BuildHabitFromInteractiveMode(hb *models.Habit) *models.Habit {
 	for {
 		fmt.Print("Select interval (daily/weekly, default daily): ")
 		var interval string
-		fmt.Scanln(&interval)
+		_, _ = fmt.Scanln(&interval)
 		if interval != "" {
 			if !models.IsValidIntervalType(interval) {
 				ac.Logger.Error().

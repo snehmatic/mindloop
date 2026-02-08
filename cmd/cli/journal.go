@@ -128,7 +128,7 @@ var journalDeleteCmd = &cobra.Command{
 		PrintInfof("Are you sure you want to delete journal entry with Title '%s'?\n", entry.Title)
 		PrintInfoln("This action cannot be undone. Type 'yes' to confirm.")
 		var confirmation string
-		fmt.Scanln(&confirmation)
+		_, _ = fmt.Scanln(&confirmation)
 		if confirmation != "yes" {
 			PrintWarnln("Deletion cancelled.")
 			ac.Logger.Warn().Msgf("Deletion of journal entry with ID %s cancelled by user.", id)
