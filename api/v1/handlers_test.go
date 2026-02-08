@@ -15,6 +15,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/glebarez/sqlite"
@@ -44,6 +45,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 		&models.HabitLog{},
 		&models.FocusSession{},
 		&models.Intent{},
+		&models.SideQuest{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate test db: %v", err)
@@ -53,6 +55,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 	noteService := note.NewService(database)
 	focusService := focus.NewService(database)
 	intentService := intent.NewService(database)
+	questService := quest.NewService(database)
 	summaryService := summary.NewService(database)
 	habitService := habit.NewService(database)
 	backupService := backup.NewService(database)
@@ -63,6 +66,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 		habitService,
 		focusService,
 		intentService,
+		questService,
 		summaryService,
 		backupService,
 	)
