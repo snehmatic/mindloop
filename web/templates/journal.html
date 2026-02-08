@@ -41,15 +41,14 @@
     <div class="card">
         <div class="flex-between">
             <h3>{{ .Title }} <small class="text-muted font-normal">({{ .Mood }})</small></h3>
-            <form action="/journal/delete" method="POST" style="margin: 0;"
-                onsubmit="return confirm('Delete this entry?');">
-                <input type="hidden" name="id" value="{{ .ID }}">
-                <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete">🗑️</button>
-            </form>
             <div class="flex-center" style="gap: 0.5rem;">
                 <a href="/journal/view/{{ .ID }}" class="btn btn-secondary btn-sm">View Full</a>
                 <button onclick="toggleEditJournal('{{ .ID }}')" class="btn btn-secondary btn-sm" title="Edit">✏️</button>
-            </div>
+                <form action="/journal/delete" method="POST" style="margin: 0;"
+                    onsubmit="return confirm('Delete this entry?');">
+                    <input type="hidden" name="id" value="{{ .ID }}">
+                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete">🗑️</button>
+                </form>
             </div>
         </div>
         <div id="display-journal-{{ .ID }}">
