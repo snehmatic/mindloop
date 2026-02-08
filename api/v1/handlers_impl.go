@@ -95,17 +95,10 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 						isToday = true
 					}
 				} else {
-					// Weekly check: must be in same Monday-Sunday week
-					now := time.Now()
-					today := now.Truncate(24 * time.Hour)
-					weekday := int(now.Weekday())
-					if weekday == 0 {
-						weekday = 7
-					}
-					startOfWeek := today.AddDate(0, 0, -(weekday - 1))
-					endOfWeek := startOfWeek.AddDate(0, 0, 6).Add(23*time.Hour + 59*time.Minute + 59*time.Second)
-
-					if (log.CreatedAt.After(startOfWeek) || log.CreatedAt.Equal(startOfWeek)) && log.CreatedAt.Before(endOfWeek) {
+					// Weekly check: match ISO week
+					y1, w1 := log.CreatedAt.ISOWeek()
+					y2, w2 := time.Now().ISOWeek()
+					if y1 == y2 && w1 == w2 {
 						isToday = true
 					}
 				}

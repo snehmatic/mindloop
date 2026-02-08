@@ -27,19 +27,25 @@ func (s *Service) CreateHabit(habit *models.Habit) error {
 }
 
 func (s *Service) DeleteHabit(id string) error {
-	var habit models.Habit
-	if err := s.DB.First(&habit, "id = ?", id).Error; err != nil {
+	var habits []models.Habit
+	if err := s.DB.Where("id = ?", id).Limit(1).Find(&habits).Error; err != nil {
 		return err
 	}
-	return s.DB.Delete(&habit).Error
+	if len(habits) == 0 {
+		return errors.New("habit not found")
+	}
+	return s.DB.Delete(&habits[0]).Error
 }
 
 func (s *Service) GetHabit(id string) (*models.Habit, error) {
-	var habit models.Habit
-	if err := s.DB.First(&habit, "id = ?", id).Error; err != nil {
+	var habits []models.Habit
+	if err := s.DB.Where("id = ?", id).Limit(1).Find(&habits).Error; err != nil {
 		return nil, err
 	}
-	return &habit, nil
+	if len(habits) == 0 {
+		return nil, errors.New("habit not found")
+	}
+	return &habits[0], nil
 }
 
 func (s *Service) UpdateHabit(habit *models.Habit) error {
@@ -74,51 +80,45 @@ func (s *Service) ListEndedHabits() ([]models.Habit, error) {
 }
 
 func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, error) {
-	var habit models.Habit
-	if err := s.DB.First(&habit, "id = ?", habitID).Error; err != nil {
+	habit, err := s.GetHabit(habitID)
+	if err != nil {
 		return nil, nil, err
 	}
 
-	var existingLog models.HabitLog
+	var existingLogs []models.HabitLog
 	now := time.Now()
 	today := now.Truncate(24 * time.Hour)
-	endedAt := today
+	var startRange, endRange time.Time
 
-	var res *gorm.DB
 	switch habit.Interval {
 	case models.Daily:
-		res = s.DB.Where("HabitID = ? AND EndedAt = ?", habit.ID, today).Limit(1).Find(&existingLog)
+		startRange = today
+		endRange = today.AddDate(0, 0, 1)
 	case models.Weekly:
-		// ISO Week: Monday to Sunday
 		weekday := int(now.Weekday())
 		if weekday == 0 {
 			weekday = 7 // Sunday
 		}
-		startOfWeek := today.AddDate(0, 0, -(weekday - 1))
-		endOfWeek := startOfWeek.AddDate(0, 0, 6)
-		endedAt = endOfWeek
-		res = s.DB.Where("HabitID = ? AND CreatedAt >= ? AND CreatedAt <= ?", habit.ID, startOfWeek, endOfWeek.Add(23*time.Hour+59*time.Minute+59*time.Second)).Limit(1).Find(&existingLog)
+		startRange = today.AddDate(0, 0, -(weekday - 1))
+		endRange = startRange.AddDate(0, 0, 7)
 	}
 
+	res := s.DB.Where("HabitID = ? AND CreatedAt >= ? AND CreatedAt < ?", habit.ID, startRange, endRange).Limit(1).Find(&existingLogs)
 	if res.Error != nil {
 		return nil, nil, res.Error
 	}
 
-	if res.RowsAffected > 0 {
-		// Log found
+	if len(existingLogs) > 0 {
+		existingLog := existingLogs[0]
 		if existingLog.ActualCount >= habit.TargetCount {
-			return &habit, &existingLog, errors.New("habit already completed for interval")
+			return habit, &existingLog, errors.New("habit already completed for interval")
 		}
 
 		existingLog.ActualCount++
-		// If it's weekly, keep the same endedAt (end of week)
-		if habit.Interval == models.Daily {
-			existingLog.EndedAt = today
-		}
 		if err := s.DB.Save(&existingLog).Error; err != nil {
 			return nil, nil, err
 		}
-		return &habit, &existingLog, nil
+		return habit, &existingLog, nil
 	}
 
 	// Create new log
@@ -128,56 +128,59 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, err
 		Interval:    habit.Interval,
 		TargetCount: habit.TargetCount,
 		ActualCount: 1,
-		EndedAt:     endedAt,
+		EndedAt:     endRange.AddDate(0, 0, -1), // Represents the last day of the interval
 	}
 	if err := s.DB.Create(habitLog).Error; err != nil {
 		return nil, nil, err
 	}
 
-	return &habit, habitLog, nil
+	return habit, habitLog, nil
 }
 
 func (s *Service) UnlogHabit(habitID string) (*models.Habit, error) {
-	var habit models.Habit
-	if err := s.DB.First(&habit, "id = ?", habitID).Error; err != nil {
+	habit, err := s.GetHabit(habitID)
+	if err != nil {
 		return nil, err
 	}
 
-	var existingLog models.HabitLog
+	var existingLogs []models.HabitLog
 	now := time.Now()
 	today := now.Truncate(24 * time.Hour)
-	var res *gorm.DB
+	var startRange, endRange time.Time
 
 	switch habit.Interval {
 	case models.Daily:
-		res = s.DB.Where("HabitID = ? AND EndedAt = ?", habit.ID, today).First(&existingLog)
+		startRange = today
+		endRange = today.AddDate(0, 0, 1)
 	case models.Weekly:
 		weekday := int(now.Weekday())
 		if weekday == 0 {
 			weekday = 7
 		}
-		startOfWeek := today.AddDate(0, 0, -(weekday - 1))
-		res = s.DB.Where("HabitID = ? AND CreatedAt >= ?", habit.ID, startOfWeek).First(&existingLog)
+		startRange = today.AddDate(0, 0, -(weekday - 1))
+		endRange = startRange.AddDate(0, 0, 7)
 	}
 
+	res := s.DB.Where("HabitID = ? AND CreatedAt >= ? AND CreatedAt < ?", habit.ID, startRange, endRange).Limit(1).Find(&existingLogs)
 	if res.Error != nil {
-		if errors.Is(res.Error, gorm.ErrRecordNotFound) {
-			return nil, errors.New("no existing log found for this habit")
-		}
 		return nil, res.Error
 	}
 
+	if len(existingLogs) == 0 {
+		return nil, errors.New("no existing log found for this interval")
+	}
+
+	existingLog := existingLogs[0]
 	if existingLog.ActualCount <= 0 {
 		return nil, errors.New("habit is already marked as undone")
 	}
 
-	existingLog.ActualCount = 0 // resetting progress for the day/week.
-
+	existingLog.ActualCount--
 	if err := s.DB.Save(&existingLog).Error; err != nil {
 		return nil, err
 	}
 
-	return &habit, nil
+	return habit, nil
 }
 
 func (s *Service) ListHabitLogs(interval models.IntervalType) ([]models.HabitLog, error) {
@@ -208,6 +211,7 @@ func (s *Service) DeleteAll() error {
 		return nil
 	})
 }
+
 func (s *Service) CalculateStreak(habitID uint, interval models.IntervalType) (int, error) {
 	if interval != models.Daily {
 		return 0, nil // fast track for non-daily for now
@@ -216,9 +220,6 @@ func (s *Service) CalculateStreak(habitID uint, interval models.IntervalType) (i
 	var logs []models.HabitLog
 	// Fetch all logs for this habit ordered by date descending
 	if err := s.DB.Where("HabitID = ?", habitID).Order("CreatedAt desc").Find(&logs).Error; err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return 0, nil
-		}
 		return 0, err
 	}
 
@@ -228,11 +229,6 @@ func (s *Service) CalculateStreak(habitID uint, interval models.IntervalType) (i
 
 	streak := 0
 	today := time.Now().Truncate(24 * time.Hour)
-	// yesterday := today.AddDate(0, 0, -1)
-
-	// We need to check if the sequence is unbroken.
-	// The most recent log could be today or yesterday to keep the streak alive.
-	// If the most recent log is older than yesterday, streak is 0.
 
 	lastLogDate := logs[0].CreatedAt.Truncate(24 * time.Hour)
 	daysDiff := today.Sub(lastLogDate).Hours() / 24
@@ -241,27 +237,21 @@ func (s *Service) CalculateStreak(habitID uint, interval models.IntervalType) (i
 		return 0, nil
 	}
 
-	// Iterate and count
-	// We expect dates to be consecutive
 	expectedDate := lastLogDate
 	for _, log := range logs {
 		logDate := log.CreatedAt.Truncate(24 * time.Hour)
 
-		// If multiple logs on same day (shouldn't happen with current logic but safeguards), skip
 		if logDate.Equal(expectedDate) {
 			if log.ActualCount >= log.TargetCount {
 				streak++
 				expectedDate = expectedDate.AddDate(0, 0, -1)
 			}
 		} else if logDate.After(expectedDate) {
-			// duplicate or error, ignore
 			continue
 		} else {
-			// Gap found
 			break
 		}
 	}
 
 	return streak, nil
-
 }
