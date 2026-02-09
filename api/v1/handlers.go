@@ -111,6 +111,14 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 	}
 
 	var buf strings.Builder
+
+	// Inject global view data (like UserName) if data is a map
+	if d, ok := data.(map[string]interface{}); ok {
+		if mlh.config.UserName != "" {
+			d["UserName"] = mlh.config.UserName
+		}
+	}
+
 	err = ts.Execute(&buf, data)
 	if err != nil {
 		log.Error().Err(err).Msg("Error executing template")

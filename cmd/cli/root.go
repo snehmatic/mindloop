@@ -34,7 +34,11 @@ var rootCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.PrettyPrintBanner()
-		utils.PrintRocketln("Welcome to Mindloop! Use 'mindloop help' to see available commands.")
+		if ac.UserName != "" {
+			utils.PrintRocketln(fmt.Sprintf("Welcome back, %s! Use 'mindloop help' to see available commands.", ac.UserName))
+		} else {
+			utils.PrintRocketln("Welcome to Mindloop! Use 'mindloop help' to see available commands.")
+		}
 		utils.PrintInfoln("For starters, try 'mindloop configure' to set up your profile.")
 		ac.Logger.Info().Msg("User accessed root command, prompting for help.")
 	},

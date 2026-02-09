@@ -1,5 +1,12 @@
 {{ define "content" }}
 <div class="mb-md">
+    <h1 class="mb-lg" style="font-weight: 800;">
+        {{ if .UserName }}
+        Welcome back, <span class="text-gradient-name">{{ .UserName }}!</span> 👋
+        {{ else }}
+        Welcome to Mindloop! 👋
+        {{ end }}
+    </h1>
     <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
 
         <!-- Active Intent or Call to Action -->

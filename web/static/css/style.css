@@ -156,6 +156,7 @@ a:hover {
 
 main.container {
     padding-top: 2rem;
+    padding-bottom: 4rem; /* Added spacing at the bottom */
 }
 
 /* Header */
@@ -409,6 +410,14 @@ textarea:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.text-gradient-name {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: 800; /* Ensure it's bold enough */
 }
 
 /* Utilities */

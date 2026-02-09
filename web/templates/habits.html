@@ -1,7 +1,13 @@
 {{ define "content" }}
 <div class="flex-between mobile-stack mb-md">
     <div>
-        <h1>Your Habits</h1>
+        <h1>
+            {{ if .UserName }}
+            <span class="text-gradient-name">{{ .UserName }}'s</span> Habits
+            {{ else }}
+            Your Habits
+            {{ end }}
+        </h1>
         <p>Consistent actions create consistent results.</p>
     </div>
     <div class="flex-center gap-sm">

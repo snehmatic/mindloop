@@ -51,6 +51,7 @@ type Config struct {
 	Mode     MindloopMode
 	Port     string
 	Name     string
+	UserName string
 	DBConfig DBConfig
 	Logger   zerolog.Logger
 }
@@ -75,6 +76,20 @@ func InitConfig(name, mode, port string) {
 			Mode:     MindloopMode(mode),
 			DBConfig: DBConfig{},
 			Logger:   log.Get(),
+		}
+
+		// Try to load user config
+		uc := UserConfig{}
+		if err := uc.ReadFromYAML(); err == nil {
+			if uc.Name != "" {
+				config.UserName = uc.Name
+			}
+			// Override mode if set in user config and not explicitly overridden by flag (which passed here)
+			// For simplicity, we are not overriding mode here as it might conflict with flags
+			// But we can check if DBConfig is needed
+			if uc.Mode == "byodb" {
+				config.DBConfig = uc.DbConfig
+			}
 		}
 
 		if mode == "api" {

@@ -558,6 +558,19 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 		if err1 != nil || err2 != nil || err3 != nil || err4 != nil || err5 != nil {
 			err = errors.New("failed to delete all data") // Force non-nil error if any failed
 			log.Error().Msg("Error in clean slate all")
+		} else {
+			// Also reset user config (Name and FeatureFlags), but keep DB config
+			uc := config.UserConfig{}
+			if readErr := uc.ReadFromYAML(); readErr == nil {
+				uc.Name = ""
+				uc.FeatureFlags = config.FeatureFlags{} // Reset all flags to false
+				uc.WriteToYAML()
+				
+				// Update in-memory config
+				if mlh.config != nil {
+					mlh.config.UserName = ""
+				}
+			}
 		}
 	case "journal":
 		err = mlh.journal.DeleteAll()
@@ -798,6 +811,12 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	}
 
 	uc.WriteToYAML()
+
+	// Update in-memory config to reflect changes immediately
+	if mlh.config != nil {
+		mlh.config.UserName = name
+		// Update other fields if necessary in the future
+	}
 
 	http.Redirect(w, r, "/settings?success=true", http.StatusSeeOther)
 }
