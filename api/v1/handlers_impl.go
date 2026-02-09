@@ -399,10 +399,6 @@ func (mlh *MindloopHandler) HandleIntentDelete(w http.ResponseWriter, r *http.Re
 
 func (mlh *MindloopHandler) HandleFocus(w http.ResponseWriter, r *http.Request) {
 	sessions, _ := mlh.focus.ListSessions()
-	// reverse order to show newest first
-	for i, j := 0, len(sessions)-1; i < j; i, j = i+1, j-1 {
-		sessions[i], sessions[j] = sessions[j], sessions[i]
-	}
 
 	data := map[string]interface{}{
 		"Title":    "Focus",

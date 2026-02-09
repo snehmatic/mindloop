@@ -73,7 +73,7 @@ func (s *Service) GetFocusStats(start, end time.Time) (models.FocusStats, error)
 
 func (s *Service) GetHabitStats(start, end time.Time) ([]models.HabitStats, error) {
 	var habits []models.Habit
-	if err := s.DB.Find(&habits).Error; err != nil {
+	if err := s.DB.Order("CreatedAt DESC").Find(&habits).Error; err != nil {
 		return nil, err
 	}
 	if len(habits) == 0 {
@@ -116,7 +116,7 @@ func (s *Service) GetHabitStats(start, end time.Time) ([]models.HabitStats, erro
 func (s *Service) GetIntentStats(start, end time.Time) ([]models.IntentStats, error) {
 	var intents []models.Intent
 	rangeQuery := "CreatedAt >= ? AND CreatedAt <= ?"
-	if err := s.DB.Where(rangeQuery, start, end).Find(&intents).Error; err != nil {
+	if err := s.DB.Where(rangeQuery, start, end).Order("CreatedAt DESC").Find(&intents).Error; err != nil {
 		return nil, err
 	}
 

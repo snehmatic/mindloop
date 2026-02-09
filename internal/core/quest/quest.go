@@ -65,7 +65,7 @@ func (s *Service) StopQuest(id uint, note string) (*models.SideQuest, error) {
 
 func (s *Service) ListQuests() ([]models.SideQuest, error) {
 	var quests []models.SideQuest
-	result := s.DB.Find(&quests)
+	result := s.DB.Order("CreatedAt DESC").Find(&quests)
 	return quests, result.Error
 }
 

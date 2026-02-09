@@ -68,14 +68,14 @@ func (s *Service) ListHabits(interval models.IntervalType) ([]models.Habit, erro
 	now := time.Now()
 	query = query.Where("EndDate IS NULL OR EndDate > ?", now)
 
-	result := query.Find(&habits)
+	result := query.Order("CreatedAt DESC").Find(&habits)
 	return habits, result.Error
 }
 
 func (s *Service) ListEndedHabits() ([]models.Habit, error) {
 	var habits []models.Habit
 	now := time.Now()
-	result := s.DB.Where("EndDate IS NOT NULL AND EndDate <= ?", now).Find(&habits)
+	result := s.DB.Where("EndDate IS NOT NULL AND EndDate <= ?", now).Order("CreatedAt DESC").Find(&habits)
 	return habits, result.Error
 }
 

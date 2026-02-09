@@ -42,7 +42,7 @@ func (s *Service) StartSession(title string) (*models.FocusSession, error) {
 
 func (s *Service) ListSessions() ([]models.FocusSession, error) {
 	var sessions []models.FocusSession
-	result := s.DB.Find(&sessions)
+	result := s.DB.Order("CreatedAt DESC").Find(&sessions)
 	return sessions, result.Error
 }
 

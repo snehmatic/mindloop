@@ -34,13 +34,13 @@ func (s *Service) StartIntent(name string) (*models.Intent, error) {
 
 func (s *Service) ListIntents() ([]models.Intent, error) {
 	var intents []models.Intent
-	result := s.DB.Find(&intents)
+	result := s.DB.Order("CreatedAt DESC").Find(&intents)
 	return intents, result.Error
 }
 
 func (s *Service) ListActiveIntents() ([]models.Intent, error) {
 	var intents []models.Intent
-	result := s.DB.Where("status = ?", "active").Find(&intents)
+	result := s.DB.Where("status = ?", "active").Order("CreatedAt DESC").Find(&intents)
 	return intents, result.Error
 }
 
