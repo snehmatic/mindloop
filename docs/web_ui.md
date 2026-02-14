@@ -36,3 +36,6 @@ View a summary of your activities, including completed focus sessions, habits lo
 Mindloop includes a built-in Dark Mode for comfortable viewing in low-light environments. Toggle it using the moon/sun icon in the navigation bar.
 
 ![Dark Mode](img/dark_mode.png)
+
+## Technical Architecture
+For details on the underlying UI architecture, HTMX integration, and styling system, please refer to [ARCHITECTURE_UI.md](ARCHITECTURE_UI.md).
