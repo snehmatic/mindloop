@@ -33,7 +33,7 @@
         <h2 class="mb-0">Recent Entries</h2>
         <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all journal entries?');" class="mb-0">
             <input type="hidden" name="type" value="journal">
-            <button type="submit" class="btn btn-premium-outline btn-sm">Reset Journal</button>
+            <button type="submit" class="btn btn-danger-outline btn-sm">Reset Journal</button>
         </form>
     </div>
     {{ if .Entries }}
@@ -43,11 +43,13 @@
             <h3>{{ .Title }} <small class="text-muted font-normal">({{ .Mood }})</small></h3>
             <div class="flex-center" style="gap: 0.5rem;">
                 <a href="/journal/view/{{ .ID }}" class="btn btn-secondary btn-sm">View Full</a>
-                <button onclick="toggleEditJournal('{{ .ID }}')" class="btn btn-secondary btn-sm" title="Edit">✏️</button>
+                <button onclick="toggleEditJournal('{{ .ID }}')" class="btn btn-secondary btn-sm" title="Edit"
+                    style="padding: 0.4rem;"><i data-lucide="edit-2" style="width: 14px;"></i></button>
                 <form action="/journal/delete" method="POST" style="margin: 0;"
                     onsubmit="return confirm('Delete this entry?');">
                     <input type="hidden" name="id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete">🗑️</button>
+                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete"
+                        style="padding: 0.4rem;"><i data-lucide="trash-2" style="width: 14px;"></i></button>
                 </form>
             </div>
         </div>
@@ -76,7 +78,8 @@
                     <textarea name="content" rows="4" required>{{ .Content }}</textarea>
                 </div>
                 <div class="flex-between">
-                    <button type="button" class="btn btn-sm btn-secondary" onclick="toggleEditJournal('{{ .ID }}')">Cancel</button>
+                    <button type="button" class="btn btn-sm btn-secondary"
+                        onclick="toggleEditJournal('{{ .ID }}')">Cancel</button>
                     <button type="submit" class="btn btn-sm btn-primary">Save</button>
                 </div>
             </form>

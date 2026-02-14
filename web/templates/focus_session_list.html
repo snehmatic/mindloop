@@ -1,6 +1,10 @@
 <div id="session-history-container">
     <div class="flex-between mb-md">
         <h3>Recent Sessions</h3>
+        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all focus history?');" class="mb-0">
+            <input type="hidden" name="type" value="focus">
+            <button type="submit" class="btn btn-danger-outline btn-sm">Clear History</button>
+        </form>
     </div>
 
     {{ if .Sessions }}

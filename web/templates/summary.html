@@ -11,7 +11,8 @@
             </h1>
             <p class="mb-0">{{ .Report.DateRange }}</p>
         </div>
-        <form action="/summary" method="GET" style="display: flex; align-items: flex-end; gap: 0.75rem; flex-wrap: wrap;">
+        <form action="/summary" method="GET"
+            style="display: flex; align-items: flex-end; gap: 0.75rem; flex-wrap: wrap;">
             <div class="flex-col">
                 <label for="start" class="text-xs mb-0" style="margin-bottom: 0.25rem; font-weight: 600;">Start</label>
                 <input type="date" id="start" name="start"
@@ -77,12 +78,12 @@
     <h3>Habit Progress</h3>
     {{ if .Report.Habits }}
     <div
-        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 2rem; margin-top: 1.5rem;">
+        style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
         {{ range .Report.Habits }}
-        <div>
+        <div class="card-ghost" style="padding: 1rem; border-radius: var(--radius-md);">
             <div class="flex-between mb-sm">
                 <strong>{{ .HabitName }}</strong>
-                <span>{{ printf "%.0f" .CompletionRate }}%</span>
+                <span class="font-bold text-primary">{{ printf "%.0f" .CompletionRate }}%</span>
             </div>
             <div class="progress-container" style="margin-top: 0.5rem;">
                 <div class="progress-bar" style="--p: {{ .CompletionRate }}%; width: var(--p);"></div>

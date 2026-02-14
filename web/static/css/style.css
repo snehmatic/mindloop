@@ -52,6 +52,7 @@
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -2px rgba(0, 0, 0, 0.025);
     --shadow-glow: 0 0 20px rgba(79, 70, 229, 0.15);
+    --shadow-danger: 0 0 20px rgba(220, 38, 38, 0.15);
 
     /* Radii */
     --radius-sm: 0.375rem;
@@ -111,6 +112,9 @@ body {
     background-color: var(--bg-body);
     color: var(--text-main);
     line-height: 1.6;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -172,7 +176,7 @@ a:hover {
 
 /* Layout */
 .container {
-    max-width: 1024px;
+    max-width: 1200px;
     margin: 0 auto;
     padding: 0 1.5rem;
 }
@@ -180,6 +184,9 @@ a:hover {
 main.container {
     padding-top: 2rem;
     padding-bottom: 5rem;
+    flex: 1;
+    /* Pushes footer down if we had one, or stretches main */
+    width: 100%;
 }
 
 /* Header */
@@ -225,8 +232,11 @@ nav {
 .nav-link {
     display: flex;
     align-items: center;
-    gap: 0; /* Animated gap */
-    padding: 0.6rem 0.8rem;
+    gap: 0;
+    /* Animated gap */
+    padding: 0.5rem 0.75rem;
+    height: 2.5rem;
+    /* Fixed height for alignment */
     border-radius: var(--radius-md);
     color: var(--text-muted);
     font-weight: 500;
@@ -238,7 +248,8 @@ nav {
 .nav-link.active {
     color: var(--primary);
     background-color: var(--primary-light);
-    gap: 0.5rem; /* Expanded gap */
+    gap: 0.5rem;
+    /* Expanded gap */
 }
 
 .nav-link i {
@@ -255,8 +266,8 @@ nav {
     overflow: hidden;
     white-space: nowrap;
     transition: max-width 0.8s cubic-bezier(0.16, 1, 0.3, 1),
-                opacity 0.5s ease 0.15s,
-                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        opacity 0.5s ease 0.15s,
+        transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .nav-link:hover .nav-text {
@@ -294,6 +305,17 @@ nav {
     background-color: transparent;
     border: 2px dashed var(--border);
     color: var(--text-muted);
+}
+
+.card-danger {
+    background-color: var(--danger-bg);
+    border: 1px solid var(--danger);
+    color: var(--danger);
+}
+
+html.dark-mode .card-danger {
+    background-color: rgba(220, 38, 38, 0.1);
+    border-color: rgba(220, 38, 38, 0.3);
 }
 
 /* Buttons */
@@ -347,13 +369,20 @@ nav {
 }
 
 .btn-danger-outline:hover {
-    background-color: var(--danger-bg);
+    background-color: var(--danger);
+    color: white;
     border-color: var(--danger);
 }
 
 .btn-sm {
-    padding: 0.4rem;
-    font-size: 0.8rem;
+    padding: 0.5rem;
+    height: 2.5rem;
+    /* Match nav-link height */
+    min-width: 2.5rem;
+    /* Ensure square aspect ratio for icon buttons if needed */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-lg {
@@ -363,6 +392,7 @@ nav {
 
 /* Inputs */
 input[type="text"],
+input[type="password"],
 input[type="number"],
 input[type="date"],
 select,
@@ -378,12 +408,38 @@ textarea {
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3e%3c/path%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.25em;
+    padding-right: 2.5rem;
+    line-height: 1.5;
+    /* Ensure consistent text alignment */
+}
+
 input:focus,
 select:focus,
 textarea:focus {
     outline: none;
     border-color: var(--primary);
     box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+/* Forms */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-main);
+    font-size: 0.95rem;
 }
 
 /* Utility Classes */
@@ -500,7 +556,8 @@ textarea:focus {
     right: 0;
     min-width: 160px;
     background-color: var(--bg-surface);
-    box-shadow: var(--shadow-lg); /* Increased shadow */
+    box-shadow: var(--shadow-lg);
+    /* Increased shadow */
     border: 1px solid var(--border);
     border-radius: var(--radius-md);
     z-index: 100;
@@ -645,7 +702,7 @@ textarea:focus {
         max-width: 0;
         opacity: 0;
     }
-    
+
     .nav-link:hover {
         gap: 0;
     }
@@ -679,11 +736,13 @@ textarea:focus {
 .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
 }
+
 /* --- Restored Styles --- */
 
 /* Progress Bars (Habits) */
 .progress-container {
-    background-color: var(--bg-surface-alt); /* Updated variable */
+    background-color: var(--bg-surface-alt);
+    /* Updated variable */
     border-radius: var(--radius-full);
     height: 0.6rem;
     overflow: hidden;
@@ -711,13 +770,60 @@ textarea:focus {
     background-position: center;
 }
 
+html.dark-mode .about-hero {
+    background-image: linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.8)), url('/static/images/about-graded.png');
+}
+
 /* Home Grid (Responsive) */
 .home-grid {
     grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+}
+
+.quick-access-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
 }
 
 @media (max-width: 768px) {
     .home-grid {
         grid-template-columns: 1fr;
     }
+}
+/* Settings Toggle */
+.settings-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+}
+
+.settings-toggle:last-child {
+    border-bottom: none;
+}
+
+.settings-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+
+html.dark-mode .settings-toggle:hover {
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.toggle-input {
+    accent-color: var(--primary);
+    transform: scale(1.2);
+    cursor: pointer;
+}
+
+/* Settings View Overrides */
+.settings-page-body {
+    padding-bottom: 5rem;
+}
+
+.settings-page-main {
+    padding-bottom: 0 !important;
 }

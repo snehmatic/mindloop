@@ -1,21 +1,28 @@
 {{ define "content" }}
+<script>
+    document.body.classList.add('settings-page-body');
+    document.querySelector('main').classList.add('settings-page-main');
+</script>
 <div class="mb-lg">
     <h1>Settings</h1>
     <p class="text-muted">Manage your preferences, connections, and data.</p>
 </div>
 
-<form action="/settings/update" method="POST">
-    <div class="grid" style="grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 1.5rem; align-items: start;">
-        
-        <!-- Main Column: General & DB -->
+<form action="/settings/update" method="POST" id="settings-form">
+    <div class="flex-col gap-lg">
+        <!-- General & DB -->
         <div class="card">
             <div class="mb-md">
-                <h3>🛠️ General Preferences</h3>
+                <div class="flex-center mb-md gap-sm" style="justify-content: flex-start;">
+                    <i data-lucide="wrench" class="icon-sm text-primary"></i>
+                    <h3 class="mb-0">General Preferences</h3>
+                </div>
             </div>
-            
+
             <div class="form-group">
                 <label for="name">Preferred Username</label>
-                <input type="text" id="name" name="name" value="{{ .Config.Name }}" placeholder="Enter your name" required>
+                <input type="text" id="name" name="name" value="{{ .Config.Name }}" placeholder="Enter your name"
+                    required>
                 <p class="text-sm text-muted mt-sm mb-0">How should we address you?</p>
             </div>
 
@@ -31,26 +38,34 @@
             </div>
 
             <!-- Database Section (Conditional) -->
-            <div id="db-settings" style='display: {{ if eq .Config.Mode "byodb" }}block{{ else }}none{{ end }}; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--border);'>
-                <h4 class="mb-md">🗄️ Database Connection</h4>
+            <div id="db-settings" {{ if ne .Config.Mode "byodb" }}hidden{{ end }}
+                style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px dashed var(--border);">
+                <div class="flex-center mb-md gap-sm" style="justify-content: flex-start;">
+                    <i data-lucide="database" class="icon-sm text-primary"></i>
+                    <h4 class="mb-0">Database Connection</h4>
+                </div>
                 <div class="form-group">
                     <label for="db_host">Host</label>
-                    <input type="text" id="db_host" name="db_host" value="{{ .Config.DbConfig.Host }}" placeholder="localhost">
+                    <input type="text" id="db_host" name="db_host" value="{{ .Config.DbConfig.Host }}"
+                        placeholder="localhost">
                 </div>
                 <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
                         <label for="db_port">Port</label>
-                        <input type="text" id="db_port" name="db_port" value="{{ .Config.DbConfig.Port }}" placeholder="5432">
+                        <input type="text" id="db_port" name="db_port" value="{{ .Config.DbConfig.Port }}"
+                            placeholder="5432">
                     </div>
                     <div class="form-group">
                         <label for="db_name">DB Name</label>
-                        <input type="text" id="db_name" name="db_name" value="{{ .Config.DbConfig.Name }}" placeholder="mindloop">
+                        <input type="text" id="db_name" name="db_name" value="{{ .Config.DbConfig.Name }}"
+                            placeholder="mindloop">
                     </div>
                 </div>
                 <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1rem;">
                     <div class="form-group">
                         <label for="db_user">User</label>
-                        <input type="text" id="db_user" name="db_user" value="{{ .Config.DbConfig.User }}" placeholder="postgres">
+                        <input type="text" id="db_user" name="db_user" value="{{ .Config.DbConfig.User }}"
+                            placeholder="postgres">
                     </div>
                     <div class="form-group">
                         <label for="db_pass">Password</label>
@@ -60,46 +75,61 @@
             </div>
         </div>
 
-        <!-- Side Column: Cloud Sync -->
-        <div class="flex-col gap-lg">
-            <div class="card">
-                <div class="flex-between mb-md">
-                    <h3>☁️ Sync</h3>
-                    <span class="badge badge-warning" style="font-size: 0.7rem; background: #fffbeb; color: #b45309; padding: 2px 6px; border-radius: 4px;">Beta</span>
+        <!-- Cloud Sync -->
+        <div class="card">
+            <div class="flex-between mb-md">
+                <div class="flex-center gap-sm">
+                    <i data-lucide="cloud" class="icon-sm text-primary"></i>
+                    <h3 class="mb-0">Sync</h3>
                 </div>
-                <p class="text-sm text-muted mb-md">Select data to sync.</p>
-                
-                <div class="flex-col gap-sm">
-                    {{ $flags := .Config.FeatureFlags }}
-                    <label class="flex-between p-sm" style="padding: 0.5rem 0; cursor: pointer; border-bottom: 1px solid var(--border);">
-                        <span class="text-sm font-bold">Focus Sessions</span>
-                        <input type="checkbox" name="focus_cloud" {{ if $flags.FocusCloud }}checked{{ end }} style="width: auto; margin: 0;">
-                    </label>
-                    <label class="flex-between p-sm" style="padding: 0.5rem 0; cursor: pointer; border-bottom: 1px solid var(--border);">
-                        <span class="text-sm font-bold">Habits</span>
-                        <input type="checkbox" name="habit_cloud" {{ if $flags.HabitCloud }}checked{{ end }} style="width: auto; margin: 0;">
-                    </label>
-                    <label class="flex-between p-sm" style="padding: 0.5rem 0; cursor: pointer; border-bottom: 1px solid var(--border);">
-                        <span class="text-sm font-bold">Intents</span>
-                        <input type="checkbox" name="intent_cloud" {{ if $flags.IntentCloud }}checked{{ end }} style="width: auto; margin: 0;">
-                    </label>
-                    <label class="flex-between p-sm" style="padding: 0.5rem 0; cursor: pointer; border-bottom: 1px solid var(--border);">
-                        <span class="text-sm font-bold">Journals</span>
-                        <input type="checkbox" name="journal_cloud" {{ if $flags.JournalCloud }}checked{{ end }} style="width: auto; margin: 0;">
-                    </label>
-                    <label class="flex-between p-sm" style="padding: 0.5rem 0; cursor: pointer;">
-                        <span class="text-sm font-bold">Notes</span>
-                        <input type="checkbox" name="note_cloud" {{ if $flags.NoteCloud }}checked{{ end }} style="width: auto; margin: 0;">
-                    </label>
-                </div>
+                <span class="badge badge-warning"
+                    style="font-size: 0.7rem; background: #fffbeb; color: #b45309; padding: 2px 6px; border-radius: 4px;">Beta</span>
             </div>
-            
-            <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">
-                Save All Changes
-            </button>
+            <p class="text-sm text-muted mb-md">Select data to sync.</p>
+
+            <div class="flex-col">
+                {{ $flags := .Config.FeatureFlags }}
+
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Focus Sessions</span>
+                    <input type="checkbox" class="toggle-input" name="focus_cloud" {{ if $flags.FocusCloud }}checked{{
+                        end }}>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Habits</span>
+                    <input type="checkbox" class="toggle-input" name="habit_cloud" {{ if $flags.HabitCloud }}checked{{
+                        end }}>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Intents</span>
+                    <input type="checkbox" class="toggle-input" name="intent_cloud" {{ if $flags.IntentCloud }}checked{{
+                        end }}>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Journals</span>
+                    <input type="checkbox" class="toggle-input" name="journal_cloud" {{ if $flags.JournalCloud
+                        }}checked{{ end }}>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Notes</span>
+                    <input type="checkbox" class="toggle-input" name="note_cloud" {{ if $flags.NoteCloud }}checked{{ end
+                        }}>
+                </label>
+            </div>
         </div>
     </div>
 </form>
+
+<!-- Sticky Save Button -->
+<div
+    style="position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-surface); border-top: 1px solid var(--border); padding: 1rem; z-index: 100; box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.1);">
+    <div class="container flex-between">
+        <span class="text-sm text-muted">Unsaved changes will be lost.</span>
+        <button type="submit" form="settings-form" class="btn btn-primary" style="padding: 0.75rem 2rem;">Save
+            Changes</button>
+    </div>
+</div>
+<!-- Add bottom padding to body to prevent overlap (Handled by JS+CSS now) -->
 
 <hr style="margin: 3rem 0; border: 0; border-top: 1px solid var(--border);">
 
@@ -111,35 +141,53 @@
 
 <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
     <!-- Export -->
-    <div class="card">
-        <h3 class="mb-sm">📥 Backup</h3>
-        <p class="text-sm text-muted mb-md" style="min-height: 2.5rem;">Download a JSON copy of all your local data (intents, habits, journals, notes).</p>
+    <div class="card" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="flex-center mb-sm gap-sm" style="justify-content: flex-start;">
+            <i data-lucide="download" class="icon-sm text-muted"></i>
+            <h3 class="mb-0">Backup</h3>
+        </div>
+        <p class="text-sm text-muted mb-md">Download a JSON copy of all your local data (intents, habits, journals,
+            notes).</p>
+        <div style="flex: 1;"></div> <!-- Spacer -->
         <a href="/backup/export" class="btn btn-secondary" style="width: 100%;">
             Export Data
         </a>
     </div>
 
     <!-- Import -->
-    <div class="card">
-        <h3 class="mb-sm">📤 Restore</h3>
-        <p class="text-sm text-muted mb-md" style="min-height: 2.5rem;">Restore from a backup file. <strong>Overwrites current data.</strong></p>
-        <form action="/backup/import" method="POST" enctype="multipart/form-data" class="flex-col gap-md">
-            <div>
-                <label for="backup_file" class="text-xs font-bold text-muted mb-sm" style="display: block;">Select Backup File (.json)</label>
-                <input type="file" id="backup_file" name="backup_file" accept=".json" required 
+    <div class="card" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="flex-center mb-sm gap-sm" style="justify-content: flex-start;">
+            <i data-lucide="upload" class="icon-sm text-muted"></i>
+            <h3 class="mb-0">Restore</h3>
+        </div>
+        <p class="text-sm text-muted mb-md">Restore from a backup file. <strong>Overwrites current data.</strong></p>
+
+        <form action="/backup/import" method="POST" enctype="multipart/form-data" class="flex-col gap-md"
+            style="flex: 1; display: flex; flex-direction: column;">
+            <div style="flex: 1;">
+                <label for="backup_file" class="text-xs font-bold text-muted mb-sm" style="display: block;">Select
+                    Backup File (.json)</label>
+                <input type="file" id="backup_file" name="backup_file" accept=".json" required
                     style="width: 100%; padding: 0.5rem; font-size: 0.9rem; border: 1px dashed var(--border); border-radius: var(--radius-md); background: var(--bg-body);">
             </div>
-            <button type="submit" class="btn btn-danger-outline" style="width: 100%; justify-content: center;" onclick="return confirm('Are you sure you want to restore? ALL current data will be overwritten.')">
+            <button type="submit" class="btn btn-danger-outline"
+                style="width: 100%; justify-content: center; margin-top: auto;"
+                onclick="return confirm('Are you sure you want to restore? ALL current data will be overwritten.')">
                 Upload & Restore
             </button>
         </form>
     </div>
-    
+
     <!-- Danger Zone -->
-     <div class="card" style="border-color: #fecaca; background: #fff1f2;">
-        <h3 class="mb-sm" style="color: var(--danger);">⚠️ Danger Zone</h3>
-        <p class="text-sm text-muted mb-md" style="min-height: 2.5rem; color: #991b1b;">Permanently delete all your data and start fresh.</p>
-        <form action="/cleanslate" method="POST" onsubmit="return confirm('EXTREME DANGER: This will delete EVERYTHING. Are you absolutely sure?');">
+    <div class="card card-danger" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="flex-center mb-sm gap-sm" style="justify-content: flex-start;">
+            <i data-lucide="alert-triangle" class="icon-sm"></i>
+            <h3 class="mb-0">Danger Zone</h3>
+        </div>
+        <p class="text-sm mb-md" style="opacity: 0.8;">Permanently delete all your data and start fresh.</p>
+        <div style="flex: 1;"></div> <!-- Spacer -->
+        <form action="/cleanslate" method="POST"
+            onsubmit="return confirm('EXTREME DANGER: This will delete EVERYTHING. Are you absolutely sure?');">
             <input type="hidden" name="type" value="all">
             <button type="submit" class="btn btn-danger" style="width: 100%;">
                 Delete Everything
@@ -152,9 +200,9 @@
     function toggleDbSettings(mode) {
         const dbSettings = document.getElementById('db-settings');
         if (mode === 'byodb') {
-            dbSettings.style.display = 'block';
+            dbSettings.hidden = false;
         } else {
-            dbSettings.style.display = 'none';
+            dbSettings.hidden = true;
         }
     }
 </script>

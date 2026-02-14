@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
+    <script src="/static/js/lucide.min.js"></script>
     <script>
         // Check for saved user preference early to prevent flash
         (function () {
@@ -40,11 +40,12 @@
                                 class="nav-text">Habits</span></a></li>
                     <li><a href="/focus" class="nav-link" title="Focus"><i data-lucide="zap"></i> <span
                                 class="nav-text">Focus</span></a></li>
-                    
+
                     <!-- Write Dropdown -->
                     <li class="dropdown" id="write-dropdown">
                         <a href="#" class="nav-link" onclick="toggleWriteDropdown(event)" title="Write">
-                            <i data-lucide="pen-tool"></i> <span class="nav-text">Write</span> <i data-lucide="chevron-down" style="width: 0.8em; height: 0.8em; opacity: 0.7;"></i>
+                            <i data-lucide="pen-tool"></i> <span class="nav-text">Write</span> <i
+                                data-lucide="chevron-down" style="width: 0.8em; height: 0.8em; opacity: 0.7;"></i>
                         </a>
                         <div class="dropdown-content">
                             <a href="/journal" class="dropdown-item"><i data-lucide="book"></i> Journal</a>
@@ -56,13 +57,15 @@
                                 class="nav-text">Summary</span></a></li>
                     <li><a href="/void" class="nav-link" title="The Void"><i data-lucide="ghost"></i> <span
                                 class="nav-text">Void</span></a></li>
-                    
+
                     <!-- Icon-only items -->
                     <li><a href="/about" class="nav-link" title="About"><i data-lucide="info"></i></a></li>
                     <li><a href="/settings" class="nav-link" title="Settings"><i data-lucide="settings"></i></a></li>
-                    
-                    <li><button id="theme-toggle" class="btn btn-sm btn-secondary" style="padding: 0.4rem;"><i
-                                data-lucide="moon" id="theme-icon" style="width: 1.1em; height: 1.1em;"></i></button>
+
+                    <li><button id="theme-toggle" class="btn btn-sm btn-secondary">
+                        <i data-lucide="moon" class="icon-moon" style="width: 1.1em; height: 1.1em;"></i>
+                        <i data-lucide="sun" class="icon-sun" style="width: 1.1em; height: 1.1em; display: none;"></i>
+                    </button>
                     </li>
                 </ul>
             </nav>
@@ -100,25 +103,44 @@
 
             const themeToggle = document.getElementById('theme-toggle');
             const html = document.documentElement;
-            const icon = document.getElementById('theme-icon');
+            const moonIcon = document.querySelector('.icon-moon');
+            const sunIcon = document.querySelector('.icon-sun');
+
+            function updateIcons(isDark) {
+                // We need to re-query because lucide might have replaced <i> with <svg>
+                // But the class names should be preserved on the new SVGs
+                const moon = document.querySelector('.icon-moon');
+                const sun = document.querySelector('.icon-sun');
+                
+                if (isDark) {
+                    if(moon) moon.style.display = 'none';
+                    if(sun) sun.style.display = 'block';
+                } else {
+                    if(moon) moon.style.display = 'block';
+                    if(sun) sun.style.display = 'none';
+                }
+            }
 
             // Sync icon on load
             if (html.classList.contains('dark-mode')) {
-                icon.setAttribute('data-lucide', 'sun');
-                lucide.createIcons();
+                updateIcons(true);
+            } else {
+                updateIcons(false);
             }
 
             themeToggle.addEventListener('click', function () {
                 html.classList.toggle('dark-mode');
-                let theme = 'light';
-                if (html.classList.contains('dark-mode')) {
-                    theme = 'dark-mode';
-                    icon.setAttribute('data-lucide', 'sun');
+                let isDark = html.classList.contains('dark-mode');
+                
+                if (isDark) {
+                    html.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('theme', 'dark-mode');
                 } else {
-                    icon.setAttribute('data-lucide', 'moon');
+                    html.removeAttribute('data-theme');
+                    localStorage.setItem('theme', 'light');
                 }
-                localStorage.setItem('theme', theme);
-                lucide.createIcons();
+                
+                updateIcons(isDark);
             });
         });
 
@@ -130,7 +152,7 @@
         }
 
         // Close dropdowns
-        window.addEventListener('click', function(e) {
+        window.addEventListener('click', function (e) {
             if (!e.target.closest('#write-dropdown')) {
                 document.getElementById('write-dropdown').classList.remove('active');
             }

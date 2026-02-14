@@ -16,7 +16,7 @@
         </button>
         <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all habits and logs?');" class="mb-0">
             <input type="hidden" name="type" value="habits">
-            <button type="submit" class="btn btn-premium-outline btn-sm">Reset</button>
+            <button type="submit" class="btn btn-danger-outline btn-sm">Reset</button>
         </form>
     </div>
 </div>
@@ -58,7 +58,7 @@
 
 <div class="grid">
     {{ range .Habits }}
-        {{ template "_habit_card.html" . }}
+    {{ template "_habit_card.html" . }}
     {{ else }}
     <div class="card text-center" style="grid-column: 1 / -1; padding: 4rem 2rem;">
         <h3>No habits yet</h3>
@@ -81,7 +81,8 @@
                 <span class="text-xs text-muted">Ended: {{ .EndDate.Format "Jan 02, 2006" }}</span>
             </div>
             <div class="mt-md">
-                <a href="/habits/view/{{ .ID }}" class="text-xs font-bold" style="text-transform: uppercase; letter-spacing: 0.05em;">View Results →</a>
+                <a href="/habits/view/{{ .ID }}" class="text-xs font-bold"
+                    style="text-transform: uppercase; letter-spacing: 0.05em;">View Results →</a>
             </div>
         </div>
         {{ end }}
@@ -111,7 +112,7 @@
     }
 
     // Close dropdowns on click outside
-    window.addEventListener('click', function(e) {
+    window.addEventListener('click', function (e) {
         if (!e.target.closest('.dropdown-actions')) {
             document.querySelectorAll('.dropdown-actions').forEach(d => {
                 d.classList.remove('active');

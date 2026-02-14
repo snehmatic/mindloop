@@ -4,21 +4,27 @@
 <div class="grid" style="grid-template-columns: 1fr 1fr; align-items: start; gap: 2rem;">
 
     <!-- Active Intent (Paused) -->
-    <div class="card" style="opacity: 0.7; border-style: dashed;">
-        <div class="text-label mb-sm">Paused Intent</div>
-        <h2 class="mb-md">{{ .CurrentIntent.Name }}</h2>
-        <form action="/intent/resume" method="POST">
+    <div class="card" style="opacity: 0.7; border-style: dashed; display: flex; flex-direction: column; height: 100%;">
+        <div>
+            <div class="text-label mb-sm flex-center" style="justify-content: flex-start; gap: 0.5rem;">
+                <i data-lucide="pause-circle" class="icon-sm"></i> Paused Intent
+            </div>
+            <h2 class="mb-md">{{ .CurrentIntent.Name }}</h2>
+        </div>
+        <form action="/intent/resume" method="POST" style="margin-top: auto;">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
-            <button type="submit" class="btn btn-secondary btn-sm">Resume Main Focus</button>
+            <button type="submit" class="btn btn-secondary btn-sm" style="width: 100%;">Resume Main Focus</button>
         </form>
     </div>
 
     <!-- Active Side Quest -->
-    <div class="card" style="border: 2px solid var(--primary);">
-        <div class="text-label mb-sm" style="color: var(--primary);">⚔️ Active Side Quest</div>
+    <div class="card" style="border: 2px solid var(--primary); display: flex; flex-direction: column; height: 100%;">
+        <div class="text-label mb-sm" style="color: var(--primary); display: flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="sword" class="icon-sm"></i> Active Side Quest
+        </div>
         <h2 class="mb-md">{{ .CurrentQuest.Title }}</h2>
 
-        <form action="/quest/stop" method="POST" class="flex-col gap-md">
+        <form action="/quest/stop" method="POST" class="flex-col gap-md" style="margin-top: auto;">
             <input type="hidden" name="id" value="{{ .CurrentQuest.ID }}">
             <textarea name="note" placeholder="What did you accomplish?" rows="3"></textarea>
             <div class="flex-between">
@@ -37,7 +43,9 @@
 
     {{ if eq .CurrentIntent.Status "paused" }}
     <div style="opacity: 0.6;">
-        <div class="text-xs font-bold mb-sm text-muted" style="text-transform: uppercase;">⏸️ Paused Intent</div>
+        <div class="text-xs font-bold mb-sm text-muted flex-center" style="text-transform: uppercase;">
+            <i data-lucide="pause-circle" class="icon-sm"></i>&nbsp;Paused Intent
+        </div>
         <h1 class="hero-title">{{ .CurrentIntent.Name }}</h1>
         <form action="/intent/resume" method="POST" class="mt-md">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
@@ -85,17 +93,51 @@
     <div class="mt-lg pt-lg" style="border-top: 1px solid var(--border); width: 100%; max-width: 300px;">
         <div class="flex-col flex-center">
             <span class="text-xs text-muted mb-sm">Need to step away?</span>
-            <button onclick="toggleQuestForm()" class="btn btn-sm btn-secondary">Start a Side Quest ⚔️</button>
-
-            <div id="quest-form" style="display: none; margin-top: 1rem; width: 100%; max-width: 400px;">
-                <form action="/quest/start" method="POST" class="flex-col gap-sm">
-                    <input type="text" name="title" placeholder="e.g. Debug prod issue" required>
-                    <button type="submit" class="btn btn-primary">Go on Quest</button>
-                </form>
-            </div>
+            <button onclick="toggleQuestForm()" class="btn btn-sm btn-secondary">Start a Side Quest <i
+                    data-lucide="sword" style="width: 14px; margin-left: 4px;"></i></button>
         </div>
     </div>
 </div>
+
+<!-- Side Quest Modal/Overlay -->
+<div id="quest-form"
+    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+    <div class="card"
+        style="width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); animation: slideUp 0.2s ease-out;">
+        <div class="flex-between mb-md">
+            <h3 class="mb-0">Start a Side Quest</h3>
+            <button onclick="toggleQuestForm()" class="btn btn-sm btn-secondary"
+                style="border: none; padding: 0.25rem;"><i data-lucide="x" class="icon-sm"></i></button>
+        </div>
+        <p class="text-sm text-muted mb-md">Distracted? Log it as a side quest to stay conscious of where your time
+            goes.</p>
+        <form action="/quest/start" method="POST" class="flex-col gap-md">
+            <div>
+                <label for="quest-title" class="text-label mb-xs">Quest Title</label>
+                <input type="text" id="quest-title" name="title" placeholder="e.g. Debugging production issue" required
+                    autofocus style="font-size: 1.1rem; padding: 0.75rem;">
+            </div>
+            <div class="flex-end gap-sm">
+                <button type="button" class="btn btn-secondary" onclick="toggleQuestForm()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Start Quest</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    @keyframes slideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
 {{ else }}
 <div class="hero">
     <h2 class="mb-md">What are we doing today?</h2>
@@ -157,7 +199,12 @@
 
     function toggleQuestForm() {
         const form = document.getElementById('quest-form');
-        form.style.display = form.style.display === 'none' ? 'block' : 'none';
+        if (form.style.display === 'none') {
+            form.style.display = 'flex'; // Use flex for centering
+            document.getElementById('quest-title').focus();
+        } else {
+            form.style.display = 'none';
+        }
     }
 
     function toggleHistory() {

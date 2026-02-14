@@ -1,26 +1,34 @@
-# Roadmap & Feature Requests
+# Mindloop Roadmap 2026
 
-## 1. Focus Soundscapes (Brown Noise Generator)
-**Type:** Feature  
-**Priority:** High  
-**Context:** ADHD brains often struggle with absolute silence or irregular background noise. "Brown Noise" is effective for calming the mind.
-**Description:** 
-Add a "Soundscape" toggle in the Focus Session page (`web/templates/focus.html`).
-*   **Implementation:** Use the Web Audio API to generate Brown, Pink, and White noise directly in the browser.
-*   **Benefits:** No external assets needed, helps mask distractions.
+> **Status Update**: Development is currently in a **maintenance mode**. New features will be added slowly as the core stability and user experience are prioritized. Expect a slower release cycle.
 
-## 2. Gamified Feedback (Confetti & XP)
-**Type:** Enhancement  
-**Priority:** Medium  
-**Context:** Immediate positive feedback is crucial for maintaining motivation (dopamine reinforcement).
-**Description:** 
-Trigger a visual "Confetti" explosion when a user successfully completes a Habit or finishes a Focus Session.
-*   **Implementation:** Add a lightweight JavaScript particle system to `web/templates/habits.html` and `focus.html`.
+## 🚀 CLI Roadmap
+The command-line interface is the heart of Mindloop. Future work will focus on speed, scriptability, and deeper integrations.
 
-## 3. "Quick Capture" Widget
-**Type:** Feature  
-**Priority:** Medium  
-**Context:** "Out of sight, out of mind." Users need to log thoughts instantly without navigating menus.
-**Description:** 
-Add a simple text input on the Dashboard (`home.html`) that instantly saves a "Quick Note" to the Journal.
-*   **Implementation:** A form on the home page that POSTs to `/journal/quick`.
+- [ ] **Interactive Dashboard**: A TUI (Text User Interface) mode listing active intents and valid commands.
+- [ ] **Natural Language Processing**: Basic NLP for intent parsing (e.g., `mindloop intent "Do the thing tomorrow"`).
+- [ ] **Plugins/Extensions**: Allow user scripts to hook into Mindloop events (e.g., specific hooks on `intent start`).
+- [ ] **Sync/Export**: Better export formats (JSON, CSV, Markdown) for data portability.
+
+## 🎨 UI Roadmap
+The Web UI brings Mindloop to a wider audience. The goal is a premium, "vibe-coded" experience that feels native.
+
+- [ ] **PWA Support**: Full Progressive Web App capabilities for install-on-mobile.
+- [ ] **Offline Mode**: Service Workers to cache assets and allow basic functionality without a server connection (sync later).
+- [ ] **Themes**: User-customizable color themes beyond just Light/Dark.
+- [ ] **Keyboard Shortcuts**: Global hotkeys for quick actions (e.g., `Cmd+K` for a command palette).
+- [ ] **Visualizations**: deeper analytics on Focus Sessions and Habits (graphs, trends).
+
+## 🏗 Architecture Roadmap
+Building a robust foundation for long-term maintainability.
+
+- [ ] **Plugin System**: A defined interface for community plugins.
+- [ ] **API Expansion**: Full REST API coverage for all internal features.
+- [ ] **Testing**: Increase unit test coverage for core logic (Intents, Habits).
+- [ ] **Performance**: Optimize SQLite queries and template rendering for larger datasets.
+- [ ] **Containerization**: Official Docker image for easier deployment.
+
+## ✅ Recently Completed
+- [x] **UI Polish**: Massive consistency update (Alignment, Icons, Spacing).
+- [x] **Visuals**: Dark Mode, Glassmorphism elements.
+- [x] **Features**: Side Quest Modal, Habit Heatmaps, stacked Settings.

@@ -76,11 +76,11 @@
         <div class="flex-center gap-md" style="justify-content: flex-start;">
             <span class="text-xs text-muted">Less</span>
             <div style="display: flex; gap: 4px;">
-                <div class="heatmap-cell" style="background: var(--secondary-light);"></div>
-                <div class="heatmap-cell" style="background: #c7d2fe;"></div>
-                <div class="heatmap-cell" style="background: #818cf8;"></div>
-                <div class="heatmap-cell" style="background: #4f46e5;"></div>
-                <div class="heatmap-cell" style="background: var(--primary);"></div>
+                <div class="heatmap-cell level-0"></div>
+                <div class="heatmap-cell level-1"></div>
+                <div class="heatmap-cell level-2"></div>
+                <div class="heatmap-cell level-3"></div>
+                <div class="heatmap-cell level-4"></div>
             </div>
             <span class="text-xs text-muted">More</span>
         </div>
@@ -104,22 +104,98 @@
     .heatmap {
         display: grid;
         grid-auto-flow: column;
-        grid-template-columns: repeat(53, 12px);
-        grid-template-rows: repeat(7, 12px);
-        gap: 4px;
+        grid-template-columns: repeat(53, 10px);
+        /* Slightly smaller for tighter look */
+        grid-template-rows: repeat(7, 10px);
+        gap: 2px;
+        /* Tighter gap like GitHub */
         width: max-content;
     }
 
     .heatmap-cell {
-        width: 14px;
-        height: 14px;
+        width: 10px;
+        height: 10px;
         border-radius: 2px;
-        background: var(--secondary-light);
+        background-color: var(--bg-surface-alt);
+        /* Default empty color */
         cursor: pointer;
+        transition: transform 0.1s ease;
+    }
+
+    /* GitHub-like levels */
+    .heatmap-cell.level-0 {
+        background-color: var(--bg-surface-alt);
+        border: 1px solid var(--border);
+    }
+
+    .heatmap-cell.level-1 {
+        background-color: #9be9a8;
+    }
+
+    .heatmap-cell.level-2 {
+        background-color: #40c463;
+    }
+
+    .heatmap-cell.level-3 {
+        background-color: #30a14e;
+    }
+
+    .heatmap-cell.level-4 {
+        background-color: #216e39;
+    }
+
+    /* Dark mode adjustments (handled via JS classes if variables used, or media query) */
+    @media (prefers-color-scheme: dark) {
+        .heatmap-cell.level-1 {
+            background-color: #0e4429;
+        }
+
+        .heatmap-cell.level-2 {
+            background-color: #006d32;
+        }
+
+        .heatmap-cell.level-3 {
+            background-color: #26a641;
+        }
+
+        .heatmap-cell.level-4 {
+            background-color: #39d353;
+        }
+    }
+
+    /* Using theme variables for better consistency with the app's indigo theme though? 
+       User asked for "GitHub style" layout, but maybe keeping App theme colors is better for consistency?
+       Let's stick to the App's Indigo theme but make the empty state visible.
+    */
+    .heatmap-cell.level-0 {
+        background-color: var(--bg-surface-alt);
+        border: 1px solid var(--border);
+    }
+
+    .heatmap-cell.level-1 {
+        background-color: #c7d2fe;
+        border: none;
+    }
+
+    .heatmap-cell.level-2 {
+        background-color: #818cf8;
+        border: none;
+    }
+
+    .heatmap-cell.level-3 {
+        background-color: #6366f1;
+        border: none;
+    }
+
+    .heatmap-cell.level-4 {
+        background-color: #4f46e5;
+        border: none;
     }
 
     .heatmap-cell:hover {
-        border: 1px solid var(--text-muted);
+        transform: scale(1.2);
+        z-index: 10;
+        border-color: var(--text-muted);
     }
 
     .tooltip {
@@ -132,13 +208,14 @@
         z-index: 100;
         pointer-events: none;
         display: none;
+        white-space: nowrap;
     }
 </style>
 
 <div id="heatmap-tooltip" class="tooltip"></div>
 
 <script>
-    const heatmapData = {{ .Heatmap | json }};
+    const heatmapData = JSON.parse('{{ .Heatmap | json }}');
     const habitInterval = "{{ .Habit.Interval }}";
 
     function renderHeatmap() {
@@ -161,7 +238,12 @@
             const date = new Date(startDate);
             date.setDate(startDate.getDate() + i);
 
-            const dateStr = date.toISOString().split('T')[0];
+            // Fix timezone issue: toISOString() uses UTC. Use local date parts.
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+
             const ratio = heatmapData[dateStr] || 0;
             if (ratio > 0) totalActiveDays++;
 
@@ -169,11 +251,14 @@
             cell.className = 'heatmap-cell';
 
             // Set color based on ratio
+            // Set color based on ratio
+            cell.classList.add('level-0'); // Default
             if (ratio > 0) {
-                if (ratio >= 1) cell.style.background = 'var(--primary)';
-                else if (ratio > 0.7) cell.style.background = '#4f46e5';
-                else if (ratio > 0.4) cell.style.background = '#818cf8';
-                else cell.style.background = '#c7d2fe';
+                cell.classList.remove('level-0');
+                if (ratio >= 1) cell.classList.add('level-4');
+                else if (ratio > 0.7) cell.classList.add('level-3');
+                else if (ratio > 0.4) cell.classList.add('level-2');
+                else cell.classList.add('level-1');
             }
 
             // Tooltip

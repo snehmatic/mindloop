@@ -48,6 +48,36 @@ Intents help you set a single-threaded goal to maintain focus.
 
 ---
 
+## Side Quests
+
+Side quests manage ad-hoc tasks that interrupt your main flow. Starting a quest automatically pauses your active intent and focus session.
+
+### Commands
+
+*   **Start a side quest:**
+    ```bash
+    mindloop quest start "Investigate outage"
+    ```
+    This pauses your current intent/focus and starts a new quest.
+
+*   **List quests:**
+    ```bash
+    mindloop quest list
+    ```
+
+*   **Stop a quest:**
+    ```bash
+    mindloop quest stop "Fixed the issue"
+    ```
+    Completes the quest. You can optionally provide a closing note.
+
+*   **Delete a quest:**
+    ```bash
+    mindloop quest delete <quest_id>
+    ```
+
+---
+
 ## Focus Sessions
 
 Focus sessions allow you to track time spent on specific tasks, helping you stay in the "zone".
@@ -171,6 +201,45 @@ Capture your thoughts and reflections directly from the terminal.
 
 ---
 
+## Quick Notes
+
+Capture ideas, snippets, and important information quickly without context switching.
+
+### Commands
+
+*   **Quick capture:**
+    ```bash
+    mindloop note "Meeting with team at 3 PM"
+    ```
+
+*   **New note (Editor):**
+    ```bash
+    mindloop note new --title "Brainstorm" --labels "ideas,work"
+    ```
+    Opens your default editor to write a longer note.
+
+*   **List notes:**
+    ```bash
+    mindloop note list
+    ```
+
+*   **View a note:**
+    ```bash
+    mindloop note view <note_id>
+    ```
+
+*   **Edit a note:**
+    ```bash
+    mindloop note edit <note_id>
+    ```
+
+*   **Delete a note:**
+    ```bash
+    mindloop note delete <note_id>
+    ```
+
+---
+
 ## Summary
 
 Get a bird's-eye view of your productivity metrics.
@@ -190,6 +259,26 @@ Get a bird's-eye view of your productivity metrics.
     mindloop summary --month  # Current month
     mindloop summary --year   # Current year
     ```
+
+---
+
+## Data Management (Backup & Restore)
+
+Manage your local data with built-in export and import tools.
+
+### Commands
+
+*   **Backup data:**
+    ```bash
+    mindloop backup my_backup.json
+    ```
+    Exports all your data (Intents, Habits, Journal, etc.) to a JSON file.
+
+*   **Restore data:**
+    ```bash
+    mindloop restore my_backup.json
+    ```
+    **WARNING**: This replaces your current database with the backup data.
 
 ---
 
