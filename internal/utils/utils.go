@@ -257,7 +257,11 @@ func CaptureWithEditor(filenamePattern, header, initialContent string) (string, 
 	if err != nil {
 		return "", err
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			logger.Error().Err(err).Msg("failed to remove temp file")
+		}
+	}()
 
 	if header != "" {
 		_, _ = tmpFile.WriteString(header)
@@ -265,7 +269,9 @@ func CaptureWithEditor(filenamePattern, header, initialContent string) (string, 
 	if initialContent != "" {
 		_, _ = tmpFile.WriteString(initialContent)
 	}
-	tmpFile.Close()
+	if err := tmpFile.Close(); err != nil {
+		return "", err
+	}
 
 	cmd := exec.Command(editor, tmpFile.Name())
 	cmd.Stdin = os.Stdin

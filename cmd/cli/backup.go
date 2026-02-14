@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/snehmatic/mindloop/internal/core/backup"
-	. "github.com/snehmatic/mindloop/internal/utils"
+	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -22,12 +22,12 @@ var backupCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]
-		PrintRocketf("Exporting data to %s...\n", filePath)
+		utils.PrintRocketf("Exporting data to %s...\n", filePath)
 		if err := backupService.Export(filePath); err != nil {
-			PrintErrorln("Backup failed:", err)
+			utils.PrintErrorln("Backup failed:", err)
 			return
 		}
-		PrintSuccessln("Backup completed successfully!")
+		utils.PrintSuccessln("Backup completed successfully!")
 	},
 }
 
@@ -42,21 +42,21 @@ var restoreCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]
-		PrintWarnf("Restoring data from %s. All existing local data will be replaced!\n", filePath)
-		PrintInfoln("Type 'yes' to confirm:")
+		utils.PrintWarnf("Restoring data from %s. All existing local data will be replaced!\n", filePath)
+		utils.PrintInfoln("Type 'yes' to confirm:")
 		var confirm string
 		_, _ = fmt.Scanln(&confirm)
 		if confirm != "yes" {
-			PrintInfoln("Restore cancelled.")
+			utils.PrintInfoln("Restore cancelled.")
 			return
 		}
 
-		PrintRocketln("Importing data...")
+		utils.PrintRocketln("Importing data...")
 		if err := backupService.Import(filePath); err != nil {
-			PrintErrorln("Restore failed:", err)
+			utils.PrintErrorln("Restore failed:", err)
 			return
 		}
-		PrintSuccessln("Restore completed successfully!")
+		utils.PrintSuccessln("Restore completed successfully!")
 	},
 }
 

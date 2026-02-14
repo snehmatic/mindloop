@@ -83,7 +83,11 @@ func FetchRandomQuote() (*Quote, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch quote: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() {
+		if err := resp.Body.Close(); err != nil {
+			fmt.Printf("Error closing response body: %v\n", err)
+		}
+	}()
 
 	if resp.StatusCode == http.StatusTooManyRequests {
 		// Handle external 429

@@ -22,7 +22,11 @@ func main() {
 	if err != nil {
 		panic("Failed to open log file: " + err.Error())
 	}
-	defer logFile.Close()
+	defer func() {
+		if err := logFile.Close(); err != nil {
+			panic("Failed to close log file: " + err.Error())
+		}
+	}()
 	log.Init(logFile, zerolog.DebugLevel)
 	logger := log.Get()
 	logger.Info().Msgf("Logging to %s file...", logPath)

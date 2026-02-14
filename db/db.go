@@ -81,7 +81,7 @@ func ConnectToDb(appConfig config.Config) (*gorm.DB, error) {
 		)
 		return Conn(connString)
 	default:
-		return nil, fmt.Errorf("Mode selected is invalid!")
+		return nil, fmt.Errorf("mode selected is invalid")
 	}
 }
 

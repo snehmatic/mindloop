@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/snehmatic/mindloop/internal/core/summary"
-	. "github.com/snehmatic/mindloop/internal/utils"
+	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
 )
@@ -27,25 +27,25 @@ var summaryCmd = &cobra.Command{
 		summaryService = summary.NewService(gdb)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
-		PrettyPrintBanner()
+		utils.PrettyPrintBanner()
 		ac.Logger.Info().Msg("Requested productivity summary")
 
 		start, end := GetTimeRangeFromFlags()
 
-		PrintInfoln("Generating summary from", start.Format("02-Jan-2006"), "to", end.Format("02-Jan-2006"))
+		utils.PrintInfoln("Generating summary from", start.Format("02-Jan-2006"), "to", end.Format("02-Jan-2006"))
 
 		report, err := summaryService.GenerateSummary(start, end)
 		if err != nil {
-			PrintErrorln("Error generating summary:", err)
+			utils.PrintErrorln("Error generating summary:", err)
 			ac.Logger.Error().Msgf("Error generating summary: %v", err)
 			return
 		}
 		PrintSummary(report)
 
 		ac.Logger.Info().Msgf("Generated summary from %s to %s", start.Format("02-Jan-2006"), end.Format("02-Jan-2006"))
-		PrintSuccessln("Summary generated successfully!")
+		utils.PrintSuccessln("Summary generated successfully!")
 
-		PrintInfoln("You can also use -d, -w, -m, or -y flags to specify the time range for these summaries. (-d is default)")
+		utils.PrintInfoln("You can also use -d, -w, -m, or -y flags to specify the time range for these summaries. (-d is default)")
 	},
 }
 

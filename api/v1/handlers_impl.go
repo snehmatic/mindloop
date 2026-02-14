@@ -967,7 +967,11 @@ func (mlh *MindloopHandler) HandleBackupExport(w http.ResponseWriter, r *http.Re
 		http.Redirect(w, r, "/settings?error=Failed to create backup file", http.StatusSeeOther)
 		return
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			log.Error().Err(err).Msg("Error removing temp backup file")
+		}
+	}()
 
 	if err := mlh.backup.Export(tmpFile.Name()); err != nil {
 		log.Error().Err(err).Msg("Error exporting backup")
@@ -992,7 +996,11 @@ func (mlh *MindloopHandler) HandleBackupImport(w http.ResponseWriter, r *http.Re
 		http.Redirect(w, r, "/settings?error=No file uploaded", http.StatusSeeOther)
 		return
 	}
-	defer file.Close()
+	defer func() {
+		if err := file.Close(); err != nil {
+			log.Error().Err(err).Msg("Error closing uploaded file")
+		}
+	}()
 
 	tmpFile, err := os.CreateTemp("", "mindloop_import_*.json")
 	if err != nil {
@@ -1000,7 +1008,11 @@ func (mlh *MindloopHandler) HandleBackupImport(w http.ResponseWriter, r *http.Re
 		http.Redirect(w, r, "/settings?error=Import failed", http.StatusSeeOther)
 		return
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() {
+		if err := os.Remove(tmpFile.Name()); err != nil {
+			log.Error().Err(err).Msg("Error removing temp import file")
+		}
+	}()
 
 	// Copy uploaded file to temp file
 	data, err := io.ReadAll(file)

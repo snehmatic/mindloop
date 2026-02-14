@@ -78,6 +78,11 @@ test:
 	@echo "  >  Running tests..."
 	go test ./...
 
+## lint: Run linters
+lint:
+	@echo "  >  Running linters..."
+	golangci-lint run
+
 ## fmt: Format all go files
 fmt:
 	@echo "  >  Formatting code..."

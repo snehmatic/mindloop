@@ -7,7 +7,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/quest"
-	. "github.com/snehmatic/mindloop/internal/utils"
+	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
 )
@@ -38,16 +38,16 @@ var questStartCmd = &cobra.Command{
 		// 1. Check/Pause active intent
 		activeIntents, err := intentService.ListActiveIntents()
 		if err != nil {
-			PrintErrorln("Error checking active intents:", err)
+			utils.PrintErrorln("Error checking active intents:", err)
 			return
 		}
 		for _, i := range activeIntents {
 			_, err := intentService.PauseIntent(i.ID)
 			if err != nil {
-				PrintErrorln("Error pausing intent:", err)
+				utils.PrintErrorln("Error pausing intent:", err)
 				return
 			}
-			PrintInfof("Paused intent: %s\n", i.Name)
+			utils.PrintInfof("Paused intent: %s\n", i.Name)
 		}
 
 		// 2. Check/Pause active focus session
@@ -55,21 +55,21 @@ var questStartCmd = &cobra.Command{
 		if err == nil && activeSession != nil {
 			_, err := focusService.PauseSession(activeSession.ID)
 			if err != nil {
-				PrintErrorln("Error pausing focus session:", err)
+				utils.PrintErrorln("Error pausing focus session:", err)
 				return
 			}
-			PrintInfof("Paused focus session: %s\n", activeSession.Title)
+			utils.PrintInfof("Paused focus session: %s\n", activeSession.Title)
 		}
 
 		// 3. Start Side Quest
 		q, err := questService.StartQuest(title)
 		if err != nil {
-			PrintErrorln("Error starting quest:", err)
+			utils.PrintErrorln("Error starting quest:", err)
 			return
 		}
 
-		PrintSuccessf("Side Quest '%s' started! Main quest paused.\n", q.Title)
-		PrintRocketln("Adventure awaits!")
+		utils.PrintSuccessf("Side Quest '%s' started! Main quest paused.\n", q.Title)
+		utils.PrintRocketln("Adventure awaits!")
 	},
 }
 
@@ -82,11 +82,11 @@ var questStopCmd = &cobra.Command{
 		// Get active quest
 		q, err := questService.GetActiveQuest()
 		if err != nil {
-			PrintErrorln("Error checking active side quest:", err)
+			utils.PrintErrorln("Error checking active side quest:", err)
 			return
 		}
 		if q == nil {
-			PrintErrorln("No active side quest found.")
+			utils.PrintErrorln("No active side quest found.")
 			return
 		}
 
@@ -96,25 +96,25 @@ var questStopCmd = &cobra.Command{
 		} else {
 			// Interactive mode
 			header := "# Quest Summary\n# Describe what you accomplished:\n\n"
-			note, err = CaptureWithEditor("mindloop_quest_*.md", header, "")
+			note, err = utils.CaptureWithEditor("mindloop_quest_*.md", header, "")
 			if err != nil {
-				PrintErrorln("Error capturing note:", err)
+				utils.PrintErrorln("Error capturing note:", err)
 				return
 			}
 		}
 
 		if note == "" {
-			PrintWarnln("No note provided. Saving with empty note.")
+			utils.PrintWarnln("No note provided. Saving with empty note.")
 		}
 
 		q, err = questService.StopQuest(q.ID, note)
 		if err != nil {
-			PrintErrorln("Error stopping quest:", err)
+			utils.PrintErrorln("Error stopping quest:", err)
 			return
 		}
 
-		PrintSuccessf("Side Quest '%s' complete!\n", q.Title)
-		PrintInfoln("Don't forget to resume your main intent/focus if needed.")
+		utils.PrintSuccessf("Side Quest '%s' complete!\n", q.Title)
+		utils.PrintInfoln("Don't forget to resume your main intent/focus if needed.")
 	},
 }
 
@@ -127,17 +127,17 @@ var questDeleteCmd = &cobra.Command{
 		idStr := args[0]
 		id, err := strconv.Atoi(idStr)
 		if err != nil {
-			PrintErrorln("Invalid ID:", idStr)
+			utils.PrintErrorln("Invalid ID:", idStr)
 			return
 		}
 
 		err = questService.DeleteQuest(uint(id))
 		if err != nil {
-			PrintErrorln("Error deleting quest:", err)
+			utils.PrintErrorln("Error deleting quest:", err)
 			return
 		}
 
-		PrintSuccessf("Quest %d deleted successfully.\n", id)
+		utils.PrintSuccessf("Quest %d deleted successfully.\n", id)
 	},
 }
 
@@ -147,12 +147,12 @@ var questListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		quests, err := questService.ListQuests()
 		if err != nil {
-			PrintErrorln("Error listing quests:", err)
+			utils.PrintErrorln("Error listing quests:", err)
 			return
 		}
 
 		if len(quests) == 0 {
-			PrintInfoln("No quests found.")
+			utils.PrintInfoln("No quests found.")
 			return
 		}
 
@@ -160,7 +160,7 @@ var questListCmd = &cobra.Command{
 		for _, q := range quests {
 			views = append(views, models.ToSideQuestView(q))
 		}
-		PrintTable(views)
+		utils.PrintTable(views)
 	},
 }
 
