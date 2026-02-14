@@ -8,22 +8,22 @@
         {{ end }}
     </h1>
 
-    <div class="grid" style="grid-template-columns: 2fr 1fr;">
+    <div class="grid home-grid">
 
         <!-- Active Context Card -->
         <div class="flex-col gap-md">
             {{ if .Dashboard.CurrentQuest }}
             <div class="card" style="border: 2px solid var(--primary); background: var(--bg-surface-alt);">
                 <div class="mb-sm text-xs font-bold text-primary"
-                    style="text-transform: uppercase; letter-spacing: 0.05em;">
-                    ⚔️ Active Side Quest
+                    style="text-transform: uppercase; letter-spacing: 0.05em; display: flex; align-items: center; gap: 0.5rem;">
+                    <i data-lucide="sword" class="icon-sm"></i> Active Side Quest
                 </div>
                 <h2 class="mb-sm">{{ .Dashboard.CurrentQuest.Title }}</h2>
 
                 <div class="flex-center gap-sm mb-md" style="justify-content: flex-start;">
                     <span class="badge badge-warning">Main Intent Paused</span>
                     {{ if .Dashboard.CurrentIntent }}
-                    <span class="text-xs text-muted">⏸️ {{ .Dashboard.CurrentIntent.Name }}</span>
+                    <span class="text-xs text-muted" style="display: flex; align-items: center; gap: 0.25rem;"><i data-lucide="pause-circle" style="width: 1em; height: 1em;"></i> {{ .Dashboard.CurrentIntent.Name }}</span>
                     {{ end }}
                 </div>
 
@@ -41,7 +41,7 @@
             </div>
             {{ else }}
             <div class="card card-ghost flex-center flex-col text-center" style="padding: 3rem;">
-                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎯</div>
+                <div style="margin-bottom: 0.5rem;"><i data-lucide="target" style="width: 2.5rem; height: 2.5rem;"></i></div>
                 <h3 class="mb-sm">No Intent Set</h3>
                 <p class="mb-md">Define your main focus for today to get started.</p>
                 <a href="/intent" class="btn btn-primary">Set Intent</a>
@@ -55,7 +55,7 @@
             <div class="card">
                 <div class="flex-between mb-xs">
                     <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Focus Time</span>
-                    <span>⏱️</span>
+                    <i data-lucide="timer" class="icon-sm"></i>
                 </div>
                 <div style="font-size: 2rem; font-weight: 800;">
                     {{ .Dashboard.FocusMinutes }} <span class="text-base font-medium text-muted">min</span>
@@ -66,7 +66,7 @@
             <div class="card">
                 <div class="flex-between mb-xs">
                     <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Habits</span>
-                    <span>🌱</span>
+                    <i data-lucide="sprout" class="icon-sm"></i>
                 </div>
                 <div class="flex-between">
                     <div style="font-size: 2rem; font-weight: 800;">

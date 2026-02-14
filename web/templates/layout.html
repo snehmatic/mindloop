@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.min.js"></script>
     <script>
         // Check for saved user preference early to prevent flash
         (function () {
@@ -94,7 +94,8 @@
 
             // Re-run icons on HTMX content swaps
             document.body.addEventListener('htmx:afterSwap', function (evt) {
-                lucide.createIcons({ root: evt.detail.target });
+                // We scan the whole body to be safe, as some swaps might replace containers
+                lucide.createIcons();
             });
 
             const themeToggle = document.getElementById('theme-toggle');

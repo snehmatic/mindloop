@@ -231,7 +231,7 @@ nav {
     color: var(--text-muted);
     font-weight: 500;
     font-size: 0.9rem;
-    transition: all 0.3s ease; /* Smooth transition */
+    transition: gap 0.8s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.3s ease, color 0.3s ease;
 }
 
 .nav-link:hover,
@@ -251,14 +251,18 @@ nav {
 .nav-text {
     max-width: 0;
     opacity: 0;
+    transform: translateX(-10px);
     overflow: hidden;
     white-space: nowrap;
-    transition: all 0.3s ease;
+    transition: max-width 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+                opacity 0.5s ease 0.15s,
+                transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .nav-link:hover .nav-text {
     max-width: 150px;
     opacity: 1;
+    transform: translateX(0);
 }
 
 /* Breadcrumbs (Deprecated/Merged into Nav) */
@@ -348,7 +352,7 @@ nav {
 }
 
 .btn-sm {
-    padding: 0.4rem 0.8rem;
+    padding: 0.4rem;
     font-size: 0.8rem;
 }
 
@@ -674,4 +678,46 @@ textarea:focus {
 
 .animate-fade-in {
     animation: fadeIn 0.3s ease-out;
+}
+/* --- Restored Styles --- */
+
+/* Progress Bars (Habits) */
+.progress-container {
+    background-color: var(--bg-surface-alt); /* Updated variable */
+    border-radius: var(--radius-full);
+    height: 0.6rem;
+    overflow: hidden;
+    margin-top: 0.75rem;
+}
+
+.progress-bar {
+    background: var(--gradient-primary);
+    height: 100%;
+    border-radius: var(--radius-full);
+    transition: width 0.5s ease-out;
+}
+
+/* About Hero (Visuals) */
+.about-hero {
+    text-align: center;
+    padding: 4rem 1.5rem;
+    margin-bottom: 3rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border);
+    /* Restored background image */
+    background-image: linear-gradient(rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.8)), url('/static/images/about-graded.png');
+    background-size: cover;
+    background-position: center;
+}
+
+/* Home Grid (Responsive) */
+.home-grid {
+    grid-template-columns: 2fr 1fr;
+}
+
+@media (max-width: 768px) {
+    .home-grid {
+        grid-template-columns: 1fr;
+    }
 }
