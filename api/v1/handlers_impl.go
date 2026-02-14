@@ -424,9 +424,22 @@ func (mlh *MindloopHandler) HandleFocusStart(w http.ResponseWriter, r *http.Requ
 	_, err := mlh.focus.StartSession(title)
 	if err != nil {
 		log.Error().Err(err).Msg("Error starting focus session")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/focus?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		sessions, _ := mlh.focus.ListSessions()
+		data := map[string]interface{}{"Sessions": sessions}
+		mlh.renderPartial(w, "focus_active_timer.html", data)
+		mlh.renderPartial(w, "focus_session_list.html", data)
+		return
+	}
+
 	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
 }
 
@@ -440,9 +453,22 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 	_, err := mlh.focus.EndSession(id)
 	if err != nil {
 		log.Error().Err(err).Msg("Error ending focus session")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/focus?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		sessions, _ := mlh.focus.ListSessions()
+		data := map[string]interface{}{"Sessions": sessions}
+		mlh.renderPartial(w, "focus_active_timer.html", data)
+		mlh.renderPartial(w, "focus_session_list.html", data)
+		return
+	}
+
 	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
 }
 
@@ -455,9 +481,22 @@ func (mlh *MindloopHandler) HandleFocusDelete(w http.ResponseWriter, r *http.Req
 	id, _ := strconv.Atoi(idStr)
 	if err := mlh.focus.DeleteSession(id); err != nil {
 		log.Error().Err(err).Msg("Error deleting focus session")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/focus?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		sessions, _ := mlh.focus.ListSessions()
+		data := map[string]interface{}{"Sessions": sessions}
+		mlh.renderPartial(w, "focus_active_timer.html", data)
+		mlh.renderPartial(w, "focus_session_list.html", data)
+		return
+	}
+
 	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
 }
 
@@ -474,6 +513,10 @@ func (mlh *MindloopHandler) HandleFocusUpdate(w http.ResponseWriter, r *http.Req
 	session, err := mlh.focus.GetSession(id)
 	if err != nil {
 		log.Error().Err(err).Msg("Error fetching focus session for update")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/focus?error=Session not found")
+			return
+		}
 		http.Redirect(w, r, "/focus?error=Session not found", http.StatusSeeOther)
 		return
 	}
@@ -482,7 +525,19 @@ func (mlh *MindloopHandler) HandleFocusUpdate(w http.ResponseWriter, r *http.Req
 
 	if err := mlh.focus.UpdateSession(session); err != nil {
 		log.Error().Err(err).Msg("Error updating focus session")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/focus?error=Failed to update session")
+			return
+		}
 		http.Redirect(w, r, "/focus?error=Failed to update session", http.StatusSeeOther)
+		return
+	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		sessions, _ := mlh.focus.ListSessions()
+		data := map[string]interface{}{"Sessions": sessions}
+		mlh.renderPartial(w, "focus_active_timer.html", data)
+		mlh.renderPartial(w, "focus_session_list.html", data)
 		return
 	}
 
