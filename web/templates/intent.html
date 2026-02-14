@@ -1,37 +1,27 @@
 {{ define "content" }}
 
 {{ if .CurrentQuest }}
-<div class="grid" style="grid-template-columns: 1fr 1fr; align-items: center; min-height: 50vh;">
+<div class="grid" style="grid-template-columns: 1fr 1fr; align-items: start; gap: 2rem;">
 
     <!-- Active Intent (Paused) -->
-    <div style="opacity: 0.5; text-align: center;">
-        {{ if .CurrentIntent }}
-        <div class="text-xs font-bold mb-md"
-            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">
-            ⏸️ Paused Intent
-        </div>
-        <h1 class="mb-md" style="font-size: 2rem;">{{ .CurrentIntent.Name }}</h1>
+    <div class="card" style="opacity: 0.7; border-style: dashed;">
+        <div class="text-label mb-sm">Paused Intent</div>
+        <h2 class="mb-md">{{ .CurrentIntent.Name }}</h2>
         <form action="/intent/resume" method="POST">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
-            <button type="submit" class="btn btn-secondary btn-sm">Resume Now</button>
+            <button type="submit" class="btn btn-secondary btn-sm">Resume Main Focus</button>
         </form>
-        {{ else }}
-        <div class="text-muted">No Active Intent</div>
-        {{ end }}
     </div>
 
     <!-- Active Side Quest -->
-    <div class="card"
-        style="border: 2px solid var(--primary); background: var(--bg-surface-alt); text-align: center; padding: 3rem 2rem;">
-        <div class="text-xs font-bold mb-lg text-primary" style="text-transform: uppercase; letter-spacing: 0.1em;">
-            ⚔️ Active Side Quest
-        </div>
-        <h1 class="hero-title mb-lg">{{ .CurrentQuest.Title }}</h1>
+    <div class="card" style="border: 2px solid var(--primary);">
+        <div class="text-label mb-sm" style="color: var(--primary);">⚔️ Active Side Quest</div>
+        <h2 class="mb-md">{{ .CurrentQuest.Title }}</h2>
 
         <form action="/quest/stop" method="POST" class="flex-col gap-md">
             <input type="hidden" name="id" value="{{ .CurrentQuest.ID }}">
-            <textarea name="note" placeholder="What did you accomplish?" rows="2"></textarea>
-            <div class="flex-center gap-md">
+            <textarea name="note" placeholder="What did you accomplish?" rows="3"></textarea>
+            <div class="flex-between">
                 <button type="submit" class="btn btn-primary">Complete Quest</button>
                 <button type="button" class="btn btn-danger-outline btn-sm"
                     onclick="if(confirm('Delete this quest?')) { document.getElementById('delete-quest-form').submit(); }">Delete</button>

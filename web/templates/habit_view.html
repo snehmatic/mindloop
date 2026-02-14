@@ -8,46 +8,49 @@
     <div class="breadcrumb-item active">{{ .Habit.Title }}</div>
 </div>
 
-<div class="card mb-md" style="border-top: 4px solid var(--primary);">
-    <div class="flex-between mobile-stack">
+<div class="card mb-md">
+    <div class="flex-between">
         <div>
-            <div class="text-label mb-xs" style="color: var(--primary);">Habit Overview</div>
-            <h1 class="mb-xs" style="font-size: 2.5rem;">{{ .Habit.Title }}</h1>
+            <div class="text-label mb-xs">Habit</div>
+            <h1 class="mb-xs">{{ .Habit.Title }}</h1>
             <p class="text-muted mb-0">{{ .Habit.Interval | title }} • Target: {{ .Habit.TargetCount }}</p>
         </div>
         <div class="flex-center gap-md">
             {{ if gt .Streak 0 }}
-            <div class="stat-card"
-                style="text-align: center; background: #ffedd5; border: 1px solid #fed7aa; padding: 0.75rem 1.5rem; border-radius: var(--radius-md);">
-                <div style="font-size: 1.75rem;">🔥 {{ .Streak }}</div>
-                <div class="text-xs" style="color: #c2410c; font-weight: 700; text-transform: uppercase;">Current Streak
+            <div class="flex-center gap-sm"
+                style="background: var(--warning-bg); color: var(--warning); padding: 0.5rem 1rem; border-radius: var(--radius-md);">
+                <div style="font-size: 1.5rem; line-height: 1;">🔥</div>
+                <div>
+                    <div style="font-weight: 700; font-size: 1.25rem; line-height: 1;">{{ .Streak }}</div>
+                    <div class="text-xs" style="text-transform: uppercase;">Streak</div>
                 </div>
             </div>
             {{ end }}
-            <button onclick="toggleEditHabit('{{ .Habit.ID }}')" class="btn btn-secondary">Edit ✏️</button>
+            <button onclick="toggleEditHabit('{{ .Habit.ID }}')" class="btn btn-secondary"><i data-lucide="edit-2"
+                    style="width: 1rem;"></i> Edit</button>
         </div>
     </div>
 
     <!-- Edit Form (Hidden) -->
     <div id="edit-habit-{{ .Habit.ID }}"
-        style="display: none; margin-top: 2rem; border-top: 1px solid var(--border); padding-top: 2rem; animation: slideDown 0.2s ease-out;">
-        <h3 class="mb-md">Edit Habit Details</h3>
-        <form action="/habits/update" method="POST" style="max-width: 600px;">
+        style="display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--border);">
+        <h3 class="mb-md">Edit Habit</h3>
+        <form action="/habits/update" method="POST">
             <input type="hidden" name="id" value="{{ .Habit.ID }}">
-            <div class="form-group">
-                <label for="title">Title</label>
-                <input type="text" name="title" value="{{ .Habit.Title }}" required>
-            </div>
-            <div class="grid" style="grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+            <div class="grid mb-md">
                 <div class="flex-col">
-                    <label for="interval">Interval</label>
+                    <label class="text-label mb-xs" for="title">Title</label>
+                    <input type="text" name="title" value="{{ .Habit.Title }}" required>
+                </div>
+                <div class="flex-col">
+                    <label class="text-label mb-xs" for="interval">Interval</label>
                     <select name="interval">
                         <option value="daily" {{ if eq .Habit.Interval "daily" }}selected{{ end }}>Daily</option>
                         <option value="weekly" {{ if eq .Habit.Interval "weekly" }}selected{{ end }}>Weekly</option>
                     </select>
                 </div>
                 <div class="flex-col">
-                    <label for="target_count">Target Count</label>
+                    <label class="text-label mb-xs" for="target_count">Target Count</label>
                     <input type="number" name="target_count" value="{{ .Habit.TargetCount }}" min="1">
                 </div>
             </div>

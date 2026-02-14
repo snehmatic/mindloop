@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script>
         // Check for saved user preference early to prevent flash
         (function () {
@@ -40,10 +40,27 @@
                                 class="nav-text">Habits</span></a></li>
                     <li><a href="/focus" class="nav-link" title="Focus"><i data-lucide="zap"></i> <span
                                 class="nav-text">Focus</span></a></li>
-                    <li><a href="/journal" class="nav-link" title="Journal"><i data-lucide="book"></i> <span
-                                class="nav-text">Journal</span></a></li>
+                    
+                    <!-- Write Dropdown -->
+                    <li class="dropdown" id="write-dropdown">
+                        <a href="#" class="nav-link" onclick="toggleWriteDropdown(event)" title="Write">
+                            <i data-lucide="pen-tool"></i> <span class="nav-text">Write</span> <i data-lucide="chevron-down" style="width: 0.8em; height: 0.8em; opacity: 0.7;"></i>
+                        </a>
+                        <div class="dropdown-content">
+                            <a href="/journal" class="dropdown-item"><i data-lucide="book"></i> Journal</a>
+                            <a href="/notes" class="dropdown-item"><i data-lucide="file-text"></i> Notes</a>
+                        </div>
+                    </li>
+
                     <li><a href="/summary" class="nav-link" title="Summary"><i data-lucide="bar-chart-2"></i> <span
                                 class="nav-text">Summary</span></a></li>
+                    <li><a href="/void" class="nav-link" title="The Void"><i data-lucide="ghost"></i> <span
+                                class="nav-text">Void</span></a></li>
+                    
+                    <!-- Icon-only items -->
+                    <li><a href="/about" class="nav-link" title="About"><i data-lucide="info"></i></a></li>
+                    <li><a href="/settings" class="nav-link" title="Settings"><i data-lucide="settings"></i></a></li>
+                    
                     <li><button id="theme-toggle" class="btn btn-sm btn-secondary" style="padding: 0.4rem;"><i
                                 data-lucide="moon" id="theme-icon" style="width: 1.1em; height: 1.1em;"></i></button>
                     </li>
@@ -102,6 +119,20 @@
                 localStorage.setItem('theme', theme);
                 lucide.createIcons();
             });
+        });
+
+        function toggleWriteDropdown(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const d = document.getElementById('write-dropdown');
+            d.classList.toggle('active');
+        }
+
+        // Close dropdowns
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('#write-dropdown')) {
+                document.getElementById('write-dropdown').classList.remove('active');
+            }
         });
     </script>
 </body>
