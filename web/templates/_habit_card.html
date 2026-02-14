@@ -1,0 +1,84 @@
+<div class="card card-hover" style="position: relative;" id="habit-card-{{ .ID }}">
+    <div class="flex-between mb-sm" style="align-items: flex-start;">
+        <div style="flex: 1;">
+            <h3 class="mb-sm">
+                <a href="/habits/view/{{ .ID }}" style="text-decoration: none; color: inherit;">{{ .Title }}</a>
+            </h3>
+            <div class="flex-center gap-sm" style="flex-wrap: wrap; justify-content: flex-start;">
+                <span class="text-sm text-muted" style="text-transform: capitalize;">{{ .Interval }} • Target: {{
+                    .TargetCount }}</span>
+                {{ if gt .Streak 0 }}
+                <span
+                    style="background: #ffedd5; color: #c2410c; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid #fed7aa;">
+                    🔥 {{ .Streak }} Day Streak
+                </span>
+                {{ end }}
+            </div>
+        </div>
+        <div class="flex-center gap-sm">
+            {{ if lt .ActualCount .TargetCount }}
+            <form hx-post="/habits/log" hx-target="#habit-card-{{ .ID }}" hx-swap="outerHTML" class="mb-0">
+                <input type="hidden" name="habit_id" value="{{ .ID }}">
+                <button type="submit" class="btn btn-primary btn-sm" style="min-width: 80px;">Check-in</button>
+            </form>
+            {{ else }}
+            <form hx-post="/habits/unlog" hx-target="#habit-card-{{ .ID }}" hx-swap="outerHTML" class="mb-0">
+                <input type="hidden" name="habit_id" value="{{ .ID }}">
+                <button type="submit" class="btn btn-secondary btn-sm" style="min-width: 80px;">Undo</button>
+            </form>
+            {{ end }}
+
+            <div class="dropdown-actions" style="position: relative;" id="dropdown-{{ .ID }}">
+                <button class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.6rem;" onclick="event.stopPropagation(); toggleDropdown('{{ .ID }}')">⋮</button>
+                <div class="dropdown-content" style="right: 0; left: auto; min-width: 140px;">
+                    <button onclick="event.stopPropagation(); toggleEditHabit('{{ .ID }}')" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">✏️ Edit</button>
+                    
+                    {{ if and (gt .ActualCount 0) (lt .ActualCount .TargetCount) }}
+                    <form hx-post="/habits/unlog" hx-target="#habit-card-{{ .ID }}" hx-swap="outerHTML" class="mb-0">
+                        <input type="hidden" name="habit_id" value="{{ .ID }}">
+                        <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">↩️ Undo Latest</button>
+                    </form>
+                    {{ end }}
+
+                    <form hx-post="/habits/delete" hx-target="#habit-card-{{ .ID }}" hx-swap="outerHTML" class="mb-0" hx-confirm="Are you sure?">
+                        <input type="hidden" name="habit_id" value="{{ .ID }}">
+                        <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem; color: var(--danger);">🗑️ Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form (Hidden by default) -->
+    <div id="edit-habit-{{ .ID }}" style="display: none; margin-top: 1rem; border-top: 1px solid var(--border); padding-top: 1rem;">
+        <form action="/habits/update" method="POST">
+            <input type="hidden" name="id" value="{{ .ID }}">
+            <div class="form-group">
+                <input type="text" name="title" value="{{ .Title }}" required>
+            </div>
+            <div class="grid" style="grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <select name="interval">
+                    <option value="daily" {{ if eq .Interval "daily" }}selected{{ end }}>Daily</option>
+                    <option value="weekly" {{ if eq .Interval "weekly" }}selected{{ end }}>Weekly</option>
+                </select>
+                <input type="number" name="target_count" value="{{ .TargetCount }}" min="1">
+                <input type="date" name="end_date" value="{{ if .EndDate }}{{ .EndDate.Format "2006-01-02" }}{{ end }}">
+            </div>
+            <div class="flex-between">
+                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleEditHabit('{{ .ID }}')">Cancel</button>
+                <button type="submit" class="btn btn-sm btn-primary">Save</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="flex-between mb-sm mt-md">
+        <span class="stat-label mt-0">Progress</span>
+        <span class="text-sm font-bold">{{ .ActualCount }} / {{ .TargetCount }}</span>
+    </div>
+    <div class="progress-container">
+        <div class="progress-bar" style="--p: {{ .ProgressPct }}%; width: var(--p);"></div>
+    </div>
+    <div class="mt-md">
+        <a href="/habits/view/{{ .ID }}" class="text-xs font-bold" style="text-transform: uppercase; letter-spacing: 0.05em;">View Trends →</a>
+    </div>
+</div>

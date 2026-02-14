@@ -24,6 +24,13 @@ import (
 	"github.com/snehmatic/mindloop/web"
 )
 
+type HabitView struct {
+	models.Habit
+	ActualCount int
+	ProgressPct int
+	Streak      int
+}
+
 var templateFuncs = template.FuncMap{
 	"json": func(v interface{}) template.JS {
 		a, _ := json.Marshal(v)
@@ -106,6 +113,9 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 	// Also include partials that might be used by the main template
 	if tmpl == "focus.html" {
 		files = append(files, "templates/focus_active_timer.html", "templates/focus_session_list.html")
+	}
+	if tmpl == "habits.html" {
+		files = append(files, "templates/_habit_card.html")
 	}
 
 	ts := template.New("layout.html").Funcs(templateFuncs)

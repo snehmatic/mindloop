@@ -69,13 +69,6 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Calculate completion for UI
-	type HabitView struct {
-		models.Habit
-		ActualCount int
-		ProgressPct int
-		Streak      int
-	}
-
 	var habitViews []HabitView
 	for _, h := range habits {
 		actual := 0
@@ -260,6 +253,59 @@ func (mlh *MindloopHandler) HandleHabitView(w http.ResponseWriter, r *http.Reque
 	})
 }
 
+func (mlh *MindloopHandler) getHabitView(id string) (*HabitView, error) {
+	h, err := mlh.habit.GetHabit(id)
+	if err != nil {
+		return nil, err
+	}
+
+	// Re-calculate view state
+	// We need the log for TODAY
+	// This is inefficient (fetching all logs) but consistent with ListHabitLogs usage
+	// A real app would have GetHabitLog(id, date)
+	logs, _ := mlh.habit.ListLogsForHabit(h.ID)
+	actual := 0
+	
+	// Find current log
+	now := time.Now()
+	for _, l := range logs {
+		isCurrent := false
+		if h.Interval == models.Daily {
+			if l.CreatedAt.Truncate(24*time.Hour).Equal(now.Truncate(24*time.Hour)) {
+				isCurrent = true
+			}
+		} else {
+			y1, w1 := l.CreatedAt.ISOWeek()
+			y2, w2 := now.ISOWeek()
+			if y1 == y2 && w1 == w2 {
+				isCurrent = true
+			}
+		}
+		
+		if isCurrent {
+			actual = l.ActualCount
+			break
+		}
+	}
+
+	pct := 0
+	if h.TargetCount > 0 {
+		pct = (actual * 100) / h.TargetCount
+	}
+	if pct > 100 {
+		pct = 100
+	}
+
+	streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+
+	return &HabitView{
+		Habit:       *h,
+		ActualCount: actual,
+		ProgressPct: pct,
+		Streak:      streak,
+	}, nil
+}
+
 func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Redirect(w, r, "/habits", http.StatusSeeOther)
@@ -270,8 +316,21 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 	_, _, err := mlh.habit.LogHabit(habitID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error logging habit")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/habits?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/habits?error="+err.Error(), http.StatusSeeOther)
 		return
+	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		view, err := mlh.getHabitView(habitID)
+		if err == nil {
+			mlh.renderPartial(w, "_habit_card.html", view)
+			return
+		}
+		// Fallback if view fetch fails
 	}
 
 	http.Redirect(w, r, "/habits?success=true", http.StatusSeeOther)
@@ -287,9 +346,22 @@ func (mlh *MindloopHandler) HandleHabitUnlog(w http.ResponseWriter, r *http.Requ
 	_, err := mlh.habit.UnlogHabit(habitID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error Unlogging habit")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/habits?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/habits?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
+	
+	if r.Header.Get("HX-Request") == "true" {
+		view, err := mlh.getHabitView(habitID)
+		if err == nil {
+			mlh.renderPartial(w, "_habit_card.html", view)
+			return
+		}
+	}
+
 	http.Redirect(w, r, "/habits?success=true", http.StatusSeeOther)
 }
 
@@ -303,9 +375,19 @@ func (mlh *MindloopHandler) HandleHabitDelete(w http.ResponseWriter, r *http.Req
 	err := mlh.habit.DeleteHabit(habitID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error deleting habit")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/habits?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/habits?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
 	http.Redirect(w, r, "/habits?success=true", http.StatusSeeOther)
 }
 
