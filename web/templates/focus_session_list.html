@@ -1,62 +1,61 @@
 <div id="session-history-container">
     <div class="flex-between mb-md">
         <h3>Recent Sessions</h3>
-        <div class="text-sm text-muted">Last 10 sessions</div>
     </div>
 
     {{ if .Sessions }}
     <div class="card" style="padding: 0;">
         {{ range .Sessions }}
-        <div class="session-item">
+        <div
+            style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
             <div>
-                <div style="font-weight: 600; font-size: 1.1rem;">{{ .Title }}</div>
-                <div class="text-sm text-muted">{{ .CreatedAt }}</div>
+                <div style="font-weight: 600;">{{ .Title }}</div>
+                <div class="text-sm text-muted">{{ .CreatedAt.Format "Jan 02, 15:04" }}</div>
             </div>
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <div class="text-lg font-bold" style="color: var(--primary);">{{ printf "%.0f" .Duration }}m</div>
+            <div class="flex-center gap-md">
+                <div class="text-xl font-bold" style="color: var(--primary);">{{ printf "%.0f" .Duration }}m</div>
+
                 {{ if eq .Status "active" }}
-                <span
-                    style="background: var(--primary-light); color: var(--primary-dark); padding: 0.25rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">Active</span>
-                <form hx-post="/focus/stop" hx-target="#focus-view" style="margin: 0;">
-                    <input type="hidden" name="id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-danger-outline btn-sm">Stop</button>
-                </form>
+                <span class="badge badge-primary">Active</span>
                 {{ else }}
-                <span class="text-sm text-muted">Completed</span>
-                <form hx-post="/focus/delete" hx-target="#focus-view" style="margin: 0;"
-                    hx-confirm="Delete this session?">
-                    <input type="hidden" name="id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>
-                </form>
-                <button onclick="toggleEditFocus('{{ .ID }}')" class="btn btn-secondary btn-sm" title="Edit"><i data-lucide="edit-2" class="icon-sm"></i></button>
+                <div class="flex-center gap-sm">
+                    <button onclick="toggleEditFocus('{{ .ID }}')" class="btn btn-sm btn-secondary"
+                        style="padding: 0.25rem 0.5rem;"><i data-lucide="edit-2" style="width: 14px;"></i></button>
+                    <form hx-post="/focus/delete" hx-target="#focus-view" class="mb-0"
+                        hx-confirm="Delete this session?">
+                        <input type="hidden" name="id" value="{{ .ID }}">
+                        <button type="submit" class="btn btn-danger-outline btn-sm" style="padding: 0.25rem 0.5rem;"><i
+                                data-lucide="trash-2" style="width: 14px;"></i></button>
+                    </form>
+                </div>
                 {{ end }}
             </div>
         </div>
+
         <!-- Edit Form -->
-        <div id="edit-focus-{{ .ID }}" class="session-edit-form">
+        <div id="edit-focus-{{ .ID }}"
+            style="display: none; padding: 1rem; background: var(--bg-surface-alt); border-bottom: 1px solid var(--border);">
             <form hx-post="/focus/update" hx-target="#focus-view" class="flex-center gap-sm">
                 <input type="hidden" name="id" value="{{ .ID }}">
                 <input type="text" name="title" value="{{ .Title }}" required style="flex: 1;">
                 <button type="submit" class="btn btn-sm btn-primary">Save</button>
-                <button type="button" class="btn btn-sm btn-secondary" onclick="toggleEditFocus('{{ .ID }}')">Cancel</button>
+                <button type="button" class="btn btn-sm btn-secondary"
+                    onclick="toggleEditFocus('{{ .ID }}')">Cancel</button>
             </form>
         </div>
         {{ end }}
     </div>
     {{ else }}
-    <div class="empty-state">
-        <p>No focus sessions recorded yet.</p>
+    <div class="text-center text-muted"
+        style="padding: 3rem; background: var(--bg-surface); border: 2px dashed var(--border); border-radius: var(--radius-lg);">
+        <p class="mb-0">No focus sessions recorded yet.</p>
     </div>
     {{ end }}
 
     <script>
         function toggleEditFocus(id) {
             const form = document.getElementById('edit-focus-' + id);
-            if (form.style.display === 'none' || !form.style.display) {
-                form.style.display = 'block';
-            } else {
-                form.style.display = 'none';
-            }
+            form.style.display = (form.style.display === 'none' || !form.style.display) ? 'block' : 'none';
         }
     </script>
 </div>

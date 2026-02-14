@@ -1,35 +1,41 @@
-<div id="active-timer-container" class="card text-center focus-timer-card">
-    <div class="focus-timer-glow"></div>
+<div id="active-timer-container" class="card text-center"
+    style="position: relative; overflow: hidden; padding: 4rem 2rem;">
+    <!-- Ambient Glow Background -->
+    <div
+        style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; background: var(--primary); opacity: 0.05; filter: blur(80px); border-radius: 50%; pointer-events: none;">
+    </div>
 
-    <div class="focus-timer-content">
+    <div style="position: relative; z-index: 1;">
         {{ $activeSession := "" }}
         {{ range .Sessions }}
-            {{ if eq .Status "active" }}
-                {{ $activeSession = . }}
-            {{ end }}
+        {{ if eq .Status "active" }}
+        {{ $activeSession = . }}
+        {{ end }}
         {{ end }}
 
         {{ if $activeSession }}
         <!-- Active Timer UI -->
-        <h2 class="mb-sm" style="color: var(--primary);">Focusing...</h2>
-        <p class="mb-lg">{{ $activeSession.Title }}</p>
+        <div class="text-sm font-bold text-primary mb-md" style="text-transform: uppercase; letter-spacing: 0.1em;">
+            Focusing</div>
+        <h2 class="mb-lg">{{ $activeSession.Title }}</h2>
 
-        <div class="timer-display-wrapper mb-lg">
+        <div class="mb-lg">
             <!-- Timer Display -->
-            <div id="timer-display" class="timer-display">
+            <div id="timer-display"
+                style="font-size: 5rem; font-weight: 800; font-family: monospace; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; color: var(--text-main);">
                 00:00:00
             </div>
         </div>
 
-        <form hx-post="/focus/stop" hx-target="#focus-view" style="margin-top: 3rem;">
+        <form hx-post="/focus/stop" hx-target="#focus-view" class="mt-lg">
             <input type="hidden" name="id" value="{{ $activeSession.ID }}">
-            <button type="submit" class="btn btn-danger-outline" style="padding: 0.75rem 2rem;">
+            <button type="submit" class="btn btn-danger-outline btn-lg">
                 Stop Session
             </button>
         </form>
 
         <script>
-            (function() {
+            (function () {
                 const startTime = new Date("{{ $activeSession.CreatedAt | iso8601 }}").getTime();
                 const timerDisplay = document.getElementById('timer-display');
                 if (!timerDisplay) return;
@@ -50,7 +56,6 @@
                         (seconds < 10 ? "0" + seconds : seconds);
                 }
 
-                // Clear previous interval if any
                 if (window.focusTimerInterval) clearInterval(window.focusTimerInterval);
                 window.focusTimerInterval = setInterval(updateTimer, 1000);
                 updateTimer();
@@ -58,14 +63,13 @@
         </script>
         {{ else }}
         <!-- Start Form -->
-        <h1 class="mb-md focus-title">Focus</h1>
-        <p class="mb-lg">Enter a flow state. Track your deep work.</p>
+        <h1 class="hero-title mb-md">Focus</h1>
+        <p class="text-lg mb-lg">Enter a flow state. Track deep work.</p>
 
-        <form hx-post="/focus/start" hx-target="#focus-view" class="flex-center mb-md" style="margin-top: 2rem;">
-            <div class="flex-center gap-sm" style="width: 100%; max-width: 500px;">
-                <input type="text" name="title" placeholder="What are you working on?" required
-                    style="flex: 1; text-align: center;">
-                <button type="submit" class="btn btn-primary">Start Session</button>
+        <form hx-post="/focus/start" hx-target="#focus-view" class="flex-center flex-col mt-lg">
+            <div class="flex-center gap-sm" style="width: 100%; max-width: 450px;">
+                <input type="text" name="title" placeholder="What are you working on?" required class="text-center">
+                <button type="submit" class="btn btn-primary">Start</button>
             </div>
         </form>
         {{ end }}

@@ -70,17 +70,6 @@
     {{ end }}
 </div>
 
-    {{ else }}
-    <div class="card text-center" style="grid-column: 1 / -1; padding: 4rem 2rem;">
-        <h3>No habits yet</h3>
-        <p>Start small. Create your first habit today.</p>
-        <button onclick="document.getElementById('new-habit-form').style.display='block'" class="btn btn-primary">
-            Create Habit
-        </button>
-    </div>
-    {{ end }}
-</div>
-
 {{ if .EndedHabits }}
 <div class="mt-xl">
     <h2 class="mb-md">Habit History</h2>

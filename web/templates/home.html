@@ -1,122 +1,115 @@
 {{ define "content" }}
-<div class="mb-md">
+<div class="mb-lg">
     <h1 class="mb-lg" style="font-weight: 800;">
         {{ if .UserName }}
-        Welcome back, <span class="text-gradient-name">{{ .UserName }}!</span> 👋
+        Welcome back, <span class="text-primary">{{ .UserName }}</span>
         {{ else }}
-        Welcome to Mindloop! 👋
+        Welcome to Mindloop
         {{ end }}
     </h1>
-    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
 
-        <!-- Active Intent or Call to Action -->
-        {{ if .Dashboard.CurrentQuest }}
-        <div class="card"
-            style="background: var(--bg-surface); border: 2px solid var(--primary); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center; min-height: 200px;">
-            <div class="text-label mb-sm"
-                style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
-                ⚔️ Side Quest Active
+    <div class="grid" style="grid-template-columns: 2fr 1fr;">
+
+        <!-- Active Context Card -->
+        <div class="flex-col gap-md">
+            {{ if .Dashboard.CurrentQuest }}
+            <div class="card" style="border: 2px solid var(--primary); background: var(--bg-surface-alt);">
+                <div class="mb-sm text-xs font-bold text-primary"
+                    style="text-transform: uppercase; letter-spacing: 0.05em;">
+                    ⚔️ Active Side Quest
+                </div>
+                <h2 class="mb-sm">{{ .Dashboard.CurrentQuest.Title }}</h2>
+
+                <div class="flex-center gap-sm mb-md" style="justify-content: flex-start;">
+                    <span class="badge badge-warning">Main Intent Paused</span>
+                    {{ if .Dashboard.CurrentIntent }}
+                    <span class="text-xs text-muted">⏸️ {{ .Dashboard.CurrentIntent.Name }}</span>
+                    {{ end }}
+                </div>
+
+                <a href="/intent" class="btn btn-primary btn-sm" style="width: fit-content;">Go to Quest</a>
             </div>
-            <h2 style="font-size: 1.8rem; margin-bottom: 0.5rem; color: var(--text-main);">{{ .Dashboard.CurrentQuest.Title }}</h2>
-            
-            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
-                <span class="badge badge-warning" style="font-size: 0.7rem;">Main Intent Paused</span>
-                {{ if .Dashboard.CurrentIntent }}
-                <span class="text-muted text-xs">⏸️ {{ .Dashboard.CurrentIntent.Name }}</span>
-                {{ end }}
+            {{ else if .Dashboard.CurrentIntent }}
+            <div class="card" style="border-left: 4px solid var(--primary);">
+                <div class="mb-sm text-xs font-bold text-primary"
+                    style="text-transform: uppercase; letter-spacing: 0.05em;">
+                    Today's Focus
+                </div>
+                <h2 class="hero-title" style="font-size: 2.5rem; margin-bottom: 2rem;">{{ .Dashboard.CurrentIntent.Name
+                    }}</h2>
+                <a href="/intent" class="btn btn-primary">View Details</a>
             </div>
-            
-            <div class="mt-auto">
-                <a href="/intent" class="btn btn-primary btn-sm">
-                    Go to Quest
-                </a>
+            {{ else }}
+            <div class="card card-ghost flex-center flex-col text-center" style="padding: 3rem;">
+                <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🎯</div>
+                <h3 class="mb-sm">No Intent Set</h3>
+                <p class="mb-md">Define your main focus for today to get started.</p>
+                <a href="/intent" class="btn btn-primary">Set Intent</a>
             </div>
+            {{ end }}
         </div>
-        {{ else if .Dashboard.CurrentIntent }}
-        <div class="card"
-            style="background: var(--bg-surface); backdrop-filter: blur(12px); border: 1px solid var(--border); position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: center;">
-            <div
-                style="position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gradient-primary);">
-            </div>
-            <div class="text-label mb-sm"
-                style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
-                Today's Focus
-            </div>
-            <h2 style="font-size: 2rem; margin-bottom: 1.5rem;">{{ .Dashboard.CurrentIntent.Name }}</h2>
-            <div>
-                <a href="/intent" class="btn btn-primary">
-                    View Details
-                </a>
-            </div>
-        </div>
-        {{ else }}
-        <div class="card flex-center flex-col text-center"
-            style="border: 2px dashed var(--primary-light); background: var(--bg-surface);">
-            <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
-            <h3 class="mb-sm">No Intent Set</h3>
-            <p class="text-sm text-muted mb-md">What is your main focus for today?</p>
-            <a href="/intent" class="btn btn-primary">Set Intent</a>
-        </div>
-        {{ end }}
 
         <!-- Stats Column -->
         <div class="flex-col gap-md">
             <!-- Focus Time -->
             <div class="card">
-                <div class="flex-between mb-sm">
-                    <span class="stat-label mt-0">Focus Time</span>
-                    <span style="font-size: 1.5rem;">⏱️</span>
+                <div class="flex-between mb-xs">
+                    <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Focus Time</span>
+                    <span>⏱️</span>
                 </div>
-                <div class="stat-value">{{ .Dashboard.FocusMinutes }} <span class="text-sm text-muted"
-                        style="font-weight: 400; font-size: 1rem;">min</span></div>
+                <div style="font-size: 2rem; font-weight: 800;">
+                    {{ .Dashboard.FocusMinutes }} <span class="text-base font-medium text-muted">min</span>
+                </div>
             </div>
 
             <!-- Habit Progress -->
             <div class="card">
-                <div class="flex-between mb-sm">
-                    <span class="stat-label mt-0">Habits</span>
-                    <span style="font-size: 1.5rem;">🌱</span>
+                <div class="flex-between mb-xs">
+                    <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Habits</span>
+                    <span>🌱</span>
                 </div>
                 <div class="flex-between">
-                    <div class="stat-value">{{ .Dashboard.CompletedHabits }} <span class="text-muted"
-                            style="font-size: 1.25rem;">/ {{ .Dashboard.TotalHabits }}</span></div>
-                    {{ if gt .Dashboard.TotalHabits 0 }}
-                    <a href="/habits" class="text-sm font-bold" style="text-decoration: underline;">View</a>
-                    {{ end }}
+                    <div style="font-size: 2rem; font-weight: 800;">
+                        {{ .Dashboard.CompletedHabits }} <span class="text-muted" style="font-size: 1.25rem;">/ {{
+                            .Dashboard.TotalHabits }}</span>
+                    </div>
                 </div>
                 {{ if eq .Dashboard.TotalHabits 0 }}
-                <div class="text-sm text-muted mt-md"><a href="/habits">Create a habit</a> to start tracking.</div>
+                <div class="text-xs text-muted mt-md">Start tracking by <a href="/habits">adding a habit</a>.</div>
                 {{ end }}
             </div>
         </div>
     </div>
 </div>
 
-<!-- Shortcuts / Navigation Grid -->
+<!-- Quick Access -->
 <h3 class="mb-md">Quick Access</h3>
-<div class="grid">
-    <a href="/intent" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center"
-            style="background: var(--primary-light); width: 48px; height: 48px; border-radius: 12px; margin-bottom: 1rem; color: var(--primary); font-size: 1.5rem;">
-            🎯</div>
-        <h3>Intent</h3>
-        <p class="text-sm">Manage your daily focus.</p>
+<div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+    <a href="/intent" class="card" style="text-decoration: none; color: inherit;">
+        <div class="flex-center mb-md"
+            style="width: 40px; height: 40px; border-radius: 8px; background: var(--primary-light); color: var(--primary-dark);">
+            <i data-lucide="crosshair"></i>
+        </div>
+        <h4 class="mb-xs">Intent</h4>
+        <p class="text-sm mb-0">Manage daily focus.</p>
     </a>
 
-    <a href="/habits" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center"
-            style="background: #dcfce7; width: 48px; height: 48px; border-radius: 12px; margin-bottom: 1rem; color: var(--success); font-size: 1.5rem;">
-            🌱</div>
-        <h3>Habits</h3>
-        <p class="text-sm">Track your daily routines.</p>
+    <a href="/habits" class="card" style="text-decoration: none; color: inherit;">
+        <div class="flex-center mb-md"
+            style="width: 40px; height: 40px; border-radius: 8px; background: var(--success-bg); color: var(--success);">
+            <i data-lucide="check-square"></i>
+        </div>
+        <h4 class="mb-xs">Habits</h4>
+        <p class="text-sm mb-0">Track routines.</p>
     </a>
 
-    <a href="/focus" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center"
-            style="background: #fef3c7; width: 48px; height: 48px; border-radius: 12px; margin-bottom: 1rem; color: #d97706; font-size: 1.5rem;">
-            ⏱️</div>
-        <h3>Focus</h3>
-        <p class="text-sm">Start a deep work session.</p>
+    <a href="/focus" class="card" style="text-decoration: none; color: inherit;">
+        <div class="flex-center mb-md"
+            style="width: 40px; height: 40px; border-radius: 8px; background: var(--warning-bg); color: var(--warning);">
+            <i data-lucide="zap"></i>
+        </div>
+        <h4 class="mb-xs">Focus</h4>
+        <p class="text-sm mb-0">Deep work timer.</p>
     </a>
 </div>
 {{ end }}

@@ -1,39 +1,40 @@
 {{ define "content" }}
 
 {{ if .CurrentQuest }}
-<div class="grid" style="grid-template-columns: 1fr 1fr; gap: 2rem; padding: 2rem 0; min-height: 60vh; align-items: center;">
-    
+<div class="grid" style="grid-template-columns: 1fr 1fr; align-items: center; min-height: 50vh;">
+
     <!-- Active Intent (Paused) -->
-    <div style="opacity: 0.6; filter: grayscale(0.5); text-align: center;">
+    <div style="opacity: 0.5; text-align: center;">
         {{ if .CurrentIntent }}
-        <div class="text-label mb-sm"
-            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700;">
-            ⏸️ Paused Intent</div>
-        <h1 style="font-size: 2.5rem; margin-bottom: 1rem; line-height: 1.2;">{{ .CurrentIntent.Name }}</h1>
+        <div class="text-xs font-bold mb-md"
+            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);">
+            ⏸️ Paused Intent
+        </div>
+        <h1 class="mb-md" style="font-size: 2rem;">{{ .CurrentIntent.Name }}</h1>
         <form action="/intent/resume" method="POST">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
             <button type="submit" class="btn btn-secondary btn-sm">Resume Now</button>
         </form>
         {{ else }}
-        <div class="text-label mb-sm"
-            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700;">
-            No Active Intent</div>
+        <div class="text-muted">No Active Intent</div>
         {{ end }}
     </div>
 
     <!-- Active Side Quest -->
-    <div class="card" style="border: 2px solid var(--primary); background: var(--bg-surface); padding: 2rem; text-align: center;">
-        <div class="text-label mb-sm"
-            style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
-            ⚔️ Active Side Quest</div>
-        <h1 style="font-size: 3rem; margin-bottom: 1.5rem; line-height: 1.2;">{{ .CurrentQuest.Title }}</h1>
-        
-        <form action="/quest/stop" method="POST" class="flex-col gap-sm">
+    <div class="card"
+        style="border: 2px solid var(--primary); background: var(--bg-surface-alt); text-align: center; padding: 3rem 2rem;">
+        <div class="text-xs font-bold mb-lg text-primary" style="text-transform: uppercase; letter-spacing: 0.1em;">
+            ⚔️ Active Side Quest
+        </div>
+        <h1 class="hero-title mb-lg">{{ .CurrentQuest.Title }}</h1>
+
+        <form action="/quest/stop" method="POST" class="flex-col gap-md">
             <input type="hidden" name="id" value="{{ .CurrentQuest.ID }}">
-            <textarea name="note" placeholder="What did you accomplish on this side quest?" style="width: 100%; margin-bottom: 1rem;"></textarea>
-            <div class="flex-center gap-sm">
+            <textarea name="note" placeholder="What did you accomplish?" rows="2"></textarea>
+            <div class="flex-center gap-md">
                 <button type="submit" class="btn btn-primary">Complete Quest</button>
-                <button type="button" class="btn btn-danger-outline btn-sm" onclick="if(confirm('Delete this quest?')) { document.getElementById('delete-quest-form').submit(); }">Delete</button>
+                <button type="button" class="btn btn-danger-outline btn-sm"
+                    onclick="if(confirm('Delete this quest?')) { document.getElementById('delete-quest-form').submit(); }">Delete</button>
             </div>
         </form>
         <form id="delete-quest-form" action="/quest/delete" method="POST" style="display: none;">
@@ -42,142 +43,136 @@
     </div>
 </div>
 {{ else if .CurrentIntent }}
-<div class="hero"
-    style="padding: 6rem 1.5rem; min-height: 60vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
-    
+<div class="hero flex-col flex-center">
+
     {{ if eq .CurrentIntent.Status "paused" }}
-    <div style="opacity: 0.6; filter: grayscale(0.5); margin-bottom: 2rem;">
-        <div class="text-label mb-sm" style="color: var(--text-muted);">⏸️ Paused Intent</div>
-        <h1 style="font-size: 3rem; margin-bottom: 1rem;">{{ .CurrentIntent.Name }}</h1>
-        <form action="/intent/resume" method="POST">
+    <div style="opacity: 0.6;">
+        <div class="text-xs font-bold mb-sm text-muted" style="text-transform: uppercase;">⏸️ Paused Intent</div>
+        <h1 class="hero-title">{{ .CurrentIntent.Name }}</h1>
+        <form action="/intent/resume" method="POST" class="mt-md">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
             <button type="submit" class="btn btn-primary">Resume Main Focus</button>
         </form>
     </div>
     {{ else }}
-    <div class="text-label mb-sm"
-        style="text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); font-weight: 700;">
-        Today's Focus</div>
-    
-    <div id="intent-display" class="flex-center gap-sm" style="margin-bottom: 2rem;">
-        <h1 style="font-size: 3.5rem; margin-bottom: 0; line-height: 1.2;">{{ .CurrentIntent.Name }}</h1>
-        <button onclick="toggleEditIntent()" class="btn btn-sm btn-secondary" style="border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;" title="Edit Intent">
-            ✏️
+    <div class="text-xs font-bold mb-md text-primary" style="text-transform: uppercase; letter-spacing: 0.1em;">
+        Today's Focus
+    </div>
+
+    <div id="intent-display" class="flex-center gap-sm mb-lg">
+        <h1 class="hero-title mb-0">{{ .CurrentIntent.Name }}</h1>
+        <button onclick="toggleEditIntent()" class="btn btn-sm btn-secondary"
+            style="border-radius: 50%; width: 36px; height: 36px; padding: 0;" title="Edit">
+            <i data-lucide="edit-2" style="width: 14px; height: 14px;"></i>
         </button>
     </div>
 
     <!-- Edit Form (Hidden) -->
-    <div id="intent-edit-form" style="display: none; max-width: 600px; margin: 0 auto 2rem auto;">
+    <div id="intent-edit-form" style="display: none; max-width: 500px; margin-bottom: 2rem; width: 100%;">
         <form action="/intent/update" method="POST" class="flex-center gap-sm">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
-            <input type="text" name="name" value="{{ .CurrentIntent.Name }}" required style="font-size: 1.5rem; text-align: center;">
+            <input type="text" name="name" value="{{ .CurrentIntent.Name }}" required class="text-center text-lg">
             <button type="submit" class="btn btn-primary">Save</button>
             <button type="button" class="btn btn-secondary" onclick="toggleEditIntent()">Cancel</button>
         </form>
     </div>
 
-    <div id="motivation-display" style="display: none; max-width: 600px; margin: 0 auto 2rem auto;"></div>
+    <div id="motivation-display" style="display: none; max-width: 600px; margin-bottom: 2rem;"></div>
 
-    <div class="flex-center gap-md">
+    <div class="flex-center gap-md wrap">
         <form action="/intent/complete" method="POST" class="mb-0">
             <input type="hidden" name="id" value="{{ .CurrentIntent.ID }}">
-            <button type="submit" class="btn btn-primary" style="padding: 1rem 2.5rem; font-size: 1.2rem;">
+            <button type="submit" class="btn btn-primary btn-lg">
                 Mark as Complete
             </button>
         </form>
-        <button onclick="showMotivation()" class="btn btn-premium-outline"
-            style="padding: 1rem 2rem; font-size: 1.2rem;">
+        <button onclick="showMotivation()" class="btn btn-secondary">
             Motivate Me 💡
         </button>
     </div>
     {{ end }}
 
-    <hr style="width: 100%; max-width: 200px; margin: 3rem 0; border: 0; border-top: 1px solid var(--border);">
+    <div class="mt-lg pt-lg" style="border-top: 1px solid var(--border); width: 100%; max-width: 300px;">
+        <div class="flex-col flex-center">
+            <span class="text-xs text-muted mb-sm">Need to step away?</span>
+            <button onclick="toggleQuestForm()" class="btn btn-sm btn-secondary">Start a Side Quest ⚔️</button>
 
-    <!-- Side Quest Trigger -->
-    <div class="flex-col flex-center">
-        <h3 class="mb-md">Need to step away?</h3>
-        <button onclick="toggleQuestForm()" class="btn btn-secondary-outline">Start a Side Quest ⚔️</button>
-        
-        <div id="quest-form" style="display: none; margin-top: 1.5rem; width: 100%; max-width: 400px;">
-            <form action="/quest/start" method="POST" class="flex-col gap-sm">
-                <input type="text" name="title" placeholder="e.g. Debug prod issue" required>
-                <button type="submit" class="btn btn-primary">Go on Quest</button>
-            </form>
+            <div id="quest-form" style="display: none; margin-top: 1rem; width: 100%; max-width: 400px;">
+                <form action="/quest/start" method="POST" class="flex-col gap-sm">
+                    <input type="text" name="title" placeholder="e.g. Debug prod issue" required>
+                    <button type="submit" class="btn btn-primary">Go on Quest</button>
+                </form>
+            </div>
         </div>
-    </div>
-
-    <div style="margin-top: 4rem;">
-        <button id="toggle-history-btn" onclick="toggleHistory()" class="btn btn-sm btn-secondary"
-            style="background: transparent; border: none; text-decoration: underline;">
-            Show History
-        </button>
     </div>
 </div>
 {{ else }}
 <div class="hero">
-    <h2>What is your intent for today?</h2>
-    <p>Set a single intention to guide your actions.</p>
-    <form action="/intent/set" method="POST" class="flex-center" style="margin-top: 2rem;">
-        <div class="flex-center gap-sm" style="width: 100%; max-width: 500px;">
-            <input type="text" name="name" placeholder="e.g. Finish the API Refactor" required
-                style="flex: 1; text-align: center;">
+    <h2 class="mb-md">What are we doing today?</h2>
+    <p class="text-lg">Set a single intention to guide your actions.</p>
+    <form action="/intent/set" method="POST" class="flex-center mt-lg">
+        <div class="flex-center gap-sm" style="width: 100%; max-width: 400px;">
+            <input type="text" name="name" placeholder="e.g. Finish the API Refactor" required class="text-center">
             <button type="submit" class="btn btn-primary">Set Intent</button>
         </div>
     </form>
 </div>
 {{ end }}
 
-<div id="history-section" class="card" {{ if .CurrentIntent }}style="display: none;" {{ end }}>
+<div class="mt-lg">
     <div class="flex-between mb-md">
         <h3>History</h3>
-        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all intent history?');" class="mb-0">
-            <input type="hidden" name="type" value="intent">
-            <button type="submit" class="btn btn-danger-outline btn-sm">Clear History</button>
-        </form>
+        <div class="flex-center gap-md">
+            <button onclick="toggleHistory()" class="btn btn-sm btn-secondary">Toggle History</button>
+            <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all intent history?');"
+                class="mb-0">
+                <input type="hidden" name="type" value="intent">
+                <button type="submit" class="btn btn-danger-outline btn-sm">Clear</button>
+            </form>
+        </div>
     </div>
-    {{ if .History }}
-    <ul style="list-style: none; padding: 0; margin: 0;">
-        {{ range .History }}
-        <li class="flex-between"
-            style="padding: 1rem 0; border-bottom: 1px solid var(--border); transition: background-color 0.2s;">
-            <span class="{{ if eq .Status " done" }}text-done{{ end }}" style="font-size: 1.1rem;">
-                {{ .Name }}
-            </span>
-            <div class="flex-center gap-sm">
-                <small class="text-muted">{{ .CreatedAt.Format "Jan 02" }}</small>
-                <form action="/intent/delete" method="POST" style="margin: 0;"
+
+    <div id="history-section" style="display: none;">
+        {{ if .History }}
+        <div class="card" style="padding: 0;">
+            {{ range .History }}
+            <div class="flex-between" style="padding: 1rem; border-bottom: 1px solid var(--border);">
+                <div>
+                    <div style="font-weight: 500;">{{ .Name }}</div>
+                    <div class="text-xs text-muted">{{ .CreatedAt.Format "Jan 02" }} - {{ .Status }}</div>
+                </div>
+                <form action="/intent/delete" method="POST" class="mb-0"
                     onsubmit="return confirm('Delete this intent?');">
                     <input type="hidden" name="id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete">🗑️</button>
+                    <button type="submit" class="btn btn-danger-outline btn-sm" style="padding: 0.25rem 0.5rem;"><i
+                            data-lucide="trash-2" style="width: 14px;"></i></button>
                 </form>
             </div>
-        </li>
+            {{ end }}
+        </div>
+        {{ else }}
+        <div class="text-center text-muted" style="padding: 2rem;">No history found.</div>
         {{ end }}
-    </ul>
-    {{ else }}
-    <div class="empty-state" style="border: none; padding: 1rem 0;">
-        <p>No intent history found.</p>
     </div>
-    {{ end }}
 </div>
 
 <script>
     function toggleEditIntent() {
         const display = document.getElementById('intent-display');
         const form = document.getElementById('intent-edit-form');
-        if (form.style.display === 'none') {
-            form.style.display = 'block';
-            display.style.display = 'none';
-        } else {
-            form.style.display = 'none';
-            display.style.display = 'block';
-        }
+        const isHidden = form.style.display === 'none';
+        form.style.display = isHidden ? 'block' : 'none';
+        display.style.display = isHidden ? 'none' : 'block';
     }
 
     function toggleQuestForm() {
         const form = document.getElementById('quest-form');
         form.style.display = form.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function toggleHistory() {
+        const sec = document.getElementById('history-section');
+        sec.style.display = sec.style.display === 'none' ? 'block' : 'none';
     }
 </script>
 <script src='{{ asset "/static/js/motivation.js" }}'></script>

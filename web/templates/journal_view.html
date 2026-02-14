@@ -1,6 +1,11 @@
 {{ define "content" }}
-<div class="mb-lg">
-    <a href="/journal" class="text-sm">← Back to Journal</a>
+{{ define "content" }}
+<div class="breadcrumb">
+    <div class="breadcrumb-item"><a href="/">Home</a></div>
+    <div class="breadcrumb-separator">/</div>
+    <div class="breadcrumb-item"><a href="/journal">Journal</a></div>
+    <div class="breadcrumb-separator">/</div>
+    <div class="breadcrumb-item active">{{ .Entry.Title }}</div>
 </div>
 
 <div class="card">
@@ -25,23 +30,31 @@
         line-height: 1.8;
         font-size: 1.1rem;
     }
-    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+
+    .markdown-body h1,
+    .markdown-body h2,
+    .markdown-body h3 {
         margin-top: 2rem;
         margin-bottom: 1rem;
     }
+
     .markdown-body p {
         margin-bottom: 1.5rem;
     }
-    .markdown-body ul, .markdown-body ol {
+
+    .markdown-body ul,
+    .markdown-body ol {
         margin-bottom: 1.5rem;
         padding-left: 2rem;
     }
+
     .markdown-body code {
         background: var(--secondary-light);
         padding: 0.2rem 0.4rem;
         border-radius: 4px;
         font-family: monospace;
     }
+
     .markdown-body pre {
         background: #1e293b;
         color: #f8fafc;
@@ -50,6 +63,7 @@
         overflow-x: auto;
         margin-bottom: 1.5rem;
     }
+
     .markdown-body blockquote {
         border-left: 4px solid var(--primary);
         padding-left: 1.5rem;

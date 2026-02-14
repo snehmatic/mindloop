@@ -1,6 +1,11 @@
 {{ define "content" }}
-<div class="mb-lg">
-    <a href="/habits" class="text-sm">← Back to Habits</a>
+{{ define "content" }}
+<div class="breadcrumb">
+    <div class="breadcrumb-item"><a href="/">Home</a></div>
+    <div class="breadcrumb-separator">/</div>
+    <div class="breadcrumb-item"><a href="/habits">Habits</a></div>
+    <div class="breadcrumb-separator">/</div>
+    <div class="breadcrumb-item active">{{ .Habit.Title }}</div>
 </div>
 
 <div class="card mb-md" style="border-top: 4px solid var(--primary);">
@@ -15,7 +20,8 @@
             <div class="stat-card"
                 style="text-align: center; background: #ffedd5; border: 1px solid #fed7aa; padding: 0.75rem 1.5rem; border-radius: var(--radius-md);">
                 <div style="font-size: 1.75rem;">🔥 {{ .Streak }}</div>
-                <div class="text-xs" style="color: #c2410c; font-weight: 700; text-transform: uppercase;">Current Streak</div>
+                <div class="text-xs" style="color: #c2410c; font-weight: 700; text-transform: uppercase;">Current Streak
+                </div>
             </div>
             {{ end }}
             <button onclick="toggleEditHabit('{{ .Habit.ID }}')" class="btn btn-secondary">Edit ✏️</button>
@@ -82,8 +88,15 @@
 
 <style>
     @keyframes slideDown {
-        from { opacity: 0; transform: translateY(-10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .heatmap {
@@ -94,6 +107,7 @@
         gap: 4px;
         width: max-content;
     }
+
     .heatmap-cell {
         width: 14px;
         height: 14px;
@@ -101,9 +115,11 @@
         background: var(--secondary-light);
         cursor: pointer;
     }
+
     .heatmap-cell:hover {
         border: 1px solid var(--text-muted);
     }
+
     .tooltip {
         position: absolute;
         background: #1e293b;
@@ -126,11 +142,11 @@
     function renderHeatmap() {
         const container = document.getElementById('habit-heatmap');
         const tooltip = document.getElementById('heatmap-tooltip');
-        
+
         // Render last 371 days (53 weeks)
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        
+
         // Start from 52 weeks ago, aligned to Sunday
         const startDate = new Date(today);
         startDate.setDate(today.getDate() - 364);
@@ -142,14 +158,14 @@
         for (let i = 0; i < 371; i++) {
             const date = new Date(startDate);
             date.setDate(startDate.getDate() + i);
-            
+
             const dateStr = date.toISOString().split('T')[0];
             const ratio = heatmapData[dateStr] || 0;
             if (ratio > 0) totalActiveDays++;
-            
+
             const cell = document.createElement('div');
             cell.className = 'heatmap-cell';
-            
+
             // Set color based on ratio
             if (ratio > 0) {
                 if (ratio >= 1) cell.style.background = 'var(--primary)';
