@@ -26,9 +26,9 @@
                 <form hx-post="/focus/delete" hx-target="#focus-view" style="margin: 0;"
                     hx-confirm="Delete this session?">
                     <input type="hidden" name="id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete">🗑️</button>
+                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete"><i data-lucide="trash-2" class="icon-sm"></i></button>
                 </form>
-                <button onclick="toggleEditFocus('{{ .ID }}')" class="btn btn-secondary btn-sm" title="Edit">✏️</button>
+                <button onclick="toggleEditFocus('{{ .ID }}')" class="btn btn-secondary btn-sm" title="Edit"><i data-lucide="edit-2" class="icon-sm"></i></button>
                 {{ end }}
             </div>
         </div>

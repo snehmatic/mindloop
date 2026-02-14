@@ -9,8 +9,8 @@
                     .TargetCount }}</span>
                 {{ if gt .Streak 0 }}
                 <span
-                    style="background: #ffedd5; color: #c2410c; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid #fed7aa;">
-                    🔥 {{ .Streak }} Day Streak
+                    style="background: #ffedd5; color: #c2410c; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid #fed7aa; display: inline-flex; align-items: center; gap: 0.25rem;">
+                    <i data-lucide="flame" style="width: 1em; height: 1em;"></i> {{ .Streak }} Day Streak
                 </span>
                 {{ end }}
             </div>
@@ -29,20 +29,20 @@
             {{ end }}
 
             <div class="dropdown-actions" style="position: relative;" id="dropdown-{{ .ID }}">
-                <button class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.6rem;" onclick="event.stopPropagation(); toggleDropdown('{{ .ID }}')">⋮</button>
+                <button class="btn btn-sm btn-secondary" style="padding: 0.4rem 0.6rem;" onclick="event.stopPropagation(); toggleDropdown('{{ .ID }}')"><i data-lucide="more-vertical" class="icon-sm"></i></button>
                 <div class="dropdown-content" style="right: 0; left: auto; min-width: 140px;">
-                    <button onclick="event.stopPropagation(); toggleEditHabit('{{ .ID }}')" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">✏️ Edit</button>
+                    <button onclick="event.stopPropagation(); toggleEditHabit('{{ .ID }}')" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;"><i data-lucide="edit-2" class="icon-sm"></i> Edit</button>
                     
                     {{ if and (gt .ActualCount 0) (lt .ActualCount .TargetCount) }}
                     <form hx-post="/habits/unlog" hx-target="#habit-card-{{ .ID }}" hx-swap="outerHTML" class="mb-0">
                         <input type="hidden" name="habit_id" value="{{ .ID }}">
-                        <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;">↩️ Undo Latest</button>
+                        <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem;"><i data-lucide="undo-2" class="icon-sm"></i> Undo Latest</button>
                     </form>
                     {{ end }}
 
                     <form hx-post="/habits/delete" hx-target="#habit-card-{{ .ID }}" hx-swap="outerHTML" class="mb-0" hx-confirm="Are you sure?">
                         <input type="hidden" name="habit_id" value="{{ .ID }}">
-                        <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem; color: var(--danger);">🗑️ Delete</button>
+                        <button type="submit" class="dropdown-item" style="width: 100%; text-align: left; background: none; border: none; font-size: 0.85rem; cursor: pointer; padding: 0.5rem 1rem; color: var(--danger);"><i data-lucide="trash-2" class="icon-sm"></i> Delete</button>
                     </form>
                 </div>
             </div>
@@ -79,6 +79,6 @@
         <div class="progress-bar" style="--p: {{ .ProgressPct }}%; width: var(--p);"></div>
     </div>
     <div class="mt-md">
-        <a href="/habits/view/{{ .ID }}" class="text-xs font-bold" style="text-transform: uppercase; letter-spacing: 0.05em;">View Trends →</a>
+        <a href="/habits/view/{{ .ID }}" class="text-xs font-bold" style="text-transform: uppercase; letter-spacing: 0.05em; display: inline-flex; align-items: center; gap: 0.25rem;">View Trends <i data-lucide="arrow-right" class="icon-sm" style="width: 1em; height: 1em;"></i></a>
     </div>
 </div>

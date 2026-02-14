@@ -15,6 +15,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
     <script>
         // Check for saved user preference early to prevent flash
         (function () {
@@ -34,55 +35,70 @@
         <div class="container">
             <nav>
                 <a href="/" class="logo" style="text-decoration: none;">
+                    <i data-lucide="infinity" style="color: var(--primary);"></i>
                     <span
                         style="background: var(--gradient-primary); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">Mindloop</span>
                 </a>
                 <ul class="nav-links">
-                    <li><a href="/" class="nav-link">Home</a></li>
-                    <li><a href="/intent" class="nav-link">Intent</a></li>
-                    <li><a href="/habits" class="nav-link">Habits</a></li>
-                    <li><a href="/focus" class="nav-link">Focus</a></li>
-                    <li class="dropdown">
-                        <a href="#" class="nav-link">Write ▾</a>
+                    <li><a href="/" class="nav-link" title="Home"><i data-lucide="home" class="icon-sm"></i> <span class="nav-text">Home</span></a></li>
+                    <li><a href="/intent" class="nav-link" title="Intent"><i data-lucide="crosshair" class="icon-sm"></i> <span class="nav-text">Intent</span></a></li>
+                    <li><a href="/habits" class="nav-link" title="Habits"><i data-lucide="check-square" class="icon-sm"></i> <span class="nav-text">Habits</span></a></li>
+                    <li><a href="/focus" class="nav-link" title="Focus"><i data-lucide="zap" class="icon-sm"></i> <span class="nav-text">Focus</span></a></li>
+                    <li class="dropdown" id="write-dropdown">
+                        <a href="#" class="nav-link" onclick="toggleWriteDropdown(event)" title="Write">
+                            <i data-lucide="pen-tool" class="icon-sm"></i> <span class="nav-text">Write</span>
+                        </a>
                         <div class="dropdown-content">
-                            <a href="/journal" class="dropdown-item">Journal</a>
-                            <a href="/notes" class="dropdown-item">Notes</a>
+                            <a href="/journal" class="dropdown-item"><i data-lucide="book" class="icon-sm"></i> Journal</a>
+                            <a href="/notes" class="dropdown-item"><i data-lucide="file-text" class="icon-sm"></i> Notes</a>
                         </div>
                     </li>
-                    <li><a href="/summary" class="nav-link">Summary</a></li>
-                    <li><a href="/void" class="nav-link">The Void</a></li>
-                    <li><a href="/about" class="nav-link">About</a></li>
-                    <li><a href="/settings" class="nav-link">Settings</a></li>
+                    <li><a href="/summary" class="nav-link" title="Summary"><i data-lucide="bar-chart-2" class="icon-sm"></i> <span class="nav-text">Summary</span></a></li>
+                    <li><a href="/void" class="nav-link" title="The Void"><i data-lucide="ghost" class="icon-sm"></i> <span class="nav-text">Void</span></a></li>
+                    <li><a href="/about" class="nav-link" title="About"><i data-lucide="info" class="icon-sm"></i></a></li>
+                    <li><a href="/settings" class="nav-link" title="Settings"><i data-lucide="settings" class="icon-sm"></i></a></li>
                     <li><button id="theme-toggle" class="btn btn-sm btn-secondary"
-                            style="padding: 0.4rem 0.6rem;">🌙</button></li>
+                            style="padding: 0.4rem 0.6rem;"><i data-lucide="moon" class="icon-sm" id="theme-icon"></i></button></li>
                 </ul>
             </nav>
         </div>
     </header>
     <main class="container">
         {{ if .SuccessMessage }}
-        <div class="card mb-md" style="border-left: 4px solid var(--success); background: #f0fdf4;">
+        <div id="toast-success" class="card mb-md" style="border-left: 4px solid var(--success); background: #f0fdf4;">
             <div style="color: #166534; font-weight: 500;">{{ .SuccessMessage }}</div>
         </div>
         {{ end }}
         {{ if .ErrorMessage }}
-        <div class="card mb-md" style="border-left: 4px solid var(--danger); background: #fef2f2;">
+        <div id="toast-error" class="card mb-md" style="border-left: 4px solid var(--danger); background: #fef2f2;">
             <div style="color: #991b1b; font-weight: 500;">{{ .ErrorMessage }}</div>
         </div>
         {{ end }}
+        
+        <!-- Placeholder for HTMX OOB Toasts -->
+        <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;"></div>
+
         {{ template "content" . }}
     </main>
 
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            
+            // Re-run icons on HTMX content swaps
+            document.body.addEventListener('htmx:afterSwap', function(evt) {
+                lucide.createIcons({ root: evt.detail.target });
+            });
+
             const themeToggle = document.getElementById('theme-toggle');
             const html = document.documentElement;
-            const icon = themeToggle;
+            const icon = document.getElementById('theme-icon');
 
             // Sync icon on load
             if (html.classList.contains('dark-mode')) {
-                icon.textContent = '☀️';
+                icon.setAttribute('data-lucide', 'sun');
+                lucide.createIcons();
             }
 
             themeToggle.addEventListener('click', function () {
@@ -91,13 +107,28 @@
                 if (html.classList.contains('dark-mode')) {
                     theme = 'dark-mode';
                     html.setAttribute('data-theme', 'dark');
-                    icon.textContent = '☀️';
+                    icon.setAttribute('data-lucide', 'sun');
                 } else {
                     html.removeAttribute('data-theme');
-                    icon.textContent = '🌙';
+                    icon.setAttribute('data-lucide', 'moon');
                 }
                 localStorage.setItem('theme', theme);
+                lucide.createIcons();
             });
+        });
+
+        function toggleWriteDropdown(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const d = document.getElementById('write-dropdown');
+            d.classList.toggle('active');
+        }
+
+        // Close dropdowns
+        window.addEventListener('click', function(e) {
+            if (!e.target.closest('#write-dropdown')) {
+                document.getElementById('write-dropdown').classList.remove('active');
+            }
         });
     </script>
 </body>
