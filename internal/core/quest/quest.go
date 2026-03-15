@@ -42,14 +42,14 @@ func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 	return quest, nil
 }
 
-func (s *Service) StopQuest(id uint, note string) (*models.SideQuest, error) {
+func (s *Service) StopQuest(id uint, note string) (*models.SideQuest, bool, error) {
 	var quest models.SideQuest
 	if err := s.DB.First(&quest, id).Error; err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	if quest.Status != "active" {
-		return nil, errors.New("side quest is not active")
+		return nil, false, errors.New("side quest is not active")
 	}
 
 	quest.Status = "done"
@@ -58,12 +58,12 @@ func (s *Service) StopQuest(id uint, note string) (*models.SideQuest, error) {
 	quest.EndedAt = &now
 
 	if err := s.DB.Save(&quest).Error; err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	_ = points.AwardPoints(s.DB, models.CategoryQuest, quest.ID, points.PointsQuest)
+	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryQuest, quest.ID, points.PointsQuest)
 
-	return &quest, nil
+	return &quest, milestoneReached, nil
 }
 
 func (s *Service) ListQuests() ([]models.SideQuest, error) {

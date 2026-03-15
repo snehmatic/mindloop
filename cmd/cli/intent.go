@@ -110,7 +110,7 @@ var intentEndCmd = &cobra.Command{
 			return
 		}
 
-		intent, err := intentService.EndIntent(args[0])
+		intent, milestoneReached, err := intentService.EndIntent(args[0])
 		if err != nil {
 			utils.PrintErrorln("Error ending intent:", err)
 			ac.Logger.Error().Msgf("Error ending intent with ID %s: %v", args[0], err)
@@ -118,6 +118,9 @@ var intentEndCmd = &cobra.Command{
 		}
 
 		utils.PrintSuccessf("Intent '%s' ended successfully! (+%d pts) 🎉\n", intent.Name, points.PointsIntent)
+		if milestoneReached {
+			utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
+		}
 		ac.Logger.Info().Msgf("Intent '%s' ended successfully!", intent.Name)
 		intentView := models.ToIntentView(*intent)
 		utils.PrintTable([]models.IntentView{intentView})

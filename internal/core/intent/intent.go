@@ -69,10 +69,10 @@ func (s *Service) UpdateIntent(intent *models.Intent) error {
 	return s.DB.Save(intent).Error
 }
 
-func (s *Service) EndIntent(idStr string) (*models.Intent, error) {
+func (s *Service) EndIntent(idStr string) (*models.Intent, bool, error) {
 	var intent models.Intent
 	if err := s.DB.Where("id = ?", idStr).First(&intent).Error; err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	now := time.Now()
@@ -80,12 +80,12 @@ func (s *Service) EndIntent(idStr string) (*models.Intent, error) {
 	intent.EndedAt = &now
 
 	if err := s.DB.Save(&intent).Error; err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
-	_ = points.AwardPoints(s.DB, models.CategoryIntent, intent.ID, points.PointsIntent)
+	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryIntent, intent.ID, points.PointsIntent)
 
-	return &intent, nil
+	return &intent, milestoneReached, nil
 }
 
 func (s *Service) DeleteIntent(id string) error {

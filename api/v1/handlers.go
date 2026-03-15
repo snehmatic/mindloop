@@ -242,7 +242,8 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 	content := r.FormValue("content")
 	mood := r.FormValue("mood")
 
-	if err := mlh.journal.CreateEntry(title, content, mood); err != nil {
+	milestoneReached, err := mlh.journal.CreateEntry(title, content, mood)
+	if err != nil {
 		log.Error().Err(err).Msg("Error creating journal entry")
 		// In a real app, we'd pass the error back to the template
 	}
@@ -252,9 +253,17 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 
 	if uc.FeatureFlags.Gamification {
 		if r.Header.Get("HX-Request") == "true" {
-			w.Header().Set("HX-Trigger", "confetti")
+			if milestoneReached {
+				w.Header().Set("HX-Trigger", "milestone")
+			} else {
+				w.Header().Set("HX-Trigger", "confetti")
+			}
 		} else {
-			http.Redirect(w, r, "/journal?success=done", http.StatusSeeOther)
+			successType := "done"
+			if milestoneReached {
+				successType = "milestone"
+			}
+			http.Redirect(w, r, "/journal?success="+successType, http.StatusSeeOther)
 			return
 		}
 	}
@@ -304,7 +313,7 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	note := r.FormValue("note")
 
-	_, _ = mlh.quest.StopQuest(uint(id), note)
+	_, milestoneReached, _ := mlh.quest.StopQuest(uint(id), note)
 
 	// Auto-resume intent if one is paused
 	currentIntent, _ := mlh.intent.GetOngoingIntent()
@@ -317,9 +326,17 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 
 	if uc.FeatureFlags.Gamification {
 		if r.Header.Get("HX-Request") == "true" {
-			w.Header().Set("HX-Trigger", "confetti")
+			if milestoneReached {
+				w.Header().Set("HX-Trigger", "milestone")
+			} else {
+				w.Header().Set("HX-Trigger", "confetti")
+			}
 		} else {
-			http.Redirect(w, r, "/intent?success=done", http.StatusSeeOther)
+			successType := "done"
+			if milestoneReached {
+				successType = "milestone"
+			}
+			http.Redirect(w, r, "/intent?success="+successType, http.StatusSeeOther)
 			return
 		}
 	}
@@ -356,7 +373,7 @@ func (mlh *MindloopHandler) HandleIntentResume(w http.ResponseWriter, r *http.Re
 	// 2. Automatically complete any active side quest
 	activeQuest, _ := mlh.quest.GetActiveQuest()
 	if activeQuest != nil {
-		_, _ = mlh.quest.StopQuest(activeQuest.ID, "Resumed main intent")
+		_, _, _ = mlh.quest.StopQuest(activeQuest.ID, "Resumed main intent")
 	}
 
 	http.Redirect(w, r, "/intent", http.StatusSeeOther)

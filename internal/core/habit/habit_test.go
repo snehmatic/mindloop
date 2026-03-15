@@ -22,7 +22,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to connect to test db: %v", err)
 	}
 
-	err = db.AutoMigrate(&models.Habit{}, &models.HabitLog{})
+	err = db.AutoMigrate(&models.Habit{}, &models.HabitLog{}, &models.PointTransaction{})
 	if err != nil {
 		t.Fatalf("Failed to migrate test db: %v", err)
 	}
@@ -46,7 +46,7 @@ func TestHabitService(t *testing.T) {
 	}
 
 	// 2. Log Habit
-	_, log, err := s.LogHabit("1")
+	_, log, _, err := s.LogHabit("1")
 	if err != nil {
 		t.Fatalf("Failed to log habit: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestHabitService(t *testing.T) {
 	}
 
 	// 3. Log Habit again (already completed)
-	_, _, err = s.LogHabit("1")
+	_, _, _, err = s.LogHabit("1")
 	if err == nil {
 		t.Error("Expected error when logging already completed habit, got nil")
 	}

@@ -26,9 +26,12 @@ func setupTestDB(t *testing.T) *gorm.DB {
 func TestAwardPoints(t *testing.T) {
 	db := setupTestDB(t)
 
-	err := AwardPoints(db, models.CategoryHabit, 1, PointsHabit)
+	milestoneReached, err := AwardPoints(db, models.CategoryHabit, 1, PointsHabit)
 	if err != nil {
 		t.Errorf("Expected nil error, got %v", err)
+	}
+	if milestoneReached {
+		t.Errorf("Expected milestone false for initial points")
 	}
 
 	var transaction models.PointTransaction
@@ -45,6 +48,12 @@ func TestAwardPoints(t *testing.T) {
 	if transaction.Points != PointsHabit {
 		t.Errorf("Expected Points %d, got %d", PointsHabit, transaction.Points)
 	}
+
+	// Test Milestone
+	milestoneReached, _ = AwardPoints(db, models.CategoryHabit, 1, MilestoneInterval)
+	if !milestoneReached {
+		t.Errorf("Expected milestone to be true after exceeding interval")
+	}
 }
 
 func TestGetTotalPoints(t *testing.T) {
@@ -60,8 +69,8 @@ func TestGetTotalPoints(t *testing.T) {
 	}
 
 	// Add some points
-	_ = AwardPoints(db, models.CategoryHabit, 1, 5)
-	_ = AwardPoints(db, models.CategoryFocus, 1, 10)
+	_, _ = AwardPoints(db, models.CategoryHabit, 1, 5)
+	_, _ = AwardPoints(db, models.CategoryFocus, 1, 10)
 
 	total, err = GetTotalPoints(db)
 	if err != nil {

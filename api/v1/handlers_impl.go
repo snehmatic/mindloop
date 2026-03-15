@@ -313,7 +313,7 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 	}
 
 	habitID := r.FormValue("habit_id")
-	habit, logRes, err := mlh.habit.LogHabit(habitID)
+	habit, logRes, milestoneReached, err := mlh.habit.LogHabit(habitID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error logging habit")
 		if r.Header.Get("HX-Request") == "true" {
@@ -329,7 +329,11 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification && logRes != nil && habit != nil && logRes.ActualCount == habit.TargetCount {
-			w.Header().Set("HX-Trigger", "confetti")
+			if milestoneReached {
+				w.Header().Set("HX-Trigger", "milestone")
+			} else {
+				w.Header().Set("HX-Trigger", "confetti")
+			}
 		}
 		view, err := mlh.getHabitView(habitID)
 		if err == nil {
@@ -340,7 +344,11 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 	}
 
 	if uc.FeatureFlags.Gamification && logRes != nil && habit != nil && logRes.ActualCount == habit.TargetCount {
-		http.Redirect(w, r, "/habits?success=done", http.StatusSeeOther)
+		successType := "done"
+		if milestoneReached {
+			successType = "milestone"
+		}
+		http.Redirect(w, r, "/habits?success="+successType, http.StatusSeeOther)
 		return
 	}
 	http.Redirect(w, r, "/habits?success=true", http.StatusSeeOther)
@@ -468,7 +476,7 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 		return
 	}
 	id := r.FormValue("id")
-	_, err := mlh.intent.EndIntent(id)
+	_, milestoneReached, err := mlh.intent.EndIntent(id)
 	if err != nil {
 		log.Error().Err(err).Msg("Error completing intent")
 	}
@@ -478,10 +486,18 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification {
-			w.Header().Set("HX-Trigger", "confetti")
+			if milestoneReached {
+				w.Header().Set("HX-Trigger", "milestone")
+			} else {
+				w.Header().Set("HX-Trigger", "confetti")
+			}
 		}
 	} else if uc.FeatureFlags.Gamification {
-		http.Redirect(w, r, "/intent?success=done", http.StatusSeeOther)
+		successType := "done"
+		if milestoneReached {
+			successType = "milestone"
+		}
+		http.Redirect(w, r, "/intent?success="+successType, http.StatusSeeOther)
 		return
 	}
 
@@ -555,7 +571,7 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 	}
 	idStr := r.FormValue("id")
 	id, _ := strconv.Atoi(idStr)
-	_, err := mlh.focus.EndSession(id)
+	_, milestoneReached, err := mlh.focus.EndSession(id)
 	if err != nil {
 		log.Error().Err(err).Msg("Error ending focus session")
 		if r.Header.Get("HX-Request") == "true" {
@@ -571,7 +587,11 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification {
-			w.Header().Set("HX-Trigger", "confetti")
+			if milestoneReached {
+				w.Header().Set("HX-Trigger", "milestone")
+			} else {
+				w.Header().Set("HX-Trigger", "confetti")
+			}
 		}
 		sessions, _ := mlh.focus.ListSessions()
 		data := map[string]interface{}{"Sessions": sessions}
@@ -581,7 +601,11 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 	}
 
 	if uc.FeatureFlags.Gamification {
-		http.Redirect(w, r, "/focus?success=done", http.StatusSeeOther)
+		successType := "done"
+		if milestoneReached {
+			successType = "milestone"
+		}
+		http.Redirect(w, r, "/focus?success="+successType, http.StatusSeeOther)
 		return
 	}
 	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)

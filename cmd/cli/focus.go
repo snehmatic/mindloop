@@ -87,19 +87,21 @@ var focusEndCmd = &cobra.Command{
 			return
 		}
 
-		session, err := focusService.EndSession(sessionIDInt)
-		if err != nil {
-			utils.PrintErrorln("Error ending focus session:", err)
-			ac.Logger.Error().Msgf("Error ending focus session: %v", err)
-			return
+				session, milestoneReached, err := focusService.EndSession(sessionIDInt)
+				if err != nil {
+					utils.PrintErrorln("Error ending focus session:", err)
+					ac.Logger.Error().Msgf("Error ending focus session: %v", err)
+					return
+				}
+		
+				utils.PrintSuccessf("Focus session '%s' ended successfully! (+%d pts) 🎉\n", session.Title, points.PointsFocus)
+				if milestoneReached {
+					utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
+				}
+				utils.PrintRocketln("Great work chief!")
+				ac.Logger.Info().Msgf("Focus session '%s' ended successfully!", session.Title)
+			},
 		}
-
-		utils.PrintSuccessf("Focus session '%s' ended successfully! (+%d pts) 🎉\n", session.Title, points.PointsFocus)
-		utils.PrintRocketln("Great work chief!")
-		ac.Logger.Info().Msgf("Focus session '%s' ended successfully!", session.Title)
-	},
-}
-
 var focusRateCmd = &cobra.Command{
 	Use:     "rate",
 	Short:   "Rate a focus session",

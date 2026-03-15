@@ -79,7 +79,9 @@
             <div style="font-weight: 500;">{{ .SuccessMessage }}</div>
         </div>
         <script>
-            if (String("{{ .SuccessMessage }}").toLowerCase().includes("done") || String("{{ .SuccessMessage }}").toLowerCase().includes("complet") || String("{{ .SuccessMessage }}").toLowerCase().includes("log") || String("{{ .SuccessMessage }}").toLowerCase().includes("end")) {
+            if (String("{{ .SuccessMessage }}").toLowerCase().includes("milestone")) {
+                setTimeout(() => document.dispatchEvent(new Event('milestone')), 100);
+            } else if (String("{{ .SuccessMessage }}").toLowerCase().includes("done") || String("{{ .SuccessMessage }}").toLowerCase().includes("complet") || String("{{ .SuccessMessage }}").toLowerCase().includes("log") || String("{{ .SuccessMessage }}").toLowerCase().includes("end")) {
                 setTimeout(() => confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }), 100);
             }
         </script>
@@ -94,10 +96,25 @@
         <!-- Placeholder for HTMX OOB Toasts -->
         <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;"></div>
 
+        <!-- Milestone Celebration Overlay -->
+        <div id="milestone-overlay" class="flex-center"
+            style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; flex-direction: column; text-align: center; color: white; backdrop-filter: blur(8px); animation: fadeIn 0.5s ease;">
+            <div class="animate-pop-in">
+                <div style="font-size: 5rem; margin-bottom: 1rem;">🏆</div>
+                <h1 style="font-size: 3rem; margin-bottom: 0.5rem; color: var(--warning);">MILESTONE REACHED!</h1>
+                <p style="font-size: 1.5rem; opacity: 0.9; margin-bottom: 2rem;">You're making incredible progress. Keep it up!</p>
+                <button class="btn btn-primary btn-lg" onclick="closeMilestone()">Continue Journey</button>
+            </div>
+        </div>
+
         {{ template "content" . }}
     </main>
 
     <script>
+        function closeMilestone() {
+            document.getElementById('milestone-overlay').style.display = 'none';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
 
@@ -109,7 +126,38 @@
             
             // Listen for Confetti HX-Trigger
             document.body.addEventListener('confetti', function (evt) {
-                confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            });
+
+            // Listen for Milestone HX-Trigger
+            document.body.addEventListener('milestone', function (evt) {
+                const overlay = document.getElementById('milestone-overlay');
+                overlay.style.display = 'flex';
+                
+                // Continuous confetti for milestone
+                var duration = 3 * 1000;
+                var end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 5,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        colors: ['#f59e0b', '#fbbf24', '#ffffff']
+                    });
+                    confetti({
+                        particleCount: 5,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        colors: ['#f59e0b', '#fbbf24', '#ffffff']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
             });
 
             const themeToggle = document.getElementById('theme-toggle');

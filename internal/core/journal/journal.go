@@ -16,12 +16,12 @@ func NewService(db *gorm.DB) *Service {
 	return &Service{DB: db}
 }
 
-func (s *Service) CreateEntry(title, content, mood string) error {
+func (s *Service) CreateEntry(title, content, mood string) (bool, error) {
 	if title == "" {
-		return errors.New("title cannot be empty")
+		return false, errors.New("title cannot be empty")
 	}
 	if content == "" {
-		return errors.New("content cannot be empty")
+		return false, errors.New("content cannot be empty")
 	}
 	if mood == "" {
 		mood = "neutral"
@@ -34,10 +34,11 @@ func (s *Service) CreateEntry(title, content, mood string) error {
 	}
 
 	err := s.DB.Create(&entry).Error
+	milestoneReached := false
 	if err == nil {
-		_ = points.AwardPoints(s.DB, models.CategoryJournal, entry.ID, points.PointsJournal)
+		milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryJournal, entry.ID, points.PointsJournal)
 	}
-	return err
+	return milestoneReached, err
 }
 
 func (s *Service) ListEntries() ([]models.JournalEntry, error) {

@@ -21,7 +21,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to connect to test db: %v", err)
 	}
 
-	err = db.AutoMigrate(&models.SideQuest{})
+	err = db.AutoMigrate(&models.SideQuest{}, &models.PointTransaction{})
 	if err != nil {
 		t.Fatalf("Failed to migrate test db: %v", err)
 	}
@@ -58,7 +58,7 @@ func TestQuestService(t *testing.T) {
 	}
 
 	// 4. Stop Quest
-	completed, err := s.StopQuest(q.ID, "Fixed it")
+	completed, _, err := s.StopQuest(q.ID, "Fixed it")
 	if err != nil {
 		t.Fatalf("Failed to stop quest: %v", err)
 	}

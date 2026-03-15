@@ -108,13 +108,16 @@ var questStopCmd = &cobra.Command{
 			utils.PrintWarnln("No note provided. Saving with empty note.")
 		}
 
-		q, err = questService.StopQuest(q.ID, note)
+		q, milestoneReached, err := questService.StopQuest(q.ID, note)
 		if err != nil {
 			utils.PrintErrorln("Error stopping quest:", err)
 			return
 		}
 
 		utils.PrintSuccessf("Side Quest '%s' complete! (+%d pts) 🎉\n", q.Title, points.PointsQuest)
+		if milestoneReached {
+			utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
+		}
 		utils.PrintInfoln("Don't forget to resume your main intent/focus if needed.")
 	},
 }

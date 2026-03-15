@@ -21,7 +21,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to connect to test db: %v", err)
 	}
 
-	err = db.AutoMigrate(&models.FocusSession{})
+	err = db.AutoMigrate(&models.FocusSession{}, &models.PointTransaction{})
 	if err != nil {
 		t.Fatalf("Failed to migrate test db: %v", err)
 	}
@@ -82,7 +82,7 @@ func TestEndAndRestartSession(t *testing.T) {
 	}
 
 	// 2. End session
-	_, err = s.EndSession(int(sess.ID))
+	_, _, err = s.EndSession(int(sess.ID))
 	if err != nil {
 		t.Fatalf("Failed to end session: %v", err)
 	}

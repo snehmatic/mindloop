@@ -14,14 +14,33 @@ const (
 	PointsQuest   = 5
 )
 
-// AwardPoints creates a new PointTransaction
-func AwardPoints(db *gorm.DB, activityType models.PointCategory, activityID uint, points int) error {
+var MilestoneInterval = 100
+
+// AwardPoints creates a new PointTransaction and returns true if a milestone was reached
+func AwardPoints(db *gorm.DB, activityType models.PointCategory, activityID uint, points int) (bool, error) {
+	// Get points before transaction
+	currentTotal, err := GetTotalPoints(db)
+	if err != nil {
+		return false, err
+	}
+
 	transaction := models.PointTransaction{
 		ActivityType: activityType,
 		ActivityID:   activityID,
 		Points:       points,
 	}
-	return db.Create(&transaction).Error
+	err = db.Create(&transaction).Error
+	if err != nil {
+		return false, err
+	}
+
+	newTotal := currentTotal + points
+	
+	// Check if a milestone boundary was crossed
+	currentMilestone := currentTotal / MilestoneInterval
+	newMilestone := newTotal / MilestoneInterval
+
+	return newMilestone > currentMilestone, nil
 }
 
 // GetTotalPoints calculates the lifetime total points for the user

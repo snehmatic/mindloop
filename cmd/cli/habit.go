@@ -218,7 +218,7 @@ var habitLogCmd = &cobra.Command{
 		}
 		habitID := args[0]
 
-		habit, log, err := habitService.LogHabit(habitID)
+		habit, log, milestoneReached, err := habitService.LogHabit(habitID)
 		if err != nil {
 			if err.Error() == "habit already completed for interval" {
 				utils.PrintRocketf("Habit already completed. No need to log again.\n")
@@ -237,6 +237,9 @@ var habitLogCmd = &cobra.Command{
 
 		if log.ActualCount == habit.TargetCount {
 			utils.PrintSuccessf("Habit '%s' marked done! (+%d pts) 🎉\n", habit.Title, points.PointsHabit)
+			if milestoneReached {
+				utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
+			}
 		} else {
 			utils.PrintSuccessf("Habit '%s' logged successfully.\n", habit.Title)
 		}

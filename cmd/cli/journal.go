@@ -49,7 +49,7 @@ var journalNewCmd = &cobra.Command{
 
 		utils.PrintInfoln("Saving your journal entry...")
 		// Mood handling is now done in the service if empty, but we pass the flag value
-		err = journalService.CreateEntry(args[0], content, *mood)
+		milestoneReached, err := journalService.CreateEntry(args[0], content, *mood)
 		if err != nil {
 			utils.PrintErrorln("Failed to save journal:", err)
 			return
@@ -58,6 +58,9 @@ var journalNewCmd = &cobra.Command{
 		ac.Logger.Info().Msgf("Journal entry '%s' saved with mood '%s'.", args[0], *mood)
 		utils.PrintInfoln("Your journal entry has been saved successfully!")
 		utils.PrintSuccessf("Journal entry saved. (+%d pts) 🎉\n", points.PointsJournal)
+		if milestoneReached {
+			utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
+		}
 	},
 }
 

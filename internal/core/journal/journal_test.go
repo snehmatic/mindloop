@@ -21,7 +21,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 		t.Fatalf("Failed to connect to test db: %v", err)
 	}
 
-	err = db.AutoMigrate(&models.JournalEntry{})
+	err = db.AutoMigrate(&models.JournalEntry{}, &models.PointTransaction{})
 	if err != nil {
 		t.Fatalf("Failed to migrate test db: %v", err)
 	}
@@ -34,7 +34,7 @@ func TestJournalService(t *testing.T) {
 	s := journal.NewService(db)
 
 	// 1. Create Entry
-	err := s.CreateEntry("Test Journal", "Test Content", "happy")
+	_, err := s.CreateEntry("Test Journal", "Test Content", "happy")
 	if err != nil {
 		t.Fatalf("Failed to create journal entry: %v", err)
 	}
@@ -90,7 +90,7 @@ func TestCreateEntryValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			err := s.CreateEntry(tt.title, tt.content, "neutral")
+			_, err := s.CreateEntry(tt.title, tt.content, "neutral")
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateEntry() error = %v, wantErr %v", err, tt.wantErr)
 			}
