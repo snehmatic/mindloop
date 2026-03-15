@@ -132,11 +132,12 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 
 	// Pass query params as simple alerts
 	if success := r.URL.Query().Get("success"); success != "" {
-		if success == "true" {
+		switch success {
+		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		} else if success == "done" {
+		case "done":
 			data["SuccessMessage"] = "Habit logged successfully! Keep it up!"
-		} else if success == "milestone" {
+		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
 		}
 	}
@@ -435,11 +436,12 @@ func (mlh *MindloopHandler) HandleIntent(w http.ResponseWriter, r *http.Request)
 	}
 
 	if success := r.URL.Query().Get("success"); success != "" {
-		if success == "true" {
+		switch success {
+		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		} else if success == "done" {
+		case "done":
 			data["SuccessMessage"] = "Intent completed successfully! Great job!"
-		} else if success == "milestone" {
+		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
 		}
 	}
@@ -549,11 +551,12 @@ func (mlh *MindloopHandler) HandleFocus(w http.ResponseWriter, r *http.Request) 
 	}
 
 	if success := r.URL.Query().Get("success"); success != "" {
-		if success == "true" {
+		switch success {
+		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		} else if success == "done" {
+		case "done":
 			data["SuccessMessage"] = "Focus session ended successfully! Well done!"
-		} else if success == "milestone" {
+		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
 		}
 	}

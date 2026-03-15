@@ -232,11 +232,12 @@ func (mlh *MindloopHandler) HandleJournalList(w http.ResponseWriter, r *http.Req
 	}
 
 	if success := r.URL.Query().Get("success"); success != "" {
-		if success == "true" {
+		switch success {
+		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		} else if success == "done" {
+		case "done":
 			data["SuccessMessage"] = "Journal entry saved! Great reflection!"
-		} else if success == "milestone" {
+		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
 		}
 	}
