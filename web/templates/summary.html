@@ -33,6 +33,15 @@
 </div>
 
 <div class="grid">
+    <!-- Points Stats -->
+    <div class="card">
+        <h3>Gamification</h3>
+        <div class="mt-md">
+            <div class="stat-value" style="color: var(--warning);">{{ .Report.Points.TotalPoints }} <span class="text-sm">pts</span></div>
+            <div class="stat-label">Lifetime Points</div>
+        </div>
+    </div>
+
     <!-- Focus Stats -->
     <div class="card">
         <h3>Focus</h3>
@@ -113,16 +122,23 @@
     </div>
 </div>
 
+<div class="card mt-md">
+    <h3 class="mb-md">Points Earned</h3>
+    <canvas id="pointsChart"></canvas>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="application/json" id="data-labels">{{ .Charts.Labels | json }}</script>
 <script type="application/json" id="data-focus">{{ .Charts.DailyFocus | json }}</script>
 <script type="application/json" id="data-habits">{{ .Charts.DailyHabits | json }}</script>
+<script type="application/json" id="data-points">{{ .Charts.DailyPoints | json }}</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Data passed from Go backend
         const labels = JSON.parse(document.getElementById('data-labels').textContent);
         const focusData = JSON.parse(document.getElementById('data-focus').textContent);
         const habitData = JSON.parse(document.getElementById('data-habits').textContent);
+        const pointsData = JSON.parse(document.getElementById('data-points').textContent);
 
         // Chart.js Configuration for Focus
         const ctxFocus = document.getElementById('focusChart').getContext('2d');
@@ -179,6 +195,40 @@
                     y: {
                         beginAtZero: true,
                         ticks: { stepSize: 1 },
+                        grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Chart.js Configuration for Points
+        const ctxPoints = document.getElementById('pointsChart').getContext('2d');
+        new Chart(ctxPoints, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Points Earned',
+                    data: pointsData,
+                    borderColor: '#f59e0b',
+                    backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
                         grid: { color: 'rgba(0,0,0,0.05)' }
                     },
                     x: {

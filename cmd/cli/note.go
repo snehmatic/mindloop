@@ -67,8 +67,8 @@ func runNoteList(cmd *cobra.Command, args []string) {
 }
 
 var noteNewCmd = &cobra.Command{
-	Use:     "new",
-	Short:   "Create a new note using your default $EDITOR",
+	Use:   "new",
+	Short: "Create a new note using your default $EDITOR",
 	Run: func(cmd *cobra.Command, args []string) {
 		header := "# Mindloop Note\n# Title: " + noteTitle + "\n# Labels: " + noteLabels + "\n# Write your note below. Lines starting with # will be ignored.\n\n"
 		content, err := utils.CaptureWithEditor("mindloop_note_*.md", header, "")
@@ -91,9 +91,9 @@ var noteNewCmd = &cobra.Command{
 }
 
 var noteViewCmd = &cobra.Command{
-	Use:     "view",
-	Short:   "View a note",
-	Args:    cobra.ExactArgs(1),
+	Use:   "view",
+	Short: "View a note",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
@@ -116,9 +116,9 @@ var noteViewCmd = &cobra.Command{
 }
 
 var noteEditCmd = &cobra.Command{
-	Use:     "edit",
-	Short:   "Edit a note",
-	Args:    cobra.ExactArgs(1),
+	Use:   "edit",
+	Short: "Edit a note",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		id, err := strconv.Atoi(args[0])
 		if err != nil {
@@ -148,9 +148,9 @@ var noteEditCmd = &cobra.Command{
 }
 
 var noteDeleteCmd = &cobra.Command{
-	Use:     "delete",
-	Short:   "Delete a note",
-	Args:    cobra.ExactArgs(1),
+	Use:   "delete",
+	Short: "Delete a note",
+	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		id, err := strconv.Atoi(args[0])
 		if err != nil {

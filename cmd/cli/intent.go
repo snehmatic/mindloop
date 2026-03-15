@@ -2,6 +2,7 @@ package cli
 
 import (
 	"github.com/snehmatic/mindloop/internal/core/intent"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -116,6 +117,7 @@ var intentEndCmd = &cobra.Command{
 			return
 		}
 
+		utils.PrintSuccessf("Intent '%s' ended successfully! (+%d pts) 🎉\n", intent.Name, points.PointsIntent)
 		ac.Logger.Info().Msgf("Intent '%s' ended successfully!", intent.Name)
 		intentView := models.ToIntentView(*intent)
 		utils.PrintTable([]models.IntentView{intentView})

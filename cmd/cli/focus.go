@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/snehmatic/mindloop/internal/core/focus"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -93,7 +94,7 @@ var focusEndCmd = &cobra.Command{
 			return
 		}
 
-		utils.PrintSuccessf("Focus session '%s' ended successfully!\n", session.Title)
+		utils.PrintSuccessf("Focus session '%s' ended successfully! (+%d pts) 🎉\n", session.Title, points.PointsFocus)
 		utils.PrintRocketln("Great work chief!")
 		ac.Logger.Info().Msgf("Focus session '%s' ended successfully!", session.Title)
 	},

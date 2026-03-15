@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/snehmatic/mindloop/internal/core/journal"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -56,7 +57,7 @@ var journalNewCmd = &cobra.Command{
 
 		ac.Logger.Info().Msgf("Journal entry '%s' saved with mood '%s'.", args[0], *mood)
 		utils.PrintInfoln("Your journal entry has been saved successfully!")
-		utils.PrintSuccessln("Journal entry saved.")
+		utils.PrintSuccessf("Journal entry saved. (+%d pts) 🎉\n", points.PointsJournal)
 	},
 }
 

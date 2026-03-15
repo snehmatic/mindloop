@@ -3,9 +3,9 @@ package focus_test
 import (
 	"testing"
 
+	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/models"
-	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )

@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="/static/js/lucide.min.js"></script>
     <script>
         // Check for saved user preference early to prevent flash
@@ -77,6 +78,11 @@
             style="background-color: var(--success-bg); border-color: var(--success); color: var(--success);">
             <div style="font-weight: 500;">{{ .SuccessMessage }}</div>
         </div>
+        <script>
+            if (String("{{ .SuccessMessage }}").toLowerCase().includes("done") || String("{{ .SuccessMessage }}").toLowerCase().includes("complet") || String("{{ .SuccessMessage }}").toLowerCase().includes("log") || String("{{ .SuccessMessage }}").toLowerCase().includes("end")) {
+                setTimeout(() => confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }), 100);
+            }
+        </script>
         {{ end }}
         {{ if .ErrorMessage }}
         <div class="card mb-md animate-fade-in"
@@ -99,6 +105,14 @@
             document.body.addEventListener('htmx:afterSwap', function (evt) {
                 // We scan the whole body to be safe, as some swaps might replace containers
                 lucide.createIcons();
+                
+                // Trigger confetti on successful swaps that indicate completion
+                if (evt.detail.xhr.status >= 200 && evt.detail.xhr.status < 300) {
+                    const responseText = evt.detail.xhr.responseText.toLowerCase();
+                    if (responseText.includes('success') && (responseText.includes('done') || responseText.includes('complet') || responseText.includes('log') || responseText.includes('end'))) {
+                        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+                    }
+                }
             });
 
             const themeToggle = document.getElementById('theme-toggle');

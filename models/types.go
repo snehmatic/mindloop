@@ -288,13 +288,13 @@ type SummaryReport struct {
 	Focus     FocusStats
 	Habits    []HabitStats
 	Intents   []IntentStats
+	Points    PointStats
 }
-
 type SideQuest struct {
 	gorm.Model
-	Title  string     `gorm:"not null" json:"title"`
-	Status string     `gorm:"default:active" json:"status"` // active, done
-	Note   string     `gorm:"type:text" json:"note"`
+	Title   string     `gorm:"not null" json:"title"`
+	Status  string     `gorm:"default:active" json:"status"` // active, done
+	Note    string     `gorm:"type:text" json:"note"`
 	EndedAt *time.Time `json:"ended_at,omitempty"`
 }
 
@@ -320,4 +320,26 @@ func ToSideQuestView(sq SideQuest) SideQuestView {
 		Note:    sq.Note,
 		EndedAt: ended,
 	}
+}
+
+type PointCategory string
+
+const (
+	CategoryFocus   PointCategory = "focus"
+	CategoryHabit   PointCategory = "habit"
+	CategoryIntent  PointCategory = "intent"
+	CategoryJournal PointCategory = "journal"
+	CategoryQuest   PointCategory = "quest"
+)
+
+type PointTransaction struct {
+	gorm.Model
+	ActivityType PointCategory `gorm:"type:varchar(50);not null" json:"activity_type"`
+	ActivityID   uint          `gorm:"not null" json:"activity_id"`
+	Points       int           `gorm:"not null" json:"points"`
+}
+
+type PointStats struct {
+	TotalPoints int
+	History     []PointTransaction
 }

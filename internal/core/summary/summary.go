@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
@@ -33,12 +34,44 @@ func (s *Service) GenerateSummary(start, end time.Time) (models.SummaryReport, e
 		return models.SummaryReport{}, err
 	}
 
+	totalPoints, _ := points.GetTotalPoints(s.DB)
+	pointStats := models.PointStats{
+		TotalPoints: totalPoints,
+	}
+
 	return models.SummaryReport{
 		DateRange: fmt.Sprintf("%s to %s", start.Format("02-Jan-2006"), end.Format("02-Jan-2006")),
 		Focus:     focusStats,
 		Habits:    habitStats,
 		Intents:   intentStats,
+		Points:    pointStats,
 	}, nil
+}
+
+func (s *Service) GetPointSeries(start, end time.Time) ([]int, error) {
+	days := int(end.Sub(start).Hours()/24) + 1
+	if days < 1 {
+		days = 1
+	}
+
+	stats := make([]int, days)
+
+	var transactions []models.PointTransaction
+	if err := s.DB.Where("CreatedAt >= ? AND CreatedAt <= ?", start, end).Find(&transactions).Error; err != nil {
+		return nil, err
+	}
+
+	for _, tx := range transactions {
+		txDate := tx.CreatedAt.Truncate(24 * time.Hour)
+		startDate := start.Truncate(24 * time.Hour)
+		diff := int(txDate.Sub(startDate).Hours() / 24)
+
+		if diff >= 0 && diff < days {
+			stats[diff] += tx.Points
+		}
+	}
+
+	return stats, nil
 }
 
 func (s *Service) GetFocusStats(start, end time.Time) (models.FocusStats, error) {

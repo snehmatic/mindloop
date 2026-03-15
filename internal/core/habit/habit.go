@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -118,6 +119,11 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, err
 		if err := s.DB.Save(&existingLog).Error; err != nil {
 			return nil, nil, err
 		}
+
+		if existingLog.ActualCount == habit.TargetCount {
+			_ = points.AwardPoints(s.DB, models.CategoryHabit, habit.ID, points.PointsHabit)
+		}
+
 		return habit, &existingLog, nil
 	}
 
@@ -132,6 +138,10 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, err
 	}
 	if err := s.DB.Create(habitLog).Error; err != nil {
 		return nil, nil, err
+	}
+
+	if habitLog.ActualCount == habit.TargetCount {
+		_ = points.AwardPoints(s.DB, models.CategoryHabit, habit.ID, points.PointsHabit)
 	}
 
 	return habit, habitLog, nil

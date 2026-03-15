@@ -6,6 +6,7 @@ import (
 
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/intent"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
@@ -113,7 +114,7 @@ var questStopCmd = &cobra.Command{
 			return
 		}
 
-		utils.PrintSuccessf("Side Quest '%s' complete!\n", q.Title)
+		utils.PrintSuccessf("Side Quest '%s' complete! (+%d pts) 🎉\n", q.Title, points.PointsQuest)
 		utils.PrintInfoln("Don't forget to resume your main intent/focus if needed.")
 	},
 }
@@ -142,8 +143,8 @@ var questDeleteCmd = &cobra.Command{
 }
 
 var questListCmd = &cobra.Command{
-	Use:     "list",
-	Short:   "List all side quests",
+	Use:   "list",
+	Short: "List all side quests",
 	Run: func(cmd *cobra.Command, args []string) {
 		quests, err := questService.ListQuests()
 		if err != nil {

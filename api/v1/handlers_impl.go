@@ -265,13 +265,13 @@ func (mlh *MindloopHandler) getHabitView(id string) (*HabitView, error) {
 	// A real app would have GetHabitLog(id, date)
 	logs, _ := mlh.habit.ListLogsForHabit(h.ID)
 	actual := 0
-	
+
 	// Find current log
 	now := time.Now()
 	for _, l := range logs {
 		isCurrent := false
 		if h.Interval == models.Daily {
-			if l.CreatedAt.Truncate(24*time.Hour).Equal(now.Truncate(24*time.Hour)) {
+			if l.CreatedAt.Truncate(24 * time.Hour).Equal(now.Truncate(24 * time.Hour)) {
 				isCurrent = true
 			}
 		} else {
@@ -281,7 +281,7 @@ func (mlh *MindloopHandler) getHabitView(id string) (*HabitView, error) {
 				isCurrent = true
 			}
 		}
-		
+
 		if isCurrent {
 			actual = l.ActualCount
 			break
@@ -353,7 +353,7 @@ func (mlh *MindloopHandler) HandleHabitUnlog(w http.ResponseWriter, r *http.Requ
 		http.Redirect(w, r, "/habits?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
-	
+
 	if r.Header.Get("HX-Request") == "true" {
 		view, err := mlh.getHabitView(habitID)
 		if err == nil {
@@ -663,6 +663,7 @@ func (mlh *MindloopHandler) HandleSummary(w http.ResponseWriter, r *http.Request
 	// Charts Data
 	dailyFocus, labels, _ := mlh.summary.GetFocusSeries(start, now)
 	dailyHabits, _ := mlh.summary.GetHabitSeries(start, now)
+	dailyPoints, _ := mlh.summary.GetPointSeries(start, now)
 
 	mlh.renderTemplate(w, "summary.html", map[string]interface{}{
 		"Title":  "Summary",
@@ -671,6 +672,7 @@ func (mlh *MindloopHandler) HandleSummary(w http.ResponseWriter, r *http.Request
 			"Labels":      labels,
 			"DailyFocus":  dailyFocus,
 			"DailyHabits": dailyHabits,
+			"DailyPoints": dailyPoints,
 		},
 	})
 }
@@ -702,7 +704,7 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 				uc.Name = ""
 				uc.FeatureFlags = config.FeatureFlags{} // Reset all flags to false
 				uc.WriteToYAML()
-				
+
 				// Update in-memory config
 				if mlh.config != nil {
 					mlh.config.UserName = ""
@@ -797,6 +799,7 @@ func (mlh *MindloopHandler) HandleJournalView(w http.ResponseWriter, r *http.Req
 		"HTMLContent": template.HTML(htmlContent),
 	})
 }
+
 // --- Note Handlers ---
 
 func (mlh *MindloopHandler) HandleNoteList(w http.ResponseWriter, r *http.Request) {

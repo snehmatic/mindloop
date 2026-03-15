@@ -3,11 +3,11 @@ package db
 import (
 	"fmt"
 
+	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
-	"github.com/glebarez/sqlite"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -98,6 +98,7 @@ func MigrateDB(db *gorm.DB) error {
 		&models.JournalEntry{},
 		&models.Note{},
 		&models.SideQuest{},
+		&models.PointTransaction{},
 	)
 	if err != nil {
 		logger.Error().Err(err).Msg("Failed to migrate DB")

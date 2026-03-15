@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -81,6 +82,8 @@ func (s *Service) EndIntent(idStr string) (*models.Intent, error) {
 	if err := s.DB.Save(&intent).Error; err != nil {
 		return nil, err
 	}
+
+	_ = points.AwardPoints(s.DB, models.CategoryIntent, intent.ID, points.PointsIntent)
 
 	return &intent, nil
 }

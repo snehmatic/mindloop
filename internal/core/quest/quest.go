@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -59,6 +60,8 @@ func (s *Service) StopQuest(id uint, note string) (*models.SideQuest, error) {
 	if err := s.DB.Save(&quest).Error; err != nil {
 		return nil, err
 	}
+
+	_ = points.AwardPoints(s.DB, models.CategoryQuest, quest.ID, points.PointsQuest)
 
 	return &quest, nil
 }

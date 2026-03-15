@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -75,6 +76,8 @@ func (s *Service) EndSession(id int) (*models.FocusSession, error) {
 	if err := s.DB.Save(&session).Error; err != nil {
 		return nil, err
 	}
+
+	_ = points.AwardPoints(s.DB, models.CategoryFocus, session.ID, points.PointsFocus)
 
 	return &session, nil
 }

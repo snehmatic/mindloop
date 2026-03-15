@@ -1,6 +1,7 @@
 package cli
 
 import (
+	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/snehmatic/mindloop/internal/core/backup"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
@@ -10,7 +11,6 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/server"
-	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/spf13/cobra"
 )
 

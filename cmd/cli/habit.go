@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/snehmatic/mindloop/internal/core/habit"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -233,7 +234,12 @@ var habitLogCmd = &cobra.Command{
 			Msgf("Habit %s logged %d/%d times in %s interval", habit.Title, log.ActualCount, habit.TargetCount, habit.Interval)
 		utils.PrintLoadingf("Habit %s logged %d/%d times in %s interval.\n", habit.Title, log.ActualCount, habit.TargetCount, habit.Interval)
 		utils.PrintInfof("Use 'mindloop habit unlog <id>' to mark it as undone, and reset to 0/%d.\n", habit.TargetCount)
-		utils.PrintSuccessf("Habit '%s' logged successfully.\n", habit.Title)
+
+		if log.ActualCount == habit.TargetCount {
+			utils.PrintSuccessf("Habit '%s' marked done! (+%d pts) 🎉\n", habit.Title, points.PointsHabit)
+		} else {
+			utils.PrintSuccessf("Habit '%s' logged successfully.\n", habit.Title)
+		}
 	},
 }
 

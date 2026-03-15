@@ -3,6 +3,7 @@ package journal
 import (
 	"errors"
 
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -32,7 +33,11 @@ func (s *Service) CreateEntry(title, content, mood string) error {
 		Mood:    mood,
 	}
 
-	return s.DB.Create(&entry).Error
+	err := s.DB.Create(&entry).Error
+	if err == nil {
+		_ = points.AwardPoints(s.DB, models.CategoryJournal, entry.ID, points.PointsJournal)
+	}
+	return err
 }
 
 func (s *Service) ListEntries() ([]models.JournalEntry, error) {
