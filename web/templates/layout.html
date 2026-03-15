@@ -79,10 +79,18 @@
             <div style="font-weight: 500;">{{ .SuccessMessage }}</div>
         </div>
         <script>
+            console.log("SuccessMessage: {{ .SuccessMessage }}");
             if (String("{{ .SuccessMessage }}").toLowerCase().includes("milestone")) {
+                console.log("Triggering milestone celebration from message");
                 setTimeout(() => document.dispatchEvent(new Event('milestone')), 100);
             } else if (String("{{ .SuccessMessage }}").toLowerCase().includes("done") || String("{{ .SuccessMessage }}").toLowerCase().includes("complet") || String("{{ .SuccessMessage }}").toLowerCase().includes("log") || String("{{ .SuccessMessage }}").toLowerCase().includes("end")) {
-                setTimeout(() => confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } }), 100);
+                console.log("Triggering confetti from message");
+                setTimeout(() => confetti({ 
+                    particleCount: 200, 
+                    spread: 90, 
+                    origin: { y: 0.6 },
+                    zIndex: 9999
+                }), 100);
             }
         </script>
         {{ end }}
@@ -117,41 +125,50 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             lucide.createIcons();
+            console.log("Mindloop UI initialized");
 
             // Re-run icons on HTMX content swaps
             document.body.addEventListener('htmx:afterSwap', function (evt) {
-                // We scan the whole body to be safe, as some swaps might replace containers
                 lucide.createIcons();
             });
             
             // Listen for Confetti HX-Trigger
             document.body.addEventListener('confetti', function (evt) {
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                console.log("Confetti trigger received via HTMX");
+                confetti({ 
+                    particleCount: 200, 
+                    spread: 90, 
+                    origin: { y: 0.6 },
+                    zIndex: 9999
+                });
             });
 
             // Listen for Milestone HX-Trigger
             document.body.addEventListener('milestone', function (evt) {
+                console.log("Milestone trigger received");
                 const overlay = document.getElementById('milestone-overlay');
                 overlay.style.display = 'flex';
                 
                 // Continuous confetti for milestone
-                var duration = 3 * 1000;
+                var duration = 5 * 1000;
                 var end = Date.now() + duration;
 
                 (function frame() {
                     confetti({
-                        particleCount: 5,
+                        particleCount: 7,
                         angle: 60,
                         spread: 55,
                         origin: { x: 0 },
-                        colors: ['#f59e0b', '#fbbf24', '#ffffff']
+                        colors: ['#f59e0b', '#fbbf24', '#ffffff'],
+                        zIndex: 9999
                     });
                     confetti({
-                        particleCount: 5,
+                        particleCount: 7,
                         angle: 120,
                         spread: 55,
                         origin: { x: 1 },
-                        colors: ['#f59e0b', '#fbbf24', '#ffffff']
+                        colors: ['#f59e0b', '#fbbf24', '#ffffff'],
+                        zIndex: 9999
                     });
 
                     if (Date.now() < end) {

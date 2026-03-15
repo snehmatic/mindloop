@@ -131,8 +131,14 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 	data["EndedHabits"] = endedHabits
 
 	// Pass query params as simple alerts
-	if success := r.URL.Query().Get("success"); success == "true" {
-		data["SuccessMessage"] = "Action completed successfully"
+	if success := r.URL.Query().Get("success"); success != "" {
+		if success == "true" {
+			data["SuccessMessage"] = "Action completed successfully"
+		} else if success == "done" {
+			data["SuccessMessage"] = "Habit logged successfully! Keep it up!"
+		} else if success == "milestone" {
+			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
+		}
 	}
 	if errStr := r.URL.Query().Get("error"); errStr != "" {
 		data["ErrorMessage"] = errStr
@@ -420,12 +426,27 @@ func (mlh *MindloopHandler) HandleIntent(w http.ResponseWriter, r *http.Request)
 		currentQuest = q
 	}
 
-	mlh.renderTemplate(w, "intent.html", map[string]interface{}{
+	data := map[string]interface{}{
 		"Title":         "Intent",
 		"CurrentIntent": currentIntent,
 		"CurrentQuest":  currentQuest,
 		"History":       allIntents,
-	})
+	}
+
+	if success := r.URL.Query().Get("success"); success != "" {
+		if success == "true" {
+			data["SuccessMessage"] = "Action completed successfully"
+		} else if success == "done" {
+			data["SuccessMessage"] = "Intent completed successfully! Great job!"
+		} else if success == "milestone" {
+			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
+		}
+	}
+	if errStr := r.URL.Query().Get("error"); errStr != "" {
+		data["ErrorMessage"] = errStr
+	}
+
+	mlh.renderTemplate(w, "intent.html", data)
 }
 
 func (mlh *MindloopHandler) HandleIntentSet(w http.ResponseWriter, r *http.Request) {
@@ -526,8 +547,14 @@ func (mlh *MindloopHandler) HandleFocus(w http.ResponseWriter, r *http.Request) 
 		"Sessions": sessions,
 	}
 
-	if success := r.URL.Query().Get("success"); success == "true" {
-		data["SuccessMessage"] = "Action completed successfully"
+	if success := r.URL.Query().Get("success"); success != "" {
+		if success == "true" {
+			data["SuccessMessage"] = "Action completed successfully"
+		} else if success == "done" {
+			data["SuccessMessage"] = "Focus session ended successfully! Well done!"
+		} else if success == "milestone" {
+			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
+		}
 	}
 	if errStr := r.URL.Query().Get("error"); errStr != "" {
 		data["ErrorMessage"] = errStr
