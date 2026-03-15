@@ -330,9 +330,9 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification && logRes != nil && habit != nil && logRes.ActualCount == habit.TargetCount {
 			if milestoneReached {
-				w.Header().Set("HX-Trigger", "milestone")
+				w.Header().Set("HX-Trigger", "{\"milestone\": {}}")
 			} else {
-				w.Header().Set("HX-Trigger", "confetti")
+				w.Header().Set("HX-Trigger", "{\"confetti\": {}}")
 			}
 		}
 		view, err := mlh.getHabitView(habitID)
@@ -487,9 +487,9 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification {
 			if milestoneReached {
-				w.Header().Set("HX-Trigger", "milestone")
+				w.Header().Set("HX-Trigger", "{\"milestone\": {}}")
 			} else {
-				w.Header().Set("HX-Trigger", "confetti")
+				w.Header().Set("HX-Trigger", "{\"confetti\": {}}")
 			}
 		}
 	} else if uc.FeatureFlags.Gamification {
@@ -588,9 +588,9 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification {
 			if milestoneReached {
-				w.Header().Set("HX-Trigger", "milestone")
+				w.Header().Set("HX-Trigger", "{\"milestone\": {}}")
 			} else {
-				w.Header().Set("HX-Trigger", "confetti")
+				w.Header().Set("HX-Trigger", "{\"confetti\": {}}")
 			}
 		}
 		sessions, _ := mlh.focus.ListSessions()

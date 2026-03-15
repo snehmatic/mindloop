@@ -254,9 +254,9 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 	if uc.FeatureFlags.Gamification {
 		if r.Header.Get("HX-Request") == "true" {
 			if milestoneReached {
-				w.Header().Set("HX-Trigger", "milestone")
+				w.Header().Set("HX-Trigger", "{\"milestone\": {}}")
 			} else {
-				w.Header().Set("HX-Trigger", "confetti")
+				w.Header().Set("HX-Trigger", "{\"confetti\": {}}")
 			}
 		} else {
 			successType := "done"
@@ -327,9 +327,9 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 	if uc.FeatureFlags.Gamification {
 		if r.Header.Get("HX-Request") == "true" {
 			if milestoneReached {
-				w.Header().Set("HX-Trigger", "milestone")
+				w.Header().Set("HX-Trigger", "{\"milestone\": {}}")
 			} else {
-				w.Header().Set("HX-Trigger", "confetti")
+				w.Header().Set("HX-Trigger", "{\"confetti\": {}}")
 			}
 		} else {
 			successType := "done"
