@@ -247,6 +247,18 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 		// In a real app, we'd pass the error back to the template
 	}
 
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
+	if uc.FeatureFlags.Gamification {
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Trigger", "confetti")
+		} else {
+			http.Redirect(w, r, "/journal?success=done", http.StatusSeeOther)
+			return
+		}
+	}
+
 	http.Redirect(w, r, "/journal", http.StatusSeeOther)
 }
 
@@ -298,6 +310,18 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 	currentIntent, _ := mlh.intent.GetOngoingIntent()
 	if currentIntent != nil && currentIntent.Status == "paused" {
 		_, _ = mlh.intent.ResumeIntent(currentIntent.ID)
+	}
+
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
+	if uc.FeatureFlags.Gamification {
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Trigger", "confetti")
+		} else {
+			http.Redirect(w, r, "/intent?success=done", http.StatusSeeOther)
+			return
+		}
 	}
 
 	http.Redirect(w, r, "/intent", http.StatusSeeOther)

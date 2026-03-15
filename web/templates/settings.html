@@ -117,6 +117,27 @@
                 </label>
             </div>
         </div>
+
+        <!-- Gamification -->
+        <div class="card">
+            <div class="flex-between mb-md">
+                <div class="flex-center gap-sm">
+                    <i data-lucide="award" class="icon-sm text-primary"></i>
+                    <h3 class="mb-0">Gamification</h3>
+                </div>
+            </div>
+            <p class="text-sm text-muted mb-md">Earn points and celebrate completing tasks.</p>
+
+            <div class="flex-col">
+                {{ $flags := .Config.FeatureFlags }}
+
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Enable Points & Confetti</span>
+                    <input type="checkbox" class="toggle-input" name="gamification" {{ if $flags.Gamification }}checked{{
+                        end }}>
+                </label>
+            </div>
+        </div>
     </div>
 </form>
 

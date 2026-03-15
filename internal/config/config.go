@@ -123,13 +123,13 @@ type UserConfig struct {
 }
 
 type FeatureFlags struct {
-	FocusCloud   bool `yaml:"focus_cloud"`
-	HabitCloud   bool `yaml:"habit_cloud"`
-	IntentCloud  bool `yaml:"intent_cloud"`
-	JournalCloud bool `yaml:"journal_cloud"`
-	NoteCloud    bool `yaml:"note_cloud"`
+        FocusCloud   bool `yaml:"focus_cloud"`
+        HabitCloud   bool `yaml:"habit_cloud"`
+        IntentCloud  bool `yaml:"intent_cloud"`
+        JournalCloud bool `yaml:"journal_cloud"`
+        NoteCloud    bool `yaml:"note_cloud"`
+        Gamification bool `yaml:"gamification"`
 }
-
 func ValidateUserConfig(cmd *cobra.Command) {
 	// check if user_config.yaml exists
 	logger := log.Get()

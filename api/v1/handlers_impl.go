@@ -313,7 +313,7 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 	}
 
 	habitID := r.FormValue("habit_id")
-	_, _, err := mlh.habit.LogHabit(habitID)
+	habit, logRes, err := mlh.habit.LogHabit(habitID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error logging habit")
 		if r.Header.Get("HX-Request") == "true" {
@@ -324,7 +324,13 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
 	if r.Header.Get("HX-Request") == "true" {
+		if uc.FeatureFlags.Gamification && logRes != nil && habit != nil && logRes.ActualCount == habit.TargetCount {
+			w.Header().Set("HX-Trigger", "confetti")
+		}
 		view, err := mlh.getHabitView(habitID)
 		if err == nil {
 			mlh.renderPartial(w, "_habit_card.html", view)
@@ -333,6 +339,10 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 		// Fallback if view fetch fails
 	}
 
+	if uc.FeatureFlags.Gamification && logRes != nil && habit != nil && logRes.ActualCount == habit.TargetCount {
+		http.Redirect(w, r, "/habits?success=done", http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/habits?success=true", http.StatusSeeOther)
 }
 
@@ -462,6 +472,19 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 	if err != nil {
 		log.Error().Err(err).Msg("Error completing intent")
 	}
+
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
+	if r.Header.Get("HX-Request") == "true" {
+		if uc.FeatureFlags.Gamification {
+			w.Header().Set("HX-Trigger", "confetti")
+		}
+	} else if uc.FeatureFlags.Gamification {
+		http.Redirect(w, r, "/intent?success=done", http.StatusSeeOther)
+		return
+	}
+
 	http.Redirect(w, r, "/intent", http.StatusSeeOther)
 }
 
@@ -543,7 +566,13 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
 	if r.Header.Get("HX-Request") == "true" {
+		if uc.FeatureFlags.Gamification {
+			w.Header().Set("HX-Trigger", "confetti")
+		}
 		sessions, _ := mlh.focus.ListSessions()
 		data := map[string]interface{}{"Sessions": sessions}
 		mlh.renderPartial(w, "focus_active_timer.html", data)
@@ -551,6 +580,10 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if uc.FeatureFlags.Gamification {
+		http.Redirect(w, r, "/focus?success=done", http.StatusSeeOther)
+		return
+	}
 	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
 }
 
@@ -937,6 +970,7 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 			IntentCloud:  r.FormValue("intent_cloud") == "on",
 			JournalCloud: r.FormValue("journal_cloud") == "on",
 			NoteCloud:    r.FormValue("note_cloud") == "on",
+			Gamification: r.FormValue("gamification") == "on",
 		},
 	}
 
