@@ -81,7 +81,7 @@ Mindloop follows a clean architecture pattern, separating core business logic fr
 
 ### Prerequisites
 
-*   [Go](https://go.dev/) 1.24+
+*   [Go](https://go.dev/) 1.26+
 *   [Make](https://www.gnu.org/software/make/)
 
 ### Installation

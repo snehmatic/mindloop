@@ -1,6 +1,6 @@
 module github.com/snehmatic/mindloop
 
-go 1.24.4
+go 1.26
 
 require (
 	github.com/glebarez/sqlite v1.11.0
