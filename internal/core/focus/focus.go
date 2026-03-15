@@ -59,7 +59,7 @@ func (s *Service) UpdateSession(session *models.FocusSession) error {
 	return s.DB.Save(session).Error
 }
 
-func (s *Service) EndSession(id int) (*models.FocusSession, bool, error) {
+func (s *Service) EndSession(id int, pointsToAward int) (*models.FocusSession, bool, error) {
 	var session models.FocusSession
 	if err := s.DB.First(&session, id).Error; err != nil {
 		return nil, false, err
@@ -77,7 +77,7 @@ func (s *Service) EndSession(id int) (*models.FocusSession, bool, error) {
 		return nil, false, err
 	}
 
-	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryFocus, session.ID, points.PointsFocus)
+	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryFocus, session.ID, pointsToAward)
 
 	return &session, milestoneReached, nil
 }

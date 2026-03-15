@@ -82,7 +82,7 @@ func TestEndAndRestartSession(t *testing.T) {
 	}
 
 	// 2. End session
-	_, _, err = s.EndSession(int(sess.ID))
+	_, _, err = s.EndSession(int(sess.ID), 10)
 	if err != nil {
 		t.Fatalf("Failed to end session: %v", err)
 	}

@@ -3,13 +3,12 @@ package cli
 import (
 	"strconv"
 
+	cfg "github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/focus"
-	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
 )
-
 var (
 	focusService *focus.Service
 )
@@ -87,23 +86,25 @@ var focusEndCmd = &cobra.Command{
 			return
 		}
 
-				session, milestoneReached, err := focusService.EndSession(sessionIDInt)
-				if err != nil {
-					utils.PrintErrorln("Error ending focus session:", err)
-					ac.Logger.Error().Msgf("Error ending focus session: %v", err)
-					return
-				}
-		
-				utils.PrintSuccessf("Focus session '%s' ended successfully! (+%d pts) 🎉\n", session.Title, points.PointsFocus)
-				if milestoneReached {
-					utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
-				}
-				utils.PrintRocketln("Great work chief!")
-				ac.Logger.Info().Msgf("Focus session '%s' ended successfully!", session.Title)
-			},
+				uc := cfg.UserConfig{}
+				_ = uc.ReadFromYAML()
+		session, milestoneReached, err := focusService.EndSession(sessionIDInt, uc.PointsConfig.Focus)
+		if err != nil {
+			utils.PrintErrorln("Error ending focus session:", err)
+			ac.Logger.Error().Msgf("Error ending focus session: %v", err)
+			return
 		}
-var focusRateCmd = &cobra.Command{
-	Use:     "rate",
+
+		utils.PrintSuccessf("Focus session '%s' ended successfully! (+%d pts) 🎉\n", session.Title, uc.PointsConfig.Focus)
+		if milestoneReached {
+			utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
+		}
+		utils.PrintRocketln("Great work chief!")
+		ac.Logger.Info().Msgf("Focus session '%s' ended successfully!", session.Title)
+	},
+}
+
+var focusRateCmd = &cobra.Command{Use: "rate",
 	Short:   "Rate a focus session",
 	Long:    `Rate a completed focus session to provide feedback on your productivity.`,
 	Example: `mindloop focus rate <session_id> <rating 0-10>`,

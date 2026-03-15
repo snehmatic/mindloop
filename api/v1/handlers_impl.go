@@ -319,7 +319,11 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 	}
 
 	habitID := r.FormValue("habit_id")
-	habit, logRes, milestoneReached, err := mlh.habit.LogHabit(habitID)
+
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
+	habit, logRes, milestoneReached, err := mlh.habit.LogHabit(habitID, uc.PointsConfig.Habit)
 	if err != nil {
 		log.Error().Err(err).Msg("Error logging habit")
 		if r.Header.Get("HX-Request") == "true" {
@@ -329,9 +333,6 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 		http.Redirect(w, r, "/habits?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
-
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
 
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification && logRes != nil && habit != nil && logRes.ActualCount == habit.TargetCount {
@@ -496,14 +497,14 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 		http.Redirect(w, r, "/intent", http.StatusSeeOther)
 		return
 	}
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
 	id := r.FormValue("id")
-	_, milestoneReached, err := mlh.intent.EndIntent(id)
+	_, milestoneReached, err := mlh.intent.EndIntent(id, uc.PointsConfig.Intent)
 	if err != nil {
 		log.Error().Err(err).Msg("Error completing intent")
 	}
-
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
 
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification {
@@ -596,9 +597,12 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 		http.Redirect(w, r, "/focus", http.StatusSeeOther)
 		return
 	}
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
 	idStr := r.FormValue("id")
 	id, _ := strconv.Atoi(idStr)
-	_, milestoneReached, err := mlh.focus.EndSession(id)
+	_, milestoneReached, err := mlh.focus.EndSession(id, uc.PointsConfig.Focus)
 	if err != nil {
 		log.Error().Err(err).Msg("Error ending focus session")
 		if r.Header.Get("HX-Request") == "true" {
@@ -608,9 +612,6 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 		http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
-
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
 
 	if r.Header.Get("HX-Request") == "true" {
 		if uc.FeatureFlags.Gamification {
@@ -1012,6 +1013,12 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	name := r.FormValue("name")
 	mode := r.FormValue("mode")
 
+	ptsFocus, _ := strconv.Atoi(r.FormValue("pts_focus"))
+	ptsHabit, _ := strconv.Atoi(r.FormValue("pts_habit"))
+	ptsIntent, _ := strconv.Atoi(r.FormValue("pts_intent"))
+	ptsJournal, _ := strconv.Atoi(r.FormValue("pts_journal"))
+	ptsQuest, _ := strconv.Atoi(r.FormValue("pts_quest"))
+
 	uc := config.UserConfig{
 		Name: name,
 		Mode: mode,
@@ -1022,6 +1029,13 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 			JournalCloud: r.FormValue("journal_cloud") == "on",
 			NoteCloud:    r.FormValue("note_cloud") == "on",
 			Gamification: r.FormValue("gamification") == "on",
+		},
+		PointsConfig: config.PointsConfig{
+			Focus:   ptsFocus,
+			Habit:   ptsHabit,
+			Intent:  ptsIntent,
+			Journal: ptsJournal,
+			Quest:   ptsQuest,
 		},
 	}
 

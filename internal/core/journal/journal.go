@@ -16,7 +16,7 @@ func NewService(db *gorm.DB) *Service {
 	return &Service{DB: db}
 }
 
-func (s *Service) CreateEntry(title, content, mood string) (bool, error) {
+func (s *Service) CreateEntry(title, content, mood string, pointsToAward int) (bool, error) {
 	if title == "" {
 		return false, errors.New("title cannot be empty")
 	}
@@ -36,7 +36,7 @@ func (s *Service) CreateEntry(title, content, mood string) (bool, error) {
 	err := s.DB.Create(&entry).Error
 	milestoneReached := false
 	if err == nil {
-		milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryJournal, entry.ID, points.PointsJournal)
+		milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryJournal, entry.ID, pointsToAward)
 	}
 	return milestoneReached, err
 }

@@ -4,9 +4,9 @@ import (
 	"strconv"
 	"strings"
 
+	cfg "github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/intent"
-	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
@@ -105,16 +105,19 @@ var questStopCmd = &cobra.Command{
 		}
 
 		if note == "" {
-			utils.PrintWarnln("No note provided. Saving with empty note.")
+			utils.PrintInfoln("No note provided. Saving with empty note.")
 		}
 
-		q, milestoneReached, err := questService.StopQuest(q.ID, note)
+		uc := cfg.UserConfig{}
+		_ = uc.ReadFromYAML()
+
+		q, milestoneReached, err := questService.StopQuest(q.ID, note, uc.PointsConfig.Quest)
 		if err != nil {
 			utils.PrintErrorln("Error stopping quest:", err)
 			return
 		}
 
-		utils.PrintSuccessf("Side Quest '%s' complete! (+%d pts) 🎉\n", q.Title, points.PointsQuest)
+		utils.PrintSuccessf("Side Quest '%s' complete! (+%d pts) 🎉\n", q.Title, uc.PointsConfig.Quest)
 		if milestoneReached {
 			utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
 		}

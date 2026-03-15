@@ -58,7 +58,7 @@ func TestQuestService(t *testing.T) {
 	}
 
 	// 4. Stop Quest
-	completed, _, err := s.StopQuest(q.ID, "Fixed it")
+	completed, _, err := s.StopQuest(q.ID, "Fixed it", 5)
 	if err != nil {
 		t.Fatalf("Failed to stop quest: %v", err)
 	}

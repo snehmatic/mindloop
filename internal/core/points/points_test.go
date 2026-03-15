@@ -26,7 +26,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 func TestAwardPoints(t *testing.T) {
 	db := setupTestDB(t)
 
-	milestoneReached, err := AwardPoints(db, models.CategoryHabit, 1, PointsHabit)
+	milestoneReached, err := AwardPoints(db, models.CategoryHabit, 1, 5)
 	if err != nil {
 		t.Errorf("Expected nil error, got %v", err)
 	}
@@ -45,8 +45,8 @@ func TestAwardPoints(t *testing.T) {
 	if transaction.ActivityID != 1 {
 		t.Errorf("Expected ActivityID 1, got %d", transaction.ActivityID)
 	}
-	if transaction.Points != PointsHabit {
-		t.Errorf("Expected Points %d, got %d", PointsHabit, transaction.Points)
+	if transaction.Points != 5 {
+		t.Errorf("Expected Points %d, got %d", 5, transaction.Points)
 	}
 
 	// Test Milestone

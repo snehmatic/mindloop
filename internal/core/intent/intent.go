@@ -69,7 +69,7 @@ func (s *Service) UpdateIntent(intent *models.Intent) error {
 	return s.DB.Save(intent).Error
 }
 
-func (s *Service) EndIntent(idStr string) (*models.Intent, bool, error) {
+func (s *Service) EndIntent(idStr string, pointsToAward int) (*models.Intent, bool, error) {
 	var intent models.Intent
 	if err := s.DB.Where("id = ?", idStr).First(&intent).Error; err != nil {
 		return nil, false, err
@@ -83,7 +83,7 @@ func (s *Service) EndIntent(idStr string) (*models.Intent, bool, error) {
 		return nil, false, err
 	}
 
-	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryIntent, intent.ID, points.PointsIntent)
+	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryIntent, intent.ID, pointsToAward)
 
 	return &intent, milestoneReached, nil
 }

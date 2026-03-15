@@ -46,7 +46,7 @@ func TestHabitService(t *testing.T) {
 	}
 
 	// 2. Log Habit
-	_, log, _, err := s.LogHabit("1")
+	_, log, _, err := s.LogHabit("1", 5)
 	if err != nil {
 		t.Fatalf("Failed to log habit: %v", err)
 	}
@@ -55,7 +55,7 @@ func TestHabitService(t *testing.T) {
 	}
 
 	// 3. Log Habit again (already completed)
-	_, _, _, err = s.LogHabit("1")
+	_, _, _, err = s.LogHabit("1", 5)
 	if err == nil {
 		t.Error("Expected error when logging already completed habit, got nil")
 	}

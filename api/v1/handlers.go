@@ -254,14 +254,14 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 	content := r.FormValue("content")
 	mood := r.FormValue("mood")
 
-	milestoneReached, err := mlh.journal.CreateEntry(title, content, mood)
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
+	milestoneReached, err := mlh.journal.CreateEntry(title, content, mood, uc.PointsConfig.Journal)
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating journal entry")
 		// In a real app, we'd pass the error back to the template
 	}
-
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
 
 	if uc.FeatureFlags.Gamification {
 		if r.Header.Get("HX-Request") == "true" {
@@ -325,16 +325,16 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	note := r.FormValue("note")
 
-	_, milestoneReached, _ := mlh.quest.StopQuest(uint(id), note)
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
+	_, milestoneReached, _ := mlh.quest.StopQuest(uint(id), note, uc.PointsConfig.Quest)
 
 	// Auto-resume intent if one is paused
 	currentIntent, _ := mlh.intent.GetOngoingIntent()
 	if currentIntent != nil && currentIntent.Status == "paused" {
 		_, _ = mlh.intent.ResumeIntent(currentIntent.ID)
 	}
-
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
 
 	if uc.FeatureFlags.Gamification {
 		if r.Header.Get("HX-Request") == "true" {
@@ -385,7 +385,9 @@ func (mlh *MindloopHandler) HandleIntentResume(w http.ResponseWriter, r *http.Re
 	// 2. Automatically complete any active side quest
 	activeQuest, _ := mlh.quest.GetActiveQuest()
 	if activeQuest != nil {
-		_, _, _ = mlh.quest.StopQuest(activeQuest.ID, "Resumed main intent")
+		uc := config.UserConfig{}
+		_ = uc.ReadFromYAML()
+		_, _, _ = mlh.quest.StopQuest(activeQuest.ID, "Resumed main intent", uc.PointsConfig.Quest)
 	}
 
 	http.Redirect(w, r, "/intent", http.StatusSeeOther)

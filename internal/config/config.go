@@ -116,10 +116,11 @@ func GetConfig() *Config {
 }
 
 type UserConfig struct {
-	Name         string       `yaml:"name"`
-	Mode         string       `yaml:"mode"`
-	DbConfig     DBConfig     `yaml:"db_config"`
-	FeatureFlags FeatureFlags `yaml:"feature_flags"`
+        Name         string       `yaml:"name"`
+        Mode         string       `yaml:"mode"`
+        DbConfig     DBConfig     `yaml:"db_config"`
+        FeatureFlags FeatureFlags `yaml:"feature_flags"`
+        PointsConfig PointsConfig `yaml:"points_config"`
 }
 
 type FeatureFlags struct {
@@ -130,6 +131,33 @@ type FeatureFlags struct {
         NoteCloud    bool `yaml:"note_cloud"`
         Gamification bool `yaml:"gamification"`
 }
+
+type PointsConfig struct {
+        Focus   int `yaml:"focus"`
+        Habit   int `yaml:"habit"`
+        Intent  int `yaml:"intent"`
+        Journal int `yaml:"journal"`
+        Quest   int `yaml:"quest"`
+}
+
+func (uc *UserConfig) SetDefaults() {
+        if uc.PointsConfig.Focus == 0 {
+                uc.PointsConfig.Focus = 10
+        }
+        if uc.PointsConfig.Habit == 0 {
+                uc.PointsConfig.Habit = 5
+        }
+        if uc.PointsConfig.Intent == 0 {
+                uc.PointsConfig.Intent = 10
+        }
+        if uc.PointsConfig.Journal == 0 {
+                uc.PointsConfig.Journal = 5
+        }
+        if uc.PointsConfig.Quest == 0 {
+                uc.PointsConfig.Quest = 5
+        }
+}
+
 func ValidateUserConfig(cmd *cobra.Command) {
 	// check if user_config.yaml exists
 	logger := log.Get()
@@ -160,13 +188,15 @@ func (uc UserConfig) WriteToYAML() {
 }
 
 func (uc *UserConfig) ReadFromYAML() error {
-	data, err := os.ReadFile(GetUserConfigPath())
-	if err != nil {
-		return fmt.Errorf("failed to read user config file: %w", err)
-	}
-	err = yaml.Unmarshal(data, uc)
-	if err != nil {
-		return fmt.Errorf("failed to unmarshal user config: %w", err)
-	}
-	return nil
+        data, err := os.ReadFile(GetUserConfigPath())
+        if err != nil {
+                uc.SetDefaults() // Set defaults even if file doesn't exist
+                return fmt.Errorf("failed to read user config file: %w", err)
+        }
+        err = yaml.Unmarshal(data, uc)
+        if err != nil {
+                return fmt.Errorf("failed to unmarshal user config: %w", err)
+        }
+        uc.SetDefaults() // Ensure defaults for missing fields
+        return nil
 }

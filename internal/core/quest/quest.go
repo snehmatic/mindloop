@@ -42,7 +42,7 @@ func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 	return quest, nil
 }
 
-func (s *Service) StopQuest(id uint, note string) (*models.SideQuest, bool, error) {
+func (s *Service) StopQuest(id uint, note string, pointsToAward int) (*models.SideQuest, bool, error) {
 	var quest models.SideQuest
 	if err := s.DB.First(&quest, id).Error; err != nil {
 		return nil, false, err
@@ -61,7 +61,7 @@ func (s *Service) StopQuest(id uint, note string) (*models.SideQuest, bool, erro
 		return nil, false, err
 	}
 
-	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryQuest, quest.ID, points.PointsQuest)
+	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryQuest, quest.ID, pointsToAward)
 
 	return &quest, milestoneReached, nil
 }

@@ -53,7 +53,7 @@ func TestIntentService(t *testing.T) {
 
 	// 3. End Intent
 	id := "1"
-	ended, _, err := s.EndIntent(id)
+	ended, _, err := s.EndIntent(id, 10)
 	if err != nil {
 		t.Fatalf("Failed to end intent: %v", err)
 	}

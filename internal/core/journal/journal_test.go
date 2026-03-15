@@ -34,7 +34,7 @@ func TestJournalService(t *testing.T) {
 	s := journal.NewService(db)
 
 	// 1. Create Entry
-	_, err := s.CreateEntry("Test Journal", "Test Content", "happy")
+	_, err := s.CreateEntry("Test Journal", "Test Content", "happy", 5)
 	if err != nil {
 		t.Fatalf("Failed to create journal entry: %v", err)
 	}
@@ -90,7 +90,7 @@ func TestCreateEntryValidation(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			_, err := s.CreateEntry(tt.title, tt.content, "neutral")
+			_, err := s.CreateEntry(tt.title, tt.content, "neutral", 5)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("CreateEntry() error = %v, wantErr %v", err, tt.wantErr)
 			}

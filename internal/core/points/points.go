@@ -5,15 +5,6 @@ import (
 	"gorm.io/gorm"
 )
 
-// Point constants
-const (
-	PointsFocus   = 10
-	PointsHabit   = 5
-	PointsIntent  = 10
-	PointsJournal = 5
-	PointsQuest   = 5
-)
-
 var MilestoneInterval = 100
 
 // AwardPoints creates a new PointTransaction and returns true if a milestone was reached

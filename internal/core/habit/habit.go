@@ -80,7 +80,7 @@ func (s *Service) ListEndedHabits() ([]models.Habit, error) {
 	return habits, result.Error
 }
 
-func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, bool, error) {
+func (s *Service) LogHabit(habitID string, pointsToAward int) (*models.Habit, *models.HabitLog, bool, error) {
 	habit, err := s.GetHabit(habitID)
 	if err != nil {
 		return nil, nil, false, err
@@ -123,7 +123,7 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, boo
 		}
 
 		if existingLog.ActualCount == habit.TargetCount {
-			milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryHabit, habit.ID, points.PointsHabit)
+			milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryHabit, habit.ID, pointsToAward)
 		}
 
 		return habit, &existingLog, milestoneReached, nil
@@ -143,7 +143,7 @@ func (s *Service) LogHabit(habitID string) (*models.Habit, *models.HabitLog, boo
 	}
 
 	if habitLog.ActualCount == habit.TargetCount {
-		milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryHabit, habit.ID, points.PointsHabit)
+		milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryHabit, habit.ID, pointsToAward)
 	}
 
 	return habit, habitLog, milestoneReached, nil

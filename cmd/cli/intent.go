@@ -1,8 +1,8 @@
 package cli
 
 import (
+	cfg "github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/intent"
-	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -110,14 +110,17 @@ var intentEndCmd = &cobra.Command{
 			return
 		}
 
-		intent, milestoneReached, err := intentService.EndIntent(args[0])
+		uc := cfg.UserConfig{}
+		_ = uc.ReadFromYAML()
+
+		intent, milestoneReached, err := intentService.EndIntent(args[0], uc.PointsConfig.Intent)
 		if err != nil {
 			utils.PrintErrorln("Error ending intent:", err)
 			ac.Logger.Error().Msgf("Error ending intent with ID %s: %v", args[0], err)
 			return
 		}
 
-		utils.PrintSuccessf("Intent '%s' ended successfully! (+%d pts) 🎉\n", intent.Name, points.PointsIntent)
+		utils.PrintSuccessf("Intent '%s' ended successfully! (+%d pts) 🎉\n", intent.Name, uc.PointsConfig.Intent)
 		if milestoneReached {
 			utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
 		}
