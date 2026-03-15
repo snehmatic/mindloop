@@ -141,6 +141,15 @@ type PointsConfig struct {
 }
 
 func (uc *UserConfig) SetDefaults() {
+        // Feature flags defaults
+        // Note: in YAML, a missing bool is false. 
+        // If we want it true by default, we'd need a more complex check or just assume if file is missing.
+        // For now, let's just force it to true if the config is newly initialized or missing the key.
+        // Actually, if we just want it 'default enabled' for new users:
+        if !uc.FeatureFlags.Gamification && uc.PointsConfig.Focus == 0 {
+             uc.FeatureFlags.Gamification = true
+        }
+
         if uc.PointsConfig.Focus == 0 {
                 uc.PointsConfig.Focus = 10
         }

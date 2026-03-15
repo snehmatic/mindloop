@@ -128,47 +128,38 @@
             </div>
             <p class="text-sm text-muted mb-md">Earn points and celebrate completing tasks.</p>
 
-            <div class="flex-col">
+            <div class="flex-col gap-md">
                 {{ $flags := .Config.FeatureFlags }}
-
-                <label class="settings-toggle">
+                <label class="settings-toggle mb-md">
                     <span class="text-sm font-bold">Enable Points & Confetti</span>
-                    <input type="checkbox" class="toggle-input" name="gamification" {{ if $flags.Gamification }}checked{{
-                        end }}>
+                    <input type="checkbox" class="toggle-input" name="gamification" id="gamification-toggle" 
+                        onchange="togglePointDefinitions(this.checked)" {{ if $flags.Gamification }}checked{{ end }}>
                 </label>
-            </div>
-        </div>
 
-        <!-- Point Definitions -->
-        <div class="card">
-            <div class="mb-md">
-                <div class="flex-center mb-md gap-sm" style="justify-content: flex-start;">
-                    <i data-lucide="target" class="icon-sm text-primary"></i>
-                    <h3 class="mb-0">Point Definitions</h3>
-                </div>
-            </div>
-            <p class="text-sm text-muted mb-md">Customize how many points you earn for each activity.</p>
-
-            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
-                <div class="form-group">
-                    <label for="pts_focus" class="text-xs">Focus Session</label>
-                    <input type="number" id="pts_focus" name="pts_focus" value="{{ .Config.PointsConfig.Focus }}" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="pts_habit" class="text-xs">Habit (Target Met)</label>
-                    <input type="number" id="pts_habit" name="pts_habit" value="{{ .Config.PointsConfig.Habit }}" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="pts_intent" class="text-xs">Intent Completed</label>
-                    <input type="number" id="pts_intent" name="pts_intent" value="{{ .Config.PointsConfig.Intent }}" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="pts_journal" class="text-xs">Journal Entry</label>
-                    <input type="number" id="pts_journal" name="pts_journal" value="{{ .Config.PointsConfig.Journal }}" min="0">
-                </div>
-                <div class="form-group">
-                    <label for="pts_quest" class="text-xs">Side Quest</label>
-                    <input type="number" id="pts_quest" name="pts_quest" value="{{ .Config.PointsConfig.Quest }}" min="0">
+                <div id="points-definition-container" style="transition: opacity 0.3s ease; {{ if not $flags.Gamification }}opacity: 0.5; pointer-events: none;{{ end }}">
+                    <h4 class="text-xs font-bold text-muted mb-md" style="text-transform: uppercase; letter-spacing: 0.05em;">Point Definitions</h4>
+                    <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                        <div class="form-group">
+                            <label for="pts_focus" class="text-xs">Focus Session</label>
+                            <input type="number" id="pts_focus" name="pts_focus" value="{{ .Config.PointsConfig.Focus }}" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="pts_habit" class="text-xs">Habit (Target Met)</label>
+                            <input type="number" id="pts_habit" name="pts_habit" value="{{ .Config.PointsConfig.Habit }}" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="pts_intent" class="text-xs">Intent Completed</label>
+                            <input type="number" id="pts_intent" name="pts_intent" value="{{ .Config.PointsConfig.Intent }}" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="pts_journal" class="text-xs">Journal Entry</label>
+                            <input type="number" id="pts_journal" name="pts_journal" value="{{ .Config.PointsConfig.Journal }}" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="pts_quest" class="text-xs">Side Quest</label>
+                            <input type="number" id="pts_quest" name="pts_quest" value="{{ .Config.PointsConfig.Quest }}" min="0">
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -258,6 +249,17 @@
             dbSettings.hidden = false;
         } else {
             dbSettings.hidden = true;
+        }
+    }
+
+    function togglePointDefinitions(enabled) {
+        const container = document.getElementById('points-definition-container');
+        if (enabled) {
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+        } else {
+            container.style.opacity = '0.5';
+            container.style.pointerEvents = 'none';
         }
     }
 </script>
