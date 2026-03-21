@@ -917,7 +917,9 @@ func (mlh *MindloopHandler) HandleJournalUpdateLive(w http.ResponseWriter, r *ht
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "success"}); err != nil {
+		log.Error().Err(err).Msg("Error encoding response")
+	}
 }
 
 // --- Note Handlers ---
@@ -1037,7 +1039,9 @@ func (mlh *MindloopHandler) HandleNoteUpdateLive(w http.ResponseWriter, r *http.
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "success"}); err != nil {
+		log.Error().Err(err).Msg("Error encoding response")
+	}
 }
 
 func (mlh *MindloopHandler) HandleAbout(w http.ResponseWriter, r *http.Request) {
@@ -1146,7 +1150,9 @@ func (mlh *MindloopHandler) HandleSettingsUpdateWidth(w http.ResponseWriter, r *
 	uc.WriteToYAML()
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+	if err := json.NewEncoder(w).Encode(map[string]string{"status": "success"}); err != nil {
+		log.Error().Err(err).Msg("Error encoding response")
+	}
 }
 
 // --- Backup Handlers ---
