@@ -134,6 +134,11 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 		if mlh.config.UserName != "" {
 			d["UserName"] = mlh.config.UserName
 		}
+		if _, exists := d["Config"]; !exists {
+			uc := config.UserConfig{}
+			_ = uc.ReadFromYAML()
+			d["Config"] = uc
+		}
 	}
 
 	err = ts.Execute(&buf, data)

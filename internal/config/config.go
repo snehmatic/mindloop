@@ -116,11 +116,12 @@ func GetConfig() *Config {
 }
 
 type UserConfig struct {
-	Name         string       `yaml:"name"`
-	Mode         string       `yaml:"mode"`
-	DbConfig     DBConfig     `yaml:"db_config"`
-	FeatureFlags FeatureFlags `yaml:"feature_flags"`
-	PointsConfig PointsConfig `yaml:"points_config"`
+	Name            string       `yaml:"name"`
+	Mode            string       `yaml:"mode"`
+	EditorWideWidth bool         `yaml:"editor_wide_width"`
+	DbConfig        DBConfig     `yaml:"db_config"`
+	FeatureFlags    FeatureFlags `yaml:"feature_flags"`
+	PointsConfig    PointsConfig `yaml:"points_config"`
 }
 
 type FeatureFlags struct {

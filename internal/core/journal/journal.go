@@ -49,7 +49,7 @@ func (s *Service) ListEntries() ([]models.JournalEntry, error) {
 
 func (s *Service) GetEntry(id string) (models.JournalEntry, error) {
 	var entry models.JournalEntry
-	result := s.DB.First(&entry, "id = ?", id)
+	result := s.DB.First(&entry, id)
 	return entry, result.Error
 }
 
@@ -58,7 +58,7 @@ func (s *Service) UpdateEntry(entry *models.JournalEntry) error {
 }
 
 func (s *Service) DeleteEntry(id string) error {
-	result := s.DB.Delete(&models.JournalEntry{}, "id = ?", id)
+	result := s.DB.Delete(&models.JournalEntry{}, id)
 	return result.Error
 }
 

@@ -13,6 +13,9 @@
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="/static/js/lucide.min.js"></script>
+    <link rel="stylesheet" href='{{ asset "/static/css/easymde.min.css" }}'>
+    <script src="/static/js/purify.min.js"></script>
+    <script src="/static/js/easymde.min.js"></script>
     <script>
         // Check for saved user preference early to prevent flash
         (function () {
@@ -37,10 +40,10 @@
                                 class="nav-text">Home</span></a></li>
                     <li><a href="/intent" class="nav-link" title="Intent"><i data-lucide="crosshair"></i> <span
                                 class="nav-text">Intent</span></a></li>
-                    <li><a href="/habits" class="nav-link" title="Habits"><i data-lucide="check-square"></i> <span
-                                class="nav-text">Habits</span></a></li>
                     <li><a href="/focus" class="nav-link" title="Focus"><i data-lucide="zap"></i> <span
                                 class="nav-text">Focus</span></a></li>
+                    <li><a href="/habits" class="nav-link" title="Habits"><i data-lucide="check-square"></i> <span
+                                class="nav-text">Habits</span></a></li>
 
                     <!-- Write Dropdown -->
                     <li class="dropdown" id="write-dropdown">
@@ -54,19 +57,20 @@
                         </div>
                     </li>
 
-                    <li><a href="/summary" class="nav-link" title="Summary"><i data-lucide="bar-chart-2"></i> <span
-                                class="nav-text">Summary</span></a></li>
                     <li><a href="/void" class="nav-link" title="The Void"><i data-lucide="ghost"></i> <span
                                 class="nav-text">Void</span></a></li>
+                    <li><a href="/summary" class="nav-link" title="Summary"><i data-lucide="bar-chart-2"></i> <span
+                                class="nav-text">Summary</span></a></li>
 
                     <!-- Icon-only items -->
                     <li><a href="/about" class="nav-link" title="About"><i data-lucide="info"></i></a></li>
                     <li><a href="/settings" class="nav-link" title="Settings"><i data-lucide="settings"></i></a></li>
 
                     <li><button id="theme-toggle" class="btn btn-sm btn-secondary">
-                        <i data-lucide="moon" class="icon-moon" style="width: 1.1em; height: 1.1em;"></i>
-                        <i data-lucide="sun" class="icon-sun" style="width: 1.1em; height: 1.1em; display: none;"></i>
-                    </button>
+                            <i data-lucide="moon" class="icon-moon" style="width: 1.1em; height: 1.1em;"></i>
+                            <i data-lucide="sun" class="icon-sun"
+                                style="width: 1.1em; height: 1.1em; display: none;"></i>
+                        </button>
                     </li>
                 </ul>
             </nav>
@@ -85,9 +89,9 @@
                 setTimeout(() => document.dispatchEvent(new Event('milestone')), 100);
             } else if (String("{{ .SuccessMessage }}").toLowerCase().includes("done") || String("{{ .SuccessMessage }}").toLowerCase().includes("complet") || String("{{ .SuccessMessage }}").toLowerCase().includes("log") || String("{{ .SuccessMessage }}").toLowerCase().includes("end")) {
                 console.log("Triggering confetti from message");
-                setTimeout(() => confetti({ 
-                    particleCount: 200, 
-                    spread: 90, 
+                setTimeout(() => confetti({
+                    particleCount: 200,
+                    spread: 90,
                     origin: { y: 0.6 },
                     zIndex: 9999
                 }), 100);
@@ -110,7 +114,8 @@
             <div class="animate-pop-in">
                 <div style="font-size: 5rem; margin-bottom: 1rem;">🏆</div>
                 <h1 style="font-size: 3rem; margin-bottom: 0.5rem; color: var(--warning);">MILESTONE REACHED!</h1>
-                <p style="font-size: 1.5rem; opacity: 0.9; margin-bottom: 2rem;">You're making incredible progress. Keep it up!</p>
+                <p style="font-size: 1.5rem; opacity: 0.9; margin-bottom: 2rem;">You're making incredible progress. Keep
+                    it up!</p>
                 <button class="btn btn-primary btn-lg" onclick="closeMilestone()">Continue Journey</button>
             </div>
         </div>
@@ -131,13 +136,13 @@
             document.body.addEventListener('htmx:afterSwap', function (evt) {
                 lucide.createIcons();
             });
-            
+
             // Listen for Confetti HX-Trigger
             document.body.addEventListener('confetti', function (evt) {
                 console.log("Confetti trigger received via HTMX");
-                confetti({ 
-                    particleCount: 200, 
-                    spread: 90, 
+                confetti({
+                    particleCount: 200,
+                    spread: 90,
                     origin: { y: 0.6 },
                     zIndex: 9999
                 });
@@ -148,7 +153,7 @@
                 console.log("Milestone trigger received");
                 const overlay = document.getElementById('milestone-overlay');
                 overlay.style.display = 'flex';
-                
+
                 // Continuous confetti for milestone
                 var duration = 5 * 1000;
                 var end = Date.now() + duration;
@@ -187,13 +192,13 @@
                 // But the class names should be preserved on the new SVGs
                 const moon = document.querySelector('.icon-moon');
                 const sun = document.querySelector('.icon-sun');
-                
+
                 if (isDark) {
-                    if(moon) moon.style.display = 'none';
-                    if(sun) sun.style.display = 'block';
+                    if (moon) moon.style.display = 'none';
+                    if (sun) sun.style.display = 'block';
                 } else {
-                    if(moon) moon.style.display = 'block';
-                    if(sun) sun.style.display = 'none';
+                    if (moon) moon.style.display = 'block';
+                    if (sun) sun.style.display = 'none';
                 }
             }
 
@@ -207,7 +212,7 @@
             themeToggle.addEventListener('click', function () {
                 html.classList.toggle('dark-mode');
                 let isDark = html.classList.contains('dark-mode');
-                
+
                 if (isDark) {
                     html.setAttribute('data-theme', 'dark');
                     localStorage.setItem('theme', 'dark-mode');
@@ -215,7 +220,7 @@
                     html.removeAttribute('data-theme');
                     localStorage.setItem('theme', 'light');
                 }
-                
+
                 updateIcons(isDark);
             });
         });

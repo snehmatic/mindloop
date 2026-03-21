@@ -31,12 +31,14 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/journal/new", mlh.HandleJournalCreate).Methods("POST")
 	r.HandleFunc("/journal/view/{id}", mlh.HandleJournalView).Methods("GET")
 	r.HandleFunc("/journal/update", mlh.HandleJournalUpdate).Methods("POST")
+	r.HandleFunc("/journal/update-live", mlh.HandleJournalUpdateLive).Methods("POST", "PUT")
 	r.HandleFunc("/journal/delete", mlh.HandleJournalDelete).Methods("POST")
 
 	// Note Routes
 	r.HandleFunc("/notes", mlh.HandleNoteList).Methods("GET")
 	r.HandleFunc("/notes/new", mlh.HandleNoteCreate).Methods("POST")
 	r.HandleFunc("/notes/view/{id}", mlh.HandleNoteView).Methods("GET")
+	r.HandleFunc("/notes/update-live", mlh.HandleNoteUpdateLive).Methods("POST", "PUT")
 	r.HandleFunc("/notes/delete", mlh.HandleNoteDelete).Methods("POST")
 
 	// Habit Routes
@@ -74,6 +76,7 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	// Settings Route
 	r.HandleFunc("/settings", mlh.HandleSettings).Methods("GET")
 	r.HandleFunc("/settings/update", mlh.HandleSettingsUpdate).Methods("POST")
+	r.HandleFunc("/settings/update-width", mlh.HandleSettingsUpdateWidth).Methods("POST")
 
 	// Backup Routes
 	r.HandleFunc("/backup/export", mlh.HandleBackupExport).Methods("GET")

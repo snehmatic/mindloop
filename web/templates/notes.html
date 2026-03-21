@@ -1,62 +1,102 @@
 {{ define "content" }}
 <div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
     <!-- New Note Section -->
-    <div class="card">
-        <h2 class="mb-md">Capture a Note</h2>
+    <div class="mb-md flex-between">
+        <h2 class="mb-0">Recent Notes</h2>
+        <div class="flex-center gap-sm">
+            <button class="btn btn-primary btn-sm"
+                onclick="document.getElementById('new-note-form').style.display='block'; this.style.display='none';"><i
+                    data-lucide="plus" class="icon-sm"></i> New Note</button>
+        </div>
+    </div>
+
+    <div class="card mb-lg animate-pop-in" id="new-note-form" style="display: none;">
+        <div class="flex-between mb-md">
+            <h2 class="mb-0">Capture a Note</h2>
+            <button class="btn btn-icon"
+                onclick="document.getElementById('new-note-form').style.display='none'; document.querySelector('.btn-primary.btn-sm').style.display='inline-flex';"><i
+                    data-lucide="x" class="icon-sm"></i></button>
+        </div>
         <form action="/notes/new" method="POST">
-            <div class="form-group">
-                <label for="title">Title (Optional)</label>
-                <input type="text" id="title" name="title" placeholder="A brief title for your note">
+            <div class="form-group mb-sm">
+                <input type="text" id="title" name="title" class="form-control"
+                    placeholder="A brief title for your note">
+            </div>
+            <div class="form-group mb-sm">
+                <input type="text" id="labels" name="labels" class="form-control"
+                    placeholder="Labels (comma-separated)">
             </div>
             <div class="form-group">
-                <label for="labels">Labels (Optional, comma-separated)</label>
-                <input type="text" id="labels" name="labels" placeholder="work, idea, snippet">
+                <textarea id="content" name="content" class="form-control" rows="4"
+                    placeholder="What's on your mind? (Supports Markdown)" required></textarea>
             </div>
-            <div class="form-group">
-                <label for="content">Content</label>
-                <textarea id="content" name="content" rows="5" placeholder="What's on your mind? (Supports Markdown)" required></textarea>
-            </div>
-            <div class="flex-end">
-                <button type="submit" class="btn btn-primary">Save Note</button>
+            <div class="flex-end mt-md">
+                <button type="submit" class="btn btn-primary px-lg">Save Note</button>
             </div>
         </form>
     </div>
 
     <!-- Notes History -->
-    <div>
-        <div class="flex-between mb-md">
-            <h3>Recent Notes</h3>
-        </div>
+    <div class="notes-list">
 
         {{ if .Notes }}
         <div class="grid">
             {{ range .Notes }}
             <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between;">
-                <div>
+                <div id="display-note-{{ .ID }}">
                     <div class="flex-between mb-sm">
                         <h3 style="margin-bottom: 0;">{{ if .Title }}{{ .Title }}{{ else }}Untitled Note{{ end }}</h3>
                         <span class="text-xs text-muted">{{ .UpdatedAt.Format "Jan 02, 2006" }}</span>
                     </div>
-                    
+
                     <!-- Labels -->
                     <div class="mb-md" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
                         {{ if .Labels }}
-                            {{ range (split .Labels ",") }}
-                            <span style="background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">{{ . }}</span>
-                            {{ end }}
+                        {{ range (split .Labels ",") }}
+                        <span
+                            style="background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">{{
+                            . }}</span>
+                        {{ end }}
                         {{ end }}
                     </div>
 
-                    <p class="text-sm" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1.5rem;">
+                    <p class="text-sm"
+                        style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 1.5rem;">
                         {{ .Content }}
                     </p>
                 </div>
 
-                <div class="flex-between mt-auto">
-                    <a href="/notes/view/{{ .ID }}" class="btn btn-sm btn-secondary">View Full</a>
-                    <form action="/notes/delete" method="POST" style="margin: 0;" onsubmit="return confirm('Delete this note?');">
+                <!-- Edit Form -->
+                <div id="edit-note-{{ .ID }}" style="display: none; margin-bottom: 1.5rem;">
+                    <div class="form-group mb-sm">
+                        <input type="text" id="edit-title-{{ .ID }}" class="form-control" value="{{ .Title }}"
+                            placeholder="Title" required>
+                    </div>
+                    <div class="form-group mb-sm">
+                        <textarea id="edit-content-{{ .ID }}" class="form-control" rows="4" placeholder="Content"
+                            required>{{ .Content }}</textarea>
+                    </div>
+                    <div class="flex-between">
+                        <button type="button" class="btn btn-sm btn-secondary"
+                            onclick="toggleEditNote('{{ .ID }}')">Cancel</button>
+                        <button type="button" class="btn btn-sm btn-primary"
+                            onclick="saveNoteLive('{{ .ID }}')">Save</button>
+                    </div>
+                </div>
+
+                <div class="flex-between mt-auto" id="actions-note-{{ .ID }}">
+                    <div style="display: flex; gap: 0.5rem;">
+                        <a href="/notes/view/{{ .ID }}" class="btn btn-sm btn-secondary">View Full</a>
+                        <button onclick="toggleEditNote('{{ .ID }}')" class="btn btn-secondary btn-sm"
+                            title="Quick Edit" style="padding: 0.4rem;"><i data-lucide="edit-2"
+                                style="width: 14px; height: 14px;"></i></button>
+                    </div>
+                    <form action="/notes/delete" method="POST" style="margin: 0;"
+                        onsubmit="return confirm('Delete this note?');">
                         <input type="hidden" name="id" value="{{ .ID }}">
-                        <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete">🗑️</button>
+                        <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete"
+                            style="padding: 0.4rem;"><i data-lucide="trash-2"
+                                style="width: 14px; height: 14px;"></i></button>
                     </form>
                 </div>
             </div>
@@ -69,4 +109,55 @@
         {{ end }}
     </div>
 </div>
+</div>
+</div>
+
+<script>
+    function toggleEditNote(id) {
+        const display = document.getElementById('display-note-' + id);
+        const form = document.getElementById('edit-note-' + id);
+        const actions = document.getElementById('actions-note-' + id);
+
+        if (form.style.display === 'none') {
+            form.style.display = 'block';
+            display.style.display = 'none';
+            actions.style.display = 'none';
+        } else {
+            form.style.display = 'none';
+            display.style.display = 'block';
+            actions.style.display = 'flex';
+        }
+    }
+
+    async function saveNoteLive(id) {
+        const title = document.getElementById('edit-title-' + id).value;
+        const content = document.getElementById('edit-content-' + id).value;
+        const btn = document.querySelector(`#edit-note-${id} .btn-primary`);
+        const originalText = btn.innerText;
+        btn.innerText = 'Saving...';
+
+        const fd = new URLSearchParams();
+        fd.append('id', id);
+        fd.append('title', title);
+        fd.append('content', content);
+
+        try {
+            const res = await fetch('/notes/update-live', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: fd
+            });
+            if (res.ok) {
+                window.location.reload(); // Reload to reflect changes globally
+            } else {
+                alert('Failed to save note');
+                btn.innerText = originalText;
+            }
+        } catch (e) {
+            console.error(e);
+            alert('Error saving note');
+            btn.innerText = originalText;
+        }
+    }
+</script>
 {{ end }}

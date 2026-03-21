@@ -1,14 +1,33 @@
 {{ define "content" }}
-<div class="card">
-    <h2>New Entry</h2>
+<div class="mb-md flex-between">
+    <h2 class="mb-0">Recent Entries</h2>
+    <div class="flex-center gap-sm">
+        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all journal entries?');" class="mb-0">
+            <input type="hidden" name="type" value="journal">
+            <button type="submit" class="btn btn-danger-outline btn-sm"><i data-lucide="trash" class="icon-sm"></i>
+                Reset All</button>
+        </form>
+        <button class="btn btn-primary btn-sm"
+            onclick="document.getElementById('new-entry-form').style.display='block'; this.style.display='none';"><i
+                data-lucide="plus" class="icon-sm"></i> New</button>
+    </div>
+</div>
+
+<div class="card mb-lg animate-pop-in" id="new-entry-form" style="display: none;">
+    <div class="flex-between mb-md">
+        <h2 class="mb-0">New Entry</h2>
+        <button class="btn btn-icon"
+            onclick="document.getElementById('new-entry-form').style.display='none'; document.querySelector('.btn-primary.btn-sm').style.display='inline-flex';"><i
+                data-lucide="x" class="icon-sm"></i></button>
+    </div>
     <form action="/journal/new" method="POST">
-        <div class="form-group">
-            <label for="title">Title</label>
-            <input type="text" id="title" name="title" required placeholder="Title your thoughts...">
+        <div class="form-group mb-sm">
+            <input type="text" id="title" name="title" class="form-control" required
+                placeholder="Title your thoughts...">
         </div>
-        <div class="form-group">
-            <label for="mood">Mood</label>
-            <select id="mood" name="mood">
+        <div class="form-group mb-sm" style="display: flex; align-items: center; gap: 1rem;">
+            <label for="mood" style="margin:0; min-width: max-content;">Mood:</label>
+            <select id="mood" name="mood" class="form-control" style="width: auto;">
                 <option value="neutral">Neutral 😐</option>
                 <option value="happy">Happy 😊</option>
                 <option value="sad">Sad 😔</option>
@@ -17,56 +36,55 @@
             </select>
         </div>
         <div class="form-group">
-            <label for="content">Content</label>
-            <textarea id="content" name="content" rows="4" required
+            <textarea id="content" name="content" class="form-control" rows="4" required
                 placeholder="Write your daily reflection here..."></textarea>
         </div>
-        <div class="flex-center" style="justify-content: flex-end;">
-            <button type="submit" class="btn btn-primary" style="padding-left: 2rem; padding-right: 2rem;">Save
-                Entry</button>
+        <div class="flex-end mt-md">
+            <button type="submit" class="btn btn-primary px-lg">Save Entry</button>
         </div>
     </form>
 </div>
 
-<div class="entries" style="margin-top: 2rem;">
-    <div class="flex-between mobile-stack mb-md">
-        <h2 class="mb-0">Recent Entries</h2>
-        <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all journal entries?');" class="mb-0">
-            <input type="hidden" name="type" value="journal">
-            <button type="submit" class="btn btn-danger-outline btn-sm">Reset Journal</button>
-        </form>
-    </div>
+<div class="entries">
     {{ if .Entries }}
     {{ range .Entries }}
     <div class="card">
-        <div class="flex-between">
-            <h3>{{ .Title }} <small class="text-muted font-normal">({{ .Mood }})</small></h3>
-            <div class="flex-center" style="gap: 0.5rem;">
-                <a href="/journal/view/{{ .ID }}" class="btn btn-secondary btn-sm">View Full</a>
-                <button onclick="toggleEditJournal('{{ .ID }}')" class="btn btn-secondary btn-sm" title="Edit"
-                    style="padding: 0.4rem;"><i data-lucide="edit-2" style="width: 14px;"></i></button>
-                <form action="/journal/delete" method="POST" style="margin: 0;"
-                    onsubmit="return confirm('Delete this entry?');">
-                    <input type="hidden" name="id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete"
-                        style="padding: 0.4rem;"><i data-lucide="trash-2" style="width: 14px;"></i></button>
-                </form>
-            </div>
-        </div>
         <div id="display-journal-{{ .ID }}">
-            <p>{{ .Content }}</p>
-            <small class="text-muted">{{ .CreatedAt.Format "Jan 02, 2006 15:04" }}</small>
+            <div class="flex-between mb-sm" style="align-items: flex-start;">
+                <div>
+                    <h3 style="margin-bottom: 0.25rem;">{{ .Title }} <span class="badge badge-secondary"
+                            style="font-weight: normal; margin-left: 0.5rem;">{{ .Mood }}</span></h3>
+                    <small class="text-muted">{{ .CreatedAt.Format "Jan 02, 2006 15:04" }}</small>
+                </div>
+                <div class="flex-center gap-sm">
+                    <button onclick="toggleEditJournal('{{ .ID }}')" class="btn btn-secondary btn-sm" title="Quick Edit"
+                        style="padding: 0.4rem;"><i data-lucide="edit-2"
+                            style="width: 14px; height: 14px;"></i></button>
+                    <a href="/journal/view/{{ .ID }}" class="btn btn-secondary btn-sm" title="Open Full"
+                        style="padding: 0.4rem;"><i data-lucide="maximize-2" style="width: 14px; height: 14px;"></i></a>
+                    <form action="/journal/delete" method="POST" style="margin: 0;"
+                        onsubmit="return confirm('Delete this entry?');">
+                        <input type="hidden" name="id" value="{{ .ID }}">
+                        <button type="submit" class="btn btn-danger-outline btn-sm" title="Delete"
+                            style="padding: 0.4rem;"><i data-lucide="trash-2"
+                                style="width: 14px; height: 14px;"></i></button>
+                    </form>
+                </div>
+            </div>
+            <p class="text-sm text-muted mt-sm mb-0"
+                style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">{{
+                .Content }}</p>
         </div>
 
         <!-- Edit Form -->
-        <div id="edit-journal-{{ .ID }}" style="display: none; margin-top: 1rem;">
+        <div id="edit-journal-{{ .ID }}" style="display: none; padding-top: 0.5rem;">
             <form action="/journal/update" method="POST">
                 <input type="hidden" name="id" value="{{ .ID }}">
-                <div class="form-group">
-                    <input type="text" name="title" value="{{ .Title }}" required>
+                <div class="form-group mb-sm">
+                    <input type="text" name="title" class="form-control" value="{{ .Title }}" required>
                 </div>
-                <div class="form-group">
-                    <select name="mood">
+                <div class="form-group mb-sm">
+                    <select name="mood" class="form-control">
                         <option value="neutral" {{ if eq .Mood "neutral" }}selected{{ end }}>Neutral 😐</option>
                         <option value="happy" {{ if eq .Mood "happy" }}selected{{ end }}>Happy 😊</option>
                         <option value="sad" {{ if eq .Mood "sad" }}selected{{ end }}>Sad 😔</option>
@@ -74,10 +92,10 @@
                         <option value="calm" {{ if eq .Mood "calm" }}selected{{ end }}>Calm 😌</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <textarea name="content" rows="4" required>{{ .Content }}</textarea>
+                <div class="form-group mb-sm">
+                    <textarea name="content" class="form-control" rows="4" required>{{ .Content }}</textarea>
                 </div>
-                <div class="flex-between">
+                <div class="flex-end gap-sm mt-md">
                     <button type="button" class="btn btn-sm btn-secondary"
                         onclick="toggleEditJournal('{{ .ID }}')">Cancel</button>
                     <button type="submit" class="btn btn-sm btn-primary">Save</button>

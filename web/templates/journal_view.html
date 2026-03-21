@@ -1,5 +1,5 @@
 {{ define "content" }}
-<div class="breadcrumb">
+<div class="breadcrumb mb-md" style="margin-bottom: 0.5rem;">
     <div class="breadcrumb-item"><a href="/">Home</a></div>
     <div class="breadcrumb-separator">/</div>
     <div class="breadcrumb-item"><a href="/journal">Journal</a></div>
@@ -7,26 +7,49 @@
     <div class="breadcrumb-item active">{{ .Entry.Title }}</div>
 </div>
 
-<div class="mb-md">
+<div class="mb-lg flex-between">
     <a href="/journal" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
-        <i data-lucide="arrow-left" class="icon-sm"></i> Back to Journal
+        <i data-lucide="arrow-left" class="icon-sm"></i> Back
     </a>
+    <div style="display: flex; gap: 0.5rem;">
+        <button id="btn-toggle-width" class="btn btn-secondary btn-sm" title="Toggle full width">
+            <i id="width-icon" data-lucide="maximize-2" class="icon-sm"></i>
+        </button>
+        <button id="btn-edit" class="btn btn-primary btn-sm"
+            style="display: inline-flex; align-items: center; gap: 0.5rem;">
+            <i data-lucide="edit-3" class="icon-sm"></i> Edit
+        </button>
+        <button id="btn-save" class="btn btn-success btn-sm" style="display: none; align-items: center; gap: 0.5rem;">
+            <i data-lucide="save" class="icon-sm"></i> Save
+        </button>
+    </div>
 </div>
 
-<div class="card">
-    <div class="flex-between mb-lg" style="border-bottom: 1px solid var(--border); padding-bottom: 1.5rem;">
-        <div>
-            <h1 class="mb-xs">{{ .Entry.Title }}</h1>
-            <div class="flex-center gap-md" style="justify-content: flex-start;">
+<div id="journal-card" style="transition: all 0.3s ease; padding: 2rem 0;">
+    <div class="flex-between mb-md" style="padding-bottom: 1rem;">
+        <div style="flex: 1;">
+            <h1 id="title-display"
+                style="font-size: 2.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem; padding: 0;">{{
+                .Entry.Title }}</h1>
+            <input type="text" id="title-input" class="form-control"
+                style="display: none; font-size: 2.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem; width: 100%; border: none; background: transparent; padding: 0; color: var(--text-color);"
+                value="{{ .Entry.Title }}" placeholder="Journal Title...">
+
+            <div class="flex-center gap-md" style="justify-content: flex-start; margin-top: 0.5rem;">
                 <span class="text-sm text-muted">Mood: {{ .Entry.Mood }}</span>
                 <span class="text-sm text-muted">Date: {{ .Entry.CreatedAt.Format "Jan 02, 2006 15:04" }}</span>
             </div>
         </div>
     </div>
 
-    <!-- Markdown Content -->
-    <div class="markdown-body">
+    <!-- Static Markdown View -->
+    <div id="markdown-view" class="markdown-body">
         {{ .HTMLContent }}
+    </div>
+
+    <!-- Live Editor View -->
+    <div id="editor-wrapper" style="display: none;">
+        <textarea id="md-editor"></textarea>
     </div>
 </div>
 
@@ -76,5 +99,162 @@
         color: var(--text-muted);
         font-style: italic;
     }
+
+    /* EasyMDE Dark Mode Tweaks */
+    .dark-mode .EasyMDEContainer .editor-toolbar {
+        background: var(--bg-surface);
+        border-color: var(--border);
+        color: var(--text-color);
+    }
+
+    .dark-mode .EasyMDEContainer .editor-toolbar button {
+        color: var(--text-color);
+    }
+
+    .dark-mode .EasyMDEContainer .editor-toolbar button.active,
+    .dark-mode .EasyMDEContainer .editor-toolbar button:hover {
+        background: var(--secondary);
+        border-color: var(--border);
+    }
+
+    .dark-mode .CodeMirror {
+        background: var(--bg-surface);
+        color: var(--text-color);
+        border-color: var(--border);
+    }
+
+    .dark-mode .CodeMirror-cursor {
+        border-left-color: var(--text-color);
+    }
+
+    .dark-mode .editor-preview {
+        background: var(--bg-surface);
+        color: var(--text-color);
+    }
+
+    #title-input:focus {
+        outline: none;
+    }
+
+    .EasyMDEContainer {
+        margin-top: 1rem;
+    }
 </style>
+
+<script>
+    // Configuration from backend
+    const isGlobalWideStr = "{{ if .Config }}{{ .Config.EditorWideWidth }}{{ else }}false{{ end }}";
+    const isGlobalWide = isGlobalWideStr === "true";
+    const entryId = "{{ .Entry.ID }}";
+    const initialContent = {{ .Entry.Content | json }};
+
+    // Elements
+    const container = document.querySelector('main.container');
+    const mdView = document.getElementById('markdown-view');
+    const editorWrapper = document.getElementById('editor-wrapper');
+    const titleDisplay = document.getElementById('title-display');
+    const titleInput = document.getElementById('title-input');
+    const btnEdit = document.getElementById('btn-edit');
+    const btnSave = document.getElementById('btn-save');
+    const btnToggleWidth = document.getElementById('btn-toggle-width');
+    const widthIcon = document.getElementById('width-icon');
+
+    let isWide = isGlobalWide;
+    let easyMDE = null;
+
+    function applyWidth() {
+        if (!container) return;
+        if (isWide) {
+            container.style.maxWidth = '100%';
+            container.style.padding = '0 2rem';
+            widthIcon.setAttribute('data-lucide', 'minimize-2');
+        } else {
+            container.style.maxWidth = '800px';
+            container.style.padding = '0 1rem';
+            widthIcon.setAttribute('data-lucide', 'maximize-2');
+        }
+        lucide.createIcons();
+    }
+
+    applyWidth();
+
+    btnToggleWidth.addEventListener('click', () => {
+        isWide = !isWide;
+        applyWidth();
+    });
+
+    btnEdit.addEventListener('click', () => {
+        mdView.style.display = 'none';
+        editorWrapper.style.display = 'block';
+        titleDisplay.style.display = 'none';
+        titleInput.style.display = 'block';
+        btnEdit.style.display = 'none';
+        btnSave.style.display = 'inline-flex';
+
+        if (!easyMDE) {
+            easyMDE = new EasyMDE({
+                element: document.getElementById('md-editor'),
+                initialValue: initialContent,
+                spellChecker: false,
+                status: false,
+                autofocus: true,
+                maxHeight: '65vh',
+                toolbar: ["bold", "italic", "heading", "|", "quote", "unordered-list", "ordered-list", "|", "link", "image", "|", "preview", "side-by-side", "fullscreen"]
+            });
+            // Add Ctrl+S support
+            document.addEventListener('keydown', function (e) {
+                if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+                    e.preventDefault();
+                    if (editorWrapper.style.display !== 'none') {
+                        btnSave.click();
+                    }
+                }
+            });
+        }
+    });
+
+    btnSave.addEventListener('click', async () => {
+        const title = titleInput.value;
+        const content = easyMDE.value();
+
+        btnSave.innerHTML = '<i data-lucide="loader" class="icon-sm"></i> Saving...';
+        lucide.createIcons();
+
+        try {
+            const fd = new URLSearchParams();
+            fd.append('id', entryId);
+            fd.append('title', title);
+            fd.append('content', content);
+
+            const res = await fetch('/journal/update-live', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: fd
+            });
+
+            if (res.ok) {
+                const toast = document.createElement('div');
+                toast.className = 'card animate-pop-in';
+                toast.style.cssText = 'position: fixed; bottom: 80px; right: 20px; background: var(--success-bg); color: var(--success); border-color: var(--success); padding: 0.75rem 1.5rem; z-index: 1000; font-weight: 500; font-size: 0.9rem; box-shadow: var(--shadow-md);';
+                toast.innerText = 'Journal entry saved successfully!';
+                document.body.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    toast.style.transition = 'opacity 0.3s ease';
+                    setTimeout(() => toast.remove(), 300);
+                }, 2500);
+            } else {
+                const errText = await res.text();
+                alert('Failed to save entry: ' + errText + ' (status ' + res.status + ')');
+            }
+        } catch (e) {
+            console.error(e);
+            alert("Error saving entry: " + e.message);
+        } finally {
+            btnSave.innerHTML = '<i data-lucide="save" class="icon-sm"></i> Save';
+            lucide.createIcons();
+        }
+    });
+</script>
 {{ end }}
+```

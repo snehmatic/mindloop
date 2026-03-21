@@ -888,6 +888,38 @@ func (mlh *MindloopHandler) HandleJournalView(w http.ResponseWriter, r *http.Req
 	})
 }
 
+func (mlh *MindloopHandler) HandleJournalUpdateLive(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodPut {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		idStr = r.FormValue("id")
+	}
+
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+
+	entry, err := mlh.journal.GetEntry(idStr)
+	if err != nil {
+		http.Error(w, "Entry not found", http.StatusNotFound)
+		return
+	}
+
+	entry.Title = title
+	entry.Content = content
+
+	if err := mlh.journal.UpdateEntry(&entry); err != nil {
+		http.Error(w, "Error updating entry", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
 // --- Note Handlers ---
 
 func (mlh *MindloopHandler) HandleNoteList(w http.ResponseWriter, r *http.Request) {
@@ -972,6 +1004,42 @@ func (mlh *MindloopHandler) HandleNoteDelete(w http.ResponseWriter, r *http.Requ
 
 	http.Redirect(w, r, "/notes?success=true", http.StatusSeeOther)
 }
+
+func (mlh *MindloopHandler) HandleNoteUpdateLive(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost && r.Method != http.MethodPut {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	idStr := r.URL.Query().Get("id")
+	if idStr == "" {
+		idStr = r.FormValue("id")
+	}
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, "Invalid ID", http.StatusBadRequest)
+		return
+	}
+
+	title := r.FormValue("title")
+	content := r.FormValue("content")
+
+	n, err := mlh.note.GetNote(id)
+	if err != nil {
+		http.Error(w, "Note not found", http.StatusNotFound)
+		return
+	}
+
+	_, err = mlh.note.UpdateNote(id, title, content, n.Labels)
+	if err != nil {
+		http.Error(w, "Error updating note", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
+}
+
 func (mlh *MindloopHandler) HandleAbout(w http.ResponseWriter, r *http.Request) {
 	mlh.renderTemplate(w, "about.html", map[string]interface{}{
 		"Title":   "About",
@@ -1023,8 +1091,9 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	ptsQuest, _ := strconv.Atoi(r.FormValue("pts_quest"))
 
 	uc := config.UserConfig{
-		Name: name,
-		Mode: mode,
+		Name:            name,
+		Mode:            mode,
+		EditorWideWidth: r.FormValue("editor_wide_width") == "on",
 		FeatureFlags: config.FeatureFlags{
 			FocusCloud:   r.FormValue("focus_cloud") == "on",
 			HabitCloud:   r.FormValue("habit_cloud") == "on",
@@ -1061,6 +1130,23 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	}
 
 	http.Redirect(w, r, "/settings?success=true", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleSettingsUpdateWidth(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/settings", http.StatusSeeOther)
+		return
+	}
+
+	isWide := r.FormValue("wide") == "true"
+
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+	uc.EditorWideWidth = isWide
+	uc.WriteToYAML()
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{"status": "success"})
 }
 
 // --- Backup Handlers ---
