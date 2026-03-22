@@ -3,12 +3,12 @@
 > **Status Update**: Development is currently in a **maintenance mode**. New features will be added slowly as the core stability and user experience are prioritized. Expect a slower release cycle.
 
 ## Table of Contents
-- [🚀 CLI Roadmap](#-cli-roadmap)
-- [🎨 UI Roadmap](#-ui-roadmap)
-- [🏗 Architecture Roadmap](#-architecture-roadmap)
-- [✅ Recently Completed](#-recently-completed)
+- [CLI Roadmap](#cli-roadmap)
+- [UI Roadmap](#ui-roadmap)
+- [Architecture Roadmap](#architecture-roadmap)
+- [Recently Completed](#recently-completed)
 
-## 🚀 CLI Roadmap
+## CLI Roadmap
 The command-line interface is the heart of Mindloop. Future work will focus on speed, scriptability, and deeper integrations.
 
 - [ ] **Interactive Dashboard**: A TUI (Text User Interface) mode listing active intents and valid commands.
@@ -16,7 +16,7 @@ The command-line interface is the heart of Mindloop. Future work will focus on s
 - [ ] **Plugins/Extensions**: Allow user scripts to hook into Mindloop events (e.g., specific hooks on `intent start`).
 - [ ] **Sync/Export**: Better export formats (JSON, CSV, Markdown) for data portability.
 
-## 🎨 UI Roadmap
+## UI Roadmap
 The Web UI brings Mindloop to a wider audience. The goal is a premium, "vibe-coded" experience that feels native.
 
 - [ ] **PWA Support**: Full Progressive Web App capabilities for install-on-mobile.
@@ -25,7 +25,7 @@ The Web UI brings Mindloop to a wider audience. The goal is a premium, "vibe-cod
 - [ ] **Keyboard Shortcuts**: Global hotkeys for quick actions (e.g., `Cmd+K` for a command palette).
 - [ ] **Visualizations**: deeper analytics on Focus Sessions and Habits (graphs, trends).
 
-## 🏗 Architecture Roadmap
+## Architecture Roadmap
 Building a robust foundation for long-term maintainability.
 
 - [ ] **Plugin System**: A defined interface for community plugins.
@@ -34,7 +34,7 @@ Building a robust foundation for long-term maintainability.
 - [ ] **Performance**: Optimize SQLite queries and template rendering for larger datasets.
 - [ ] **Containerization**: Official Docker image for easier deployment.
 
-## ✅ Recently Completed
+## Recently Completed
 - [x] **Gamification**: Comprehensive points system with customizable rewards, celebrations, and milestone tracking.
 - [x] **UI Polish**: Massive consistency update (Alignment, Icons, Spacing).
 - [x] **Visuals**: Dark Mode, Glassmorphism elements.
