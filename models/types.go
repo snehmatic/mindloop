@@ -298,6 +298,22 @@ type SideQuest struct {
 	EndedAt *time.Time `json:"ended_at,omitempty"`
 }
 
+type Task struct {
+	gorm.Model
+	Title          string     `gorm:"not null" json:"title"`
+	Status         string     `gorm:"default:pending" json:"status"` // pending, completed
+	IntentID       *uint      `json:"intent_id,omitempty"`
+	FocusSessionID *uint      `json:"focus_session_id,omitempty"`
+	SubTasks       []SubTask  `gorm:"foreignKey:TaskID" json:"sub_tasks"`
+}
+
+type SubTask struct {
+	gorm.Model
+	TaskID uint   `gorm:"not null" json:"task_id"`
+	Title  string `gorm:"not null" json:"title"`
+	Status string `gorm:"default:pending" json:"status"` // pending, completed
+}
+
 type SideQuestView struct {
 	ID      uint   `json:"id"`
 	Title   string `json:"title"`
