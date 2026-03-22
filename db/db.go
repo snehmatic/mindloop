@@ -99,6 +99,7 @@ func MigrateDB(db *gorm.DB) error {
 		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
+		&models.Routine{},
 		&models.Task{},
 		&models.SubTask{},
 	)

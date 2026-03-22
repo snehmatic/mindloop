@@ -122,6 +122,12 @@ type UserConfig struct {
 	DbConfig        DBConfig     `yaml:"db_config"`
 	FeatureFlags    FeatureFlags `yaml:"feature_flags"`
 	PointsConfig    PointsConfig `yaml:"points_config"`
+	AuthConfig      AuthConfig   `yaml:"auth_config"`
+}
+
+type AuthConfig struct {
+	Enabled      bool   `yaml:"enabled"`
+	PasswordHash string `yaml:"password_hash"`
 }
 
 type FeatureFlags struct {

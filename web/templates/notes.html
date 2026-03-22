@@ -42,7 +42,7 @@
         {{ if .Notes }}
         <div class="grid">
             {{ range .Notes }}
-            <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;" onclick="if(!event.target.closest('button') && !event.target.closest('a')) window.location.href='/notes/view/{{ .ID }}'">
                 <div id="display-note-{{ .ID }}">
                     <div class="flex-between mb-sm">
                         <h3 style="margin-bottom: 0;">{{ if .Title }}{{ .Title }}{{ else }}Untitled Note{{ end }}</h3>

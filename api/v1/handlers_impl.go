@@ -1094,25 +1094,30 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	ptsJournal, _ := strconv.Atoi(r.FormValue("pts_journal"))
 	ptsQuest, _ := strconv.Atoi(r.FormValue("pts_quest"))
 
-	uc := config.UserConfig{
-		Name:            name,
-		Mode:            mode,
-		EditorWideWidth: r.FormValue("editor_wide_width") == "on",
-		FeatureFlags: config.FeatureFlags{
-			FocusCloud:   r.FormValue("focus_cloud") == "on",
-			HabitCloud:   r.FormValue("habit_cloud") == "on",
-			IntentCloud:  r.FormValue("intent_cloud") == "on",
-			JournalCloud: r.FormValue("journal_cloud") == "on",
-			NoteCloud:    r.FormValue("note_cloud") == "on",
-			Gamification: r.FormValue("gamification") == "on",
-		},
-		PointsConfig: config.PointsConfig{
-			Focus:   ptsFocus,
-			Habit:   ptsHabit,
-			Intent:  ptsIntent,
-			Journal: ptsJournal,
-			Quest:   ptsQuest,
-		},
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
+	uc.Name = name
+	uc.Mode = mode
+	uc.EditorWideWidth = r.FormValue("editor_wide_width") == "on"
+
+	uc.FeatureFlags.FocusCloud = r.FormValue("focus_cloud") == "on"
+	uc.FeatureFlags.HabitCloud = r.FormValue("habit_cloud") == "on"
+	uc.FeatureFlags.IntentCloud = r.FormValue("intent_cloud") == "on"
+	uc.FeatureFlags.JournalCloud = r.FormValue("journal_cloud") == "on"
+	uc.FeatureFlags.NoteCloud = r.FormValue("note_cloud") == "on"
+	uc.FeatureFlags.Gamification = r.FormValue("gamification") == "on"
+
+	uc.PointsConfig.Focus = ptsFocus
+	uc.PointsConfig.Habit = ptsHabit
+	uc.PointsConfig.Intent = ptsIntent
+	uc.PointsConfig.Journal = ptsJournal
+	uc.PointsConfig.Quest = ptsQuest
+
+	uc.AuthConfig.Enabled = r.FormValue("auth_enabled") == "on"
+	newPassword := r.FormValue("auth_password")
+	if newPassword != "" {
+		uc.AuthConfig.PasswordHash = hashPassword(newPassword)
 	}
 
 	if mode == "byodb" {

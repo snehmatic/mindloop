@@ -10,6 +10,34 @@
 
 <form action="/settings/update" method="POST" id="settings-form">
     <div class="flex-col gap-lg">
+        <!-- Security -->
+        <div class="card">
+            <div class="mb-md">
+                <div class="flex-center mb-md gap-sm" style="justify-content: flex-start;">
+                    <i data-lucide="lock" class="icon-sm text-primary"></i>
+                    <h3 class="mb-0">Security</h3>
+                </div>
+            </div>
+
+            <div class="form-group mb-md">
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Enable Password Protection</span>
+                    <input type="checkbox" class="toggle-input" name="auth_enabled" id="auth-toggle"
+                        onchange="toggleAuthSettings(this.checked)" {{ if .Config.AuthConfig.Enabled }}checked{{ end }}>
+                </label>
+                <p class="text-sm text-muted mt-xs mb-0">Require a password to access the web UI.</p>
+            </div>
+
+            <div id="auth-settings-container"
+                style="transition: opacity 0.3s ease; {{ if not .Config.AuthConfig.Enabled }}opacity: 0.5; pointer-events: none;{{ end }}">
+                <div class="form-group">
+                    <label for="auth_password">New Password</label>
+                    <input type="password" id="auth_password" name="auth_password" placeholder="Leave blank to keep current password">
+                    <p class="text-sm text-muted mt-xs mb-0">Set or change your local password.</p>
+                </div>
+            </div>
+        </div>
+
         <!-- General & DB -->
         <div class="card">
             <div class="mb-md">
@@ -270,6 +298,16 @@
 
     function togglePointDefinitions(enabled) {
         const container = document.getElementById('points-definition-container');
+        if (enabled) {
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+        } else {
+            container.style.opacity = '0.5';
+            container.style.pointerEvents = 'none';
+        }
+    }
+    function toggleAuthSettings(enabled) {
+        const container = document.getElementById('auth-settings-container');
         if (enabled) {
             container.style.opacity = '1';
             container.style.pointerEvents = 'auto';
