@@ -48,7 +48,7 @@
 <div class="entries">
     {{ if .Entries }}
     {{ range .Entries }}
-    <div class="card">
+    <div class="card card-hover" onclick="if(!event.target.closest('button') && !event.target.closest('a')) window.location.href='/journal/view/{{ .ID }}'" style="cursor: pointer;">
         <div id="display-journal-{{ .ID }}">
             <div class="flex-between mb-sm" style="align-items: flex-start;">
                 <div>
