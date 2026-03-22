@@ -240,6 +240,72 @@ Capture ideas, snippets, and important information quickly without context switc
 
 ---
 
+## Tasks
+
+Manage independent tasks and optionally link them to intents or focus sessions.
+
+### Commands
+
+*   **Add a task:**
+    ```bash
+    mindloop task add "Write documentation"
+    # Link to an intent or focus session
+    mindloop task add "Write API docs" --intent-id 12
+    ```
+
+*   **List tasks:**
+    ```bash
+    mindloop task list
+    ```
+
+*   **Complete a task:**
+    ```bash
+    mindloop task complete <task_id>
+    ```
+
+---
+
+## Routines
+
+Group multiple habits into a specific time of day.
+
+### Commands
+
+*   **Create a routine:**
+    ```bash
+    mindloop routine create "Morning Routine" --time "Morning"
+    ```
+
+*   **Add a habit to a routine:**
+    ```bash
+    mindloop routine add-habit <routine_id> <habit_id>
+    ```
+
+*   **List routines:**
+    ```bash
+    mindloop routine list
+    ```
+
+---
+
+## Authentication
+
+Manage local access to the Mindloop Web UI.
+
+### Commands
+
+*   **Setup or change password:**
+    ```bash
+    mindloop auth setup
+    ```
+
+*   **Disable password protection:**
+    ```bash
+    mindloop auth disable
+    ```
+
+---
+
 ## Summary
 
 Get a bird's-eye view of your productivity metrics.

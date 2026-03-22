@@ -27,6 +27,16 @@ High-level metrics and a bird's-eye view of your productivity data.
 - Review completed intents and habit consistency.
 - Filter data by date ranges.
 
+### Tasks & Sub-tasks
+Manage independent to-do items and link them to your bigger goals.
+- Link tasks to an active Intent or a Focus Session.
+- Break down tasks further into actionable sub-tasks.
+
+### Routines & Rituals
+Group habits into logical time-blocks (e.g., "Morning Routine").
+- Organize your day by sequences.
+- Easily review which habits belong to a specific routine.
+
 ### Gamification & Points
 Turn your productivity into a game with a built-in reward system.
 - **Earn Points**: Get rewarded for completing focus sessions, habits, intents, journals, and side quests.
@@ -36,6 +46,7 @@ Turn your productivity into a game with a built-in reward system.
 - **Celebrations**: Enjoy confetti animations when you finish tasks and reach new heights.
 
 ### Settings & Configuration
+- **Security**: Local password protection and session management for the web interface.
 - **Stacked Layout**: Clean, organized settings page with vertical stacking for better focus.
 - **Data Management**: Easy backup, restore, and reset options.
 - **BYODB**: Bring Your Own Database (PostgreSQL) support.
