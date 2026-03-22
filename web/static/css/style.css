@@ -532,12 +532,20 @@ label {
     margin-bottom: 2rem;
 }
 
+.mb-xl {
+    margin-bottom: 3rem;
+}
+
 .mt-md {
     margin-top: 1.5rem;
 }
 
 .mt-lg {
     margin-top: 2rem;
+}
+
+.mt-xl {
+    margin-top: 3rem;
 }
 
 /* Dropdowns */
