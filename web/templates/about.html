@@ -1,4 +1,10 @@
 {{ define "content" }}
+<style>
+    .card-hover:hover i[data-lucide] {
+        transform: scale(1.2) rotate(-5deg);
+    }
+</style>
+
 <div class="about-hero animate-fade-in text-center mb-xl" style="padding: 4rem 1rem;">
     <h1 style="margin-bottom: 1.5rem; font-size: 3rem; color: var(--text-main); font-weight: 800;">About Mindloop</h1>
     <p style="font-size: 1.25rem; color: var(--text-muted); max-width: 700px; margin: 0 auto; line-height: 1.6;">
@@ -20,42 +26,42 @@
     </div>
 
     <!-- Features Section -->
-    <h2 class="text-center mb-lg">Core Features</h2>
-    <div class="grid mb-xl" style="grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
-        <div class="card card-hover text-center">
-            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="target" style="width: 32px; height: 32px;"></i></div>
+    <h2 class="text-center mb-lg animate-slide-up" style="animation-delay: 0.1s; animation-fill-mode: both;">Core Features</h2>
+    <div class="grid mb-xl" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem;">
+        <div class="card card-hover text-center animate-slide-up" style="animation-delay: 0.2s; animation-fill-mode: both;">
+            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="target" style="width: 32px; height: 32px; transition: transform 0.3s ease;"></i></div>
             <h3 class="mb-sm">Intents</h3>
             <p class="text-sm text-muted">Set one single, clear intention to track and focus on for the day. Cut out the noise and prioritize what matters most.</p>
         </div>
-        <div class="card card-hover text-center">
-            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="clock" style="width: 32px; height: 32px;"></i></div>
+        <div class="card card-hover text-center animate-slide-up" style="animation-delay: 0.3s; animation-fill-mode: both;">
+            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="clock" style="width: 32px; height: 32px; transition: transform 0.3s ease;"></i></div>
             <h3 class="mb-sm">Focus Sessions</h3>
             <p class="text-sm text-muted">Break down your intents into manageable chunks of deep work. Time-boxed frames to maximize your productivity.</p>
         </div>
-        <div class="card card-hover text-center">
-            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="check-circle" style="width: 32px; height: 32px;"></i></div>
+        <div class="card card-hover text-center animate-slide-up" style="animation-delay: 0.4s; animation-fill-mode: both;">
+            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="check-circle" style="width: 32px; height: 32px; transition: transform 0.3s ease;"></i></div>
             <h3 class="mb-sm">Habits</h3>
             <p class="text-sm text-muted">Build consistency with daily and weekly habit tracking. A feedback loop of positive reinforcement.</p>
         </div>
-        <div class="card card-hover text-center">
-            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="book-open" style="width: 32px; height: 32px;"></i></div>
+        <div class="card card-hover text-center animate-slide-up" style="animation-delay: 0.5s; animation-fill-mode: both;">
+            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="book-open" style="width: 32px; height: 32px; transition: transform 0.3s ease;"></i></div>
             <h3 class="mb-sm">Journal & Notes</h3>
             <p class="text-sm text-muted">End your day with reflections to close the cognitive loop, and capture markdown notes on the fly.</p>
         </div>
-        <div class="card card-hover text-center">
-            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="bar-chart-2" style="width: 32px; height: 32px;"></i></div>
+        <div class="card card-hover text-center animate-slide-up" style="animation-delay: 0.6s; animation-fill-mode: both;">
+            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="bar-chart-2" style="width: 32px; height: 32px; transition: transform 0.3s ease;"></i></div>
             <h3 class="mb-sm">Summary</h3>
             <p class="text-sm text-muted">High-level metrics and a bird's-eye view of your productivity data and habits.</p>
         </div>
-        <div class="card card-hover text-center">
-            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="moon" style="width: 32px; height: 32px;"></i></div>
+        <div class="card card-hover text-center animate-slide-up" style="animation-delay: 0.7s; animation-fill-mode: both;">
+            <div style="color: var(--primary); margin-bottom: 1rem;"><i data-lucide="moon" style="width: 32px; height: 32px; transition: transform 0.3s ease;"></i></div>
             <h3 class="mb-sm">The Void</h3>
             <p class="text-sm text-muted">A dedicated space with nothingness to sit back, breathe, and enjoy the moment.</p>
         </div>
     </div>
 
     <!-- Timeline & Roadmap Section -->
-    <div class="card mb-xl">
+    <div class="card mb-xl animate-slide-up" style="animation-delay: 0.8s; animation-fill-mode: both;">
         <h2 class="mb-md"><i data-lucide="map" class="icon-md" style="vertical-align: middle; margin-right: 0.5rem; color: var(--primary);"></i> Roadmap & Vision</h2>
         <ul style="list-style-type: none; padding-left: 0;">
             <li style="margin-bottom: 1rem; display: flex; align-items: flex-start;">
