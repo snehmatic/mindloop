@@ -6,8 +6,8 @@
 - [Habits](#habits)
 - [Journal](#journal)
 - [Summary](#summary)
-- [Tasks & Sub-tasks](#tasks--sub-tasks)
-- [Routines & Rituals](#routines--rituals)
+- [Tasks & Sub-tasks (CLI Only)](#tasks--sub-tasks-cli-only)
+- [Routines & Rituals (CLI Only)](#routines--rituals-cli-only)
 - [Gamification & Points](#gamification--points)
 - [Settings & Configuration](#settings--configuration)
 
@@ -38,15 +38,17 @@ High-level metrics and a bird's-eye view of your productivity data.
 - Review completed intents and habit consistency.
 - Filter data by date ranges.
 
-## Tasks & Sub-tasks
+## Tasks & Sub-tasks (CLI Only)
 Manage independent to-do items and link them to your bigger goals.
 - Link tasks to an active Intent or a Focus Session.
 - Break down tasks further into actionable sub-tasks.
+- *Note: Web UI support coming soon.*
 
-## Routines & Rituals
+## Routines & Rituals (CLI Only)
 Group habits into logical time-blocks (e.g., "Morning Routine").
 - Organize your day by sequences.
 - Easily review which habits belong to a specific routine.
+- *Note: Web UI support coming soon.*
 
 ## Gamification & Points
 Turn your productivity into a game with a built-in reward system.
