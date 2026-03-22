@@ -31,7 +31,7 @@ const (
 	Port    = "8765"
 )
 
-func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
+func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r := mux.NewRouter()
 
 	// Static files from embedded FS
@@ -105,14 +105,11 @@ func CreateRouter(mlh *v1.MindloopHandler) (*mux.Router, error) {
 	r.HandleFunc("/about", mlh.HandleAbout).Methods("GET")
 	r.HandleFunc("/void", mlh.HandleVoid).Methods("GET")
 
-	return r, nil
+	return r
 }
 
 func ServeMindloop(mlh *v1.MindloopHandler) {
-	r, err := CreateRouter(mlh)
-	if err != nil {
-		log.Fatal().Err(err).Msg("Error creating router")
-	}
+	r := CreateRouter(mlh)
 
 	appConfig := config.GetConfig()
 	srv := &http.Server{
@@ -137,13 +134,12 @@ func ServeMindloop(mlh *v1.MindloopHandler) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Fatal().Msgf("Server Shutdown Failed:%+v", err)
+		log.Error().Msgf("Server Shutdown Failed:%+v", err)
 	}
 	log.Info().Msg("Server exited properly")
 }
 
 func main() {
-
 	// Parse flags
 	port := flag.String("port", Port, "Port to run the server on")
 	mode := flag.String("mode", "local", "Mode to run the server in (local, byodb, api)")

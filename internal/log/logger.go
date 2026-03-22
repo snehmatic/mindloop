@@ -1,3 +1,4 @@
+// Package log provides a centralized logging utility for Mindloop
 package log
 
 import (
@@ -12,6 +13,7 @@ var (
 	instance zerolog.Logger
 )
 
+// Init initializes the global logger with the specified output and level
 func Init(out io.Writer, level zerolog.Level) {
 	once.Do(func() {
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
@@ -24,6 +26,7 @@ func Init(out io.Writer, level zerolog.Level) {
 	})
 }
 
+// Get returns the global logger instance
 func Get() zerolog.Logger {
 	return instance
 }

@@ -206,6 +206,7 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		for _, l := range habitLogs {
 			if l.HabitID == h.ID && l.CreatedAt.After(todayStart) && l.ActualCount >= h.TargetCount {
 				completedHabits++
+
 				break
 			}
 		}

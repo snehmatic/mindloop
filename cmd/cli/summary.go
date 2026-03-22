@@ -59,20 +59,22 @@ func init() {
 
 func GetTimeRangeFromFlags() (time.Time, time.Time) {
 	now := time.Now()
-	if *year {
+	switch {
+	case *year:
 		return time.Date(now.Year()-1, now.Month(), now.Day(), 0, 0, 0, 0, now.Location()), now
-	} else if *month {
+	case *month:
 		return time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, now.Location()), now.AddDate(0, 1, -now.Day())
-	} else if *week {
+	case *week:
 		end := time.Now()
 		start := end.AddDate(0, 0, -7)
 		start = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
 		return start, end
-	} else if *day {
+	case *day:
+		return now.Add(-24 * time.Hour), now
+	default:
+		// default range "day"
 		return now.Add(-24 * time.Hour), now
 	}
-	// default range "day"
-	return now.Add(-24 * time.Hour), now
 }
 
 func PrintSummary(report models.SummaryReport) {

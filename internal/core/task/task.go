@@ -10,14 +10,17 @@ import (
 
 var logger = log.Get()
 
+// Service handles business logic for tasks and sub-tasks
 type Service struct {
 	db *gorm.DB
 }
 
+// NewService creates a new task Service instance
 func NewService(db *gorm.DB) *Service {
 	return &Service{db: db}
 }
 
+// CreateTask persists a new task to the database
 func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Task, error) {
 	t := &models.Task{
 		Title:          title,
@@ -31,6 +34,7 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 	return t, nil
 }
 
+// CompleteTask marks a task as completed in the database
 func (s *Service) CompleteTask(id uint) error {
 	var task models.Task
 	if err := s.db.First(&task, id).Error; err != nil {
@@ -44,6 +48,7 @@ func (s *Service) CompleteTask(id uint) error {
 	return nil
 }
 
+// ListTasks retrieves all tasks from the database
 func (s *Service) ListTasks() ([]models.Task, error) {
 	var tasks []models.Task
 	if err := s.db.Preload("SubTasks").Find(&tasks).Error; err != nil {
@@ -52,6 +57,7 @@ func (s *Service) ListTasks() ([]models.Task, error) {
 	return tasks, nil
 }
 
+// AddSubTask persists a new sub-task to the database
 func (s *Service) AddSubTask(taskID uint, title string) (*models.SubTask, error) {
 	st := &models.SubTask{
 		TaskID: taskID,
@@ -63,6 +69,7 @@ func (s *Service) AddSubTask(taskID uint, title string) (*models.SubTask, error)
 	return st, nil
 }
 
+// CompleteSubTask marks a sub-task as completed in the database
 func (s *Service) CompleteSubTask(id uint) error {
 	var st models.SubTask
 	if err := s.db.First(&st, id).Error; err != nil {

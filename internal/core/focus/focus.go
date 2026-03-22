@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Service handles the logic for managing focus sessions
 type Service struct {
 	DB *gorm.DB
 }

@@ -1,3 +1,4 @@
+// Package utils contains general purpose helper functions for Mindloop
 package utils
 
 import (
@@ -39,11 +40,13 @@ var (
 `
 )
 
+// PrettyPrintBanner prints the Mindloop ASCII art banner
 func PrettyPrintBanner() {
 	greenBanner := fmt.Sprintf("%s%s%s", green, banner, reset)
 	fmt.Println(greenBanner)
 }
 
+// PrettyPrint prints any data as a pretty JSON string
 func PrettyPrint(x any) {
 	b, err := json.MarshalIndent(x, "", "  ")
 	if err != nil {
@@ -52,17 +55,20 @@ func PrettyPrint(x any) {
 	fmt.Print(string(b))
 }
 
+// PrintTable renders a slice of structs as a terminal table
 func PrintTable(data interface{}) {
 	v := reflect.ValueOf(data)
 	if v.Kind() != reflect.Slice {
 		fmt.Println("Input must be a slice of structs")
 		logger.Error().Msg("Input to PrintTable must be a slice of structs")
+
 		return
 	}
 
 	if v.Len() == 0 {
 		fmt.Println("No records found.")
 		logger.Info().Msg("len 0 of the provided data slice")
+
 		return
 	}
 
@@ -70,6 +76,7 @@ func PrintTable(data interface{}) {
 	if first.Kind() != reflect.Struct {
 		fmt.Println("Slice elements must be structs, type mismatch")
 		logger.Error().Msg("Slice elements must be structs, type mismatch")
+
 		return
 	}
 
@@ -100,38 +107,47 @@ func PrintTable(data interface{}) {
 	logger.Info().Msgf("Rendered table with %d records of type %s", v.Len(), first.Type())
 }
 
+// PrintSuccessln prints a success message with a checkmark
 func PrintSuccessln(a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintln(os.Stdout, greenTick)
+
 		return
 	}
 	_, _ = fmt.Fprintln(os.Stdout, append([]any{greenTick}, a...)...)
 }
 
+// PrintSuccessf prints a formatted success message with a checkmark
 func PrintSuccessf(format string, a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintf(os.Stdout, greenTick+" "+format, a...)
+
 		return
 	}
 	_, _ = fmt.Fprintf(os.Stdout, greenTick+" "+format, a...)
 }
 
+// PrintRocketln prints a message with a rocket emoji
 func PrintRocketln(a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintln(os.Stdout, rocket)
+
 		return
 	}
 	_, _ = fmt.Fprintln(os.Stdout, append([]any{rocket}, a...)...)
 }
 
+// PrintRocketf prints a formatted message with a rocket emoji
 func PrintRocketf(format string, a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
+
 		return
 	}
 	_, _ = fmt.Fprintf(os.Stdout, rocket+" "+format, a...)
 }
 
+// PrintInfoln prints an informational message with an info symbol
 func PrintInfoln(a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintln(os.Stdout, bulb)
@@ -140,6 +156,7 @@ func PrintInfoln(a ...any) {
 	_, _ = fmt.Fprintln(os.Stdout, append([]any{bulb}, a...)...)
 }
 
+// PrintInfof prints a formatted informational message with an info symbol
 func PrintInfof(format string, a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintf(os.Stdout, bulb+" "+format, a...)
@@ -148,6 +165,7 @@ func PrintInfof(format string, a ...any) {
 	_, _ = fmt.Fprintf(os.Stdout, bulb+" "+format, a...)
 }
 
+// PrintLoadingln prints a message with a loading/gear symbol
 func PrintLoadingln(a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintln(os.Stdout, timeSand)
@@ -156,6 +174,7 @@ func PrintLoadingln(a ...any) {
 	_, _ = fmt.Fprintln(os.Stdout, append([]any{timeSand}, a...)...)
 }
 
+// PrintLoadingf prints a formatted message with a loading/gear symbol
 func PrintLoadingf(format string, a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
@@ -164,6 +183,7 @@ func PrintLoadingf(format string, a ...any) {
 	_, _ = fmt.Fprintf(os.Stdout, timeSand+" "+format, a...)
 }
 
+// PrintWarnln prints a warning message with a warning symbol
 func PrintWarnln(a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintln(os.Stdout, warn)
@@ -172,6 +192,7 @@ func PrintWarnln(a ...any) {
 	_, _ = fmt.Fprintln(os.Stdout, append([]any{warn}, a...)...)
 }
 
+// PrintWarnf prints a formatted warning message with a warning symbol
 func PrintWarnf(format string, a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintf(os.Stdout, warn+" "+format, a...)
@@ -180,6 +201,7 @@ func PrintWarnf(format string, a ...any) {
 	_, _ = fmt.Fprintf(os.Stdout, warn+" "+format, a...)
 }
 
+// PrintErrorln prints an error message with a cross mark
 func PrintErrorln(a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintln(os.Stdout, redCross)
@@ -188,6 +210,7 @@ func PrintErrorln(a ...any) {
 	_, _ = fmt.Fprintln(os.Stdout, append([]any{redCross}, a...)...)
 }
 
+// PrintErrorf prints a formatted error message with a cross mark
 func PrintErrorf(format string, a ...any) {
 	if len(a) == 0 {
 		_, _ = fmt.Fprintf(os.Stdout, redCross+" "+format, a...)
@@ -196,12 +219,14 @@ func PrintErrorf(format string, a ...any) {
 	_, _ = fmt.Fprintf(os.Stdout, redCross+" "+format, a...)
 }
 
+// WriteResponse writes a JSON response to the http.ResponseWriter
 func WriteResponse(data interface{}, respWriter http.ResponseWriter, status int) {
 	respWriter.Header().Set("content-type", "application/json; charset=utf-8")
 	respWriter.WriteHeader(status)
 	_ = json.NewEncoder(respWriter).Encode(data)
 }
 
+// GetEnvOrDie retrieves an environment variable or exits if not set
 func GetEnvOrDie(key string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
@@ -210,12 +235,14 @@ func GetEnvOrDie(key string) string {
 	return ""
 }
 
+// FileExists checks if a file exists at the given path
 func FileExists(filename string) bool {
 	if _, err := os.Stat(filename); os.IsNotExist(err) {
 		return false
 	}
 	return true
 }
+// FileWrite writes data to a file
 func FileWrite(filename string, data []byte) error {
 	if err := os.WriteFile(filename, data, 0644); err != nil {
 		logger.Error().Err(err).Str("file", filename).Msg("failed to write file")
@@ -224,6 +251,7 @@ func FileWrite(filename string, data []byte) error {
 	logger.Info().Str("file", filename).Msg("file written successfully")
 	return nil
 }
+// FileRead reads data from a file
 func FileRead(filename string) ([]byte, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
@@ -233,6 +261,7 @@ func FileRead(filename string) ([]byte, error) {
 	logger.Info().Str("file", filename).Msg("file read successfully")
 	return data, nil
 }
+// FileDelete deletes a file at the given path
 func FileDelete(filename string) error {
 	if err := os.Remove(filename); err != nil {
 		logger.Error().Err(err).Str("file", filename).Msg("failed to delete file")
@@ -242,11 +271,13 @@ func FileDelete(filename string) error {
 	return nil
 }
 
+// CaptureJournalWithEditor launches the user's default editor to capture journal content
 func CaptureJournalWithEditor() (string, error) {
 	header := "# Mindloop Journal\n# Write your thoughts below. Lines starting with # will be ignored.\n\n"
 	return CaptureWithEditor("mindloop_journal_*.md", header, "")
 }
 
+// CaptureWithEditor launches the user's default editor to capture content
 func CaptureWithEditor(filenamePattern, header, initialContent string) (string, error) {
 	editor := os.Getenv("EDITOR")
 	if editor == "" {

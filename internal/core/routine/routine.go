@@ -1,3 +1,4 @@
+// Package routine manages groupings of habits for specific times of day
 package routine
 
 import (
@@ -18,6 +19,7 @@ func NewService(db *gorm.DB) *Service {
 	return &Service{db: db}
 }
 
+// CreateRoutine persists a new routine to the database
 func (s *Service) CreateRoutine(title, timeOfDay string) (*models.Routine, error) {
 	r := &models.Routine{
 		Title:     title,
@@ -31,6 +33,7 @@ func (s *Service) CreateRoutine(title, timeOfDay string) (*models.Routine, error
 	return r, nil
 }
 
+// ListRoutines retrieves all routines from the database
 func (s *Service) ListRoutines() ([]models.Routine, error) {
 	var routines []models.Routine
 	result := s.db.Preload("Habits").Find(&routines)

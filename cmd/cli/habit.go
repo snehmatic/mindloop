@@ -24,7 +24,7 @@ var (
 var habitCmd = &cobra.Command{
 	Use:     "habit",
 	Short:   "Manage your habits",
-	Example: `mindloop habit add "Excercise"`,
+	Example: `mindloop habit add "Exercise"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		habitService = habit.NewService(gdb)
 	},
@@ -34,7 +34,7 @@ var habitCmd = &cobra.Command{
 var habitAddCmd = &cobra.Command{
 	Use:   "add",
 	Short: "Add a new habit",
-	Example: `mindloop habit add "Excercise" "Need to be fit!" 1 --daily
+	Example: `mindloop habit add "Exercise" "Need to be fit!" 1 --daily
 	mindloop habit add -i`,
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.PrintRocketln("Great initiative! Adding a new habit...")
@@ -93,7 +93,7 @@ var habitDeleteCmd = &cobra.Command{
 	Short:   "Delete a habit",
 	Aliases: []string{"rm", "remove", "del"},
 	Args:    cobra.ExactArgs(1),
-	Example: `mindloop habit delete "Excercise"`,
+	Example: `mindloop habit delete "Exercise"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			ac.Logger.Error().Msg("No habit ID provided for deletion")
@@ -132,7 +132,7 @@ var habitUpdateCmd = &cobra.Command{
 	Use:     "update",
 	Short:   "Update a habit",
 	Aliases: []string{"edit", "modify"},
-	Example: `mindloop habit update "Excercise" --time "1:00 PM"`,
+	Example: `mindloop habit update "Exercise" --time "1:00 PM"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			ac.Logger.Error().Msg("No habit ID provided for update")
@@ -209,7 +209,7 @@ var habitLogCmd = &cobra.Command{
 	Use:     "log",
 	Aliases: []string{"done", "complete", "mkd"},
 	Short:   "Log a habit as done",
-	Example: `mindloop habit log "Excercise"`,
+	Example: `mindloop habit log "Exercise"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			ac.Logger.Error().Msg("No habit ID provided for logging")
@@ -255,7 +255,7 @@ var habitUnLogCmd = &cobra.Command{
 	Aliases: []string{"undone", "incomplete", "mkud"},
 	Args:    cobra.ExactArgs(1),
 	Short:   "Log a habit as undone",
-	Example: `mindloop habit unlog "Excercise"`,
+	Example: `mindloop habit unlog "Exercise"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			ac.Logger.Error().Msg("No habit ID provided for unlogging")
@@ -385,11 +385,14 @@ func BuildHabitFromInteractiveMode(hb *models.Habit) *models.Habit {
 					Interface("habit", hb).
 					Msg("Invalid interval type.")
 				utils.PrintWarnln("Invalid interval type. Retry with 'daily' or 'weekly'.")
+
 				continue
 			}
 			hb.Interval = models.IntervalType(interval)
+
 			break
 		}
+
 		break
 	}
 

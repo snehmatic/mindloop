@@ -250,18 +250,20 @@ func (s *Service) CalculateStreak(habitID uint, interval models.IntervalType) (i
 	}
 
 	expectedDate := lastLogDate
+loop:
 	for _, log := range logs {
 		logDate := log.CreatedAt.Truncate(24 * time.Hour)
 
-		if logDate.Equal(expectedDate) {
+		switch {
+		case logDate.Equal(expectedDate):
 			if log.ActualCount >= log.TargetCount {
 				streak++
 				expectedDate = expectedDate.AddDate(0, 0, -1)
 			}
-		} else if logDate.After(expectedDate) {
+		case logDate.After(expectedDate):
 			continue
-		} else {
-			break
+		default:
+			break loop
 		}
 	}
 

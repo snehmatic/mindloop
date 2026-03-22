@@ -1,3 +1,4 @@
+// Package motivation provides inspirational content for the users
 package motivation
 
 import (
@@ -8,6 +9,7 @@ import (
 	"time"
 )
 
+// Quote represents an inspirational quote with its author
 type Quote struct {
 	Text       string `json:"q"`
 	Author     string `json:"a"`
@@ -66,10 +68,12 @@ func FetchRandomQuote() (*Quote, error) {
 			q := *cachedQuote
 			q.RetryAfter = waitTime
 			cacheMu.Unlock()
+
 			return &q, nil
 		}
 
 		cacheMu.Unlock()
+
 		return nil, fmt.Errorf("rate limit reached and no cache available")
 	}
 	cacheMu.Unlock()
@@ -96,8 +100,10 @@ func FetchRandomQuote() (*Quote, error) {
 		if cachedQuote != nil {
 			q := *cachedQuote
 			q.RetryAfter = int(RateWindow.Seconds())
+
 			return &q, nil
 		}
+
 		return nil, fmt.Errorf("upstream API rate limit reached")
 	}
 

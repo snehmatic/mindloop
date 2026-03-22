@@ -8,15 +8,18 @@ import (
 	"gorm.io/gorm"
 )
 
+// Service handles backup and restore operations for Mindloop
 type Service struct {
 	DB *gorm.DB
 }
 
+// NewService creates a new backup Service instance
 func NewService(db *gorm.DB) *Service {
 	return &Service{DB: db}
 }
 
-type BackupData struct {
+// Data represents the structure of the exported JSON backup file
+type Data struct {
 	Intents        []models.Intent       `json:"intents"`
 	FocusSessions  []models.FocusSession `json:"focus_sessions"`
 	Habits         []models.Habit        `json:"habits"`
@@ -25,8 +28,9 @@ type BackupData struct {
 	Notes          []models.Note         `json:"notes,omitempty"`
 }
 
+// Export saves all application data to a JSON file
 func (s *Service) Export(filePath string) error {
-	var data BackupData
+	var data Data
 
 	s.DB.Find(&data.Intents)
 	s.DB.Find(&data.FocusSessions)
@@ -43,13 +47,14 @@ func (s *Service) Export(filePath string) error {
 	return os.WriteFile(filePath, jsonData, 0644)
 }
 
+// Import restores application data from a JSON file
 func (s *Service) Import(filePath string) error {
 	jsonData, err := os.ReadFile(filePath)
 	if err != nil {
 		return err
 	}
 
-	var data BackupData
+	var data Data
 	if err := json.Unmarshal(jsonData, &data); err != nil {
 		return err
 	}

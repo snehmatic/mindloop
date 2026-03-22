@@ -98,6 +98,7 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 
 				if isToday {
 					actual = log.ActualCount
+
 					break
 				}
 			}
@@ -291,6 +292,7 @@ func (mlh *MindloopHandler) getHabitView(id string) (*HabitView, error) {
 
 		if isCurrent {
 			actual = l.ActualCount
+
 			break
 		}
 	}

@@ -1,3 +1,4 @@
+// Package models contains the data structures and UI views for Mindloop
 package models
 
 import (
@@ -12,15 +13,17 @@ import (
 // model definitions reside here
 // request/response structs, etc.
 
+// IntervalType defines the frequency of a habit
 type IntervalType string
 
 var AllIntervalTypes = [...]string{"daily", "weekly"}
 
 var (
-	Daily  IntervalType = IntervalType(AllIntervalTypes[0])
-	Weekly IntervalType = IntervalType(AllIntervalTypes[1])
+	Daily  = IntervalType(AllIntervalTypes[0])
+	Weekly = IntervalType(AllIntervalTypes[1])
 )
 
+// Habit represents a task that the user wants to perform regularly
 type Habit struct {
 	gorm.Model
 	Title       string       `gorm:"type:varchar(100)" json:"title"`
@@ -31,6 +34,7 @@ type Habit struct {
 	RoutineID   *uint        `json:"routine_id,omitempty"`
 }
 
+// Routine groups multiple habits into a specific time of day
 type Routine struct {
 	gorm.Model
 	Title     string  `gorm:"type:varchar(100)" json:"title"`
@@ -38,6 +42,7 @@ type Routine struct {
 	Habits    []Habit `gorm:"foreignKey:RoutineID" json:"habits"`
 }
 
+// RoutineView is a simplified representation of a Routine for the UI
 type RoutineView struct {
 	ID        uint        `json:"id"`
 	Title     string      `json:"title"`
@@ -74,6 +79,7 @@ func (h *Habit) ValidateHabit() error {
 	return nil
 }
 
+// HabitLog records an instance of a habit being performed
 type HabitLog struct {
 	gorm.Model
 	HabitID     uint         `gorm:"not null" json:"habit_id"`
@@ -84,6 +90,7 @@ type HabitLog struct {
 	EndedAt     time.Time    `gorm:"not null" json:"ended_at"`
 }
 
+// HabitLogView is a simplified representation of a HabitLog for the UI
 type HabitLogView struct {
 	ID          uint         `json:"id"`
 	HabitID     uint         `json:"habit_id"`
@@ -112,6 +119,7 @@ func ToHabitLogViews(habitLogs []HabitLog) []HabitLogView {
 	return habitViews
 }
 
+// HabitView is a simplified representation of a Habit for the UI
 type HabitView struct {
 	ID          uint         `json:"id"`
 	Title       string       `json:"title"`
@@ -151,6 +159,7 @@ func IsValidIntervalType(interval string) bool {
 	return false
 }
 
+// Intent represents a high-level goal for the user
 type Intent struct {
 	gorm.Model
 	Name    string     `gorm:"not null" json:"name"`
@@ -158,6 +167,7 @@ type Intent struct {
 	EndedAt *time.Time `json:"ended_at,omitempty"`
 }
 
+// IntentView is a simplified representation of an Intent for the UI
 type IntentView struct {
 	ID      uint
 	Name    string
@@ -180,6 +190,7 @@ func ToIntentView(i Intent) IntentView {
 	}
 }
 
+// FocusSession records a period of deep work
 type FocusSession struct {
 	gorm.Model
 	Title    string    `gorm:"not null" json:"title"`        // e.g., "Work on project"
@@ -189,6 +200,7 @@ type FocusSession struct {
 	Rating   int       `gorm:"default:-1" json:"rating"` // 0 to 10, optional
 }
 
+// FocusSessionView is a simplified representation of a FocusSession for the UI
 type FocusSessionView struct {
 	ID        uint    `json:"id"`
 	Title     string  `json:"title"`
@@ -222,6 +234,7 @@ func ToFocusSessionView(fs FocusSession) FocusSessionView {
 	return fsv
 }
 
+// JournalEntry represents a user's reflective writing
 type JournalEntry struct {
 	gorm.Model
 	Content string `gorm:"type:text" json:"content"`
@@ -229,6 +242,7 @@ type JournalEntry struct {
 	Mood    string `gorm:"type:varchar(50)" json:"mood"` // e.g., happy, sad, neutral
 }
 
+// JournalEntryView is a simplified representation of a JournalEntry for the UI
 type JournalEntryView struct {
 	ID    uint   `json:"id"`
 	Title string `json:"title"`
@@ -245,6 +259,7 @@ func ToJournalEntryView(entry JournalEntry) JournalEntryView {
 	}
 }
 
+// Note represents a quick markdown note
 type Note struct {
 	gorm.Model
 	Title   string `gorm:"type:varchar(200)" json:"title"`
@@ -252,6 +267,7 @@ type Note struct {
 	Labels  string `gorm:"type:varchar(200)" json:"labels"` // comma separated
 }
 
+// NoteView is a simplified representation of a Note for the UI
 type NoteView struct {
 	ID        uint   `json:"id"`
 	Title     string `json:"title"`
@@ -305,6 +321,7 @@ type SummaryReport struct {
 	Intents   []IntentStats
 	Points    PointStats
 }
+// SideQuest represents an ad-hoc task during a focus session
 type SideQuest struct {
 	gorm.Model
 	Title   string     `gorm:"not null" json:"title"`
@@ -313,15 +330,17 @@ type SideQuest struct {
 	EndedAt *time.Time `json:"ended_at,omitempty"`
 }
 
+// Task represents a to-do item linked to an intent or focus session
 type Task struct {
 	gorm.Model
-	Title          string     `gorm:"not null" json:"title"`
-	Status         string     `gorm:"default:pending" json:"status"` // pending, completed
-	IntentID       *uint      `json:"intent_id,omitempty"`
-	FocusSessionID *uint      `json:"focus_session_id,omitempty"`
-	SubTasks       []SubTask  `gorm:"foreignKey:TaskID" json:"sub_tasks"`
+	Title          string    `gorm:"not null" json:"title"`
+	Status         string    `gorm:"default:pending" json:"status"` // pending, completed
+	IntentID       *uint     `json:"intent_id,omitempty"`
+	FocusSessionID *uint     `json:"focus_session_id,omitempty"`
+	SubTasks       []SubTask `gorm:"foreignKey:TaskID" json:"sub_tasks"`
 }
 
+// SubTask is a smaller component of a Task
 type SubTask struct {
 	gorm.Model
 	TaskID uint   `gorm:"not null" json:"task_id"`
@@ -329,6 +348,7 @@ type SubTask struct {
 	Status string `gorm:"default:pending" json:"status"` // pending, completed
 }
 
+// SideQuestView is a simplified representation of a SideQuest for the UI
 type SideQuestView struct {
 	ID      uint   `json:"id"`
 	Title   string `json:"title"`

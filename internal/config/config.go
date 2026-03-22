@@ -1,3 +1,4 @@
+// Package config manages application-wide and user-specific configurations
 package config
 
 import (
@@ -13,6 +14,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+// GetUserConfigPath returns the path to the user configuration file
 func GetUserConfigPath() string {
 	localFile := "user_config.yaml"
 	if _, err := os.Stat(localFile); err == nil {
@@ -24,6 +26,7 @@ func GetUserConfigPath() string {
 // Version is set during build time via ldflags
 var Version = "dev"
 
+// GetDataDir returns the directory where mindloop data is stored
 func GetDataDir() string {
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -36,17 +39,19 @@ func GetDataDir() string {
 	return dir
 }
 
+// MindloopMode defines the operating mode of the application
 type MindloopMode string
 
+// AllModes contains the supported operating modes
 var AllModes = [...]string{"local", "byodb", "api"}
 
 var (
-	Local MindloopMode = MindloopMode(AllModes[0])
-	ByoDB MindloopMode = MindloopMode(AllModes[1])
-	Api   MindloopMode = MindloopMode(AllModes[2])
+	Local = MindloopMode(AllModes[0])
+	ByoDB = MindloopMode(AllModes[1])
+	API   = MindloopMode(AllModes[2])
 )
 
-// mindloop Application global configuration
+// Config mindloop Application global configuration
 type Config struct {
 	Mode     MindloopMode
 	Port     string
@@ -56,6 +61,7 @@ type Config struct {
 	Logger   zerolog.Logger
 }
 
+// DBConfig holds database connection parameters
 type DBConfig struct {
 	Host     string
 	Port     string
@@ -65,12 +71,12 @@ type DBConfig struct {
 }
 
 var once sync.Once
-var config *Config
+var cfg *Config
 
+// InitConfig initializes the global application configuration
 func InitConfig(name, mode, port string) {
 	once.Do(func() { // singleton
-
-		config = &Config{
+		cfg = &Config{
 			Name:     name,
 			Port:     port,
 			Mode:     MindloopMode(mode),
@@ -82,13 +88,13 @@ func InitConfig(name, mode, port string) {
 		uc := UserConfig{}
 		if err := uc.ReadFromYAML(); err == nil {
 			if uc.Name != "" {
-				config.UserName = uc.Name
+				cfg.UserName = uc.Name
 			}
 			// Override mode if set in user config and not explicitly overridden by flag (which passed here)
 			// For simplicity, we are not overriding mode here as it might conflict with flags
 			// But we can check if DBConfig is needed
 			if uc.Mode == "byodb" {
-				config.DBConfig = uc.DbConfig
+				cfg.DBConfig = uc.DbConfig
 			}
 		}
 
@@ -98,7 +104,7 @@ func InitConfig(name, mode, port string) {
 			if err != nil {
 				fmt.Printf("error loading .env file: %v\n", err)
 			}
-			config.DBConfig = DBConfig{
+			cfg.DBConfig = DBConfig{
 				Host:     utils.GetEnvOrDie("DB_HOST"),
 				Port:     utils.GetEnvOrDie("DB_PORT"),
 				User:     utils.GetEnvOrDie("DB_USER"),
@@ -107,14 +113,16 @@ func InitConfig(name, mode, port string) {
 			}
 		}
 
-		config.Logger.Info().Msg("Mindloop global config has been set!")
+		cfg.Logger.Info().Msg("Mindloop global config has been set!")
 	})
 }
 
+// GetConfig returns the global configuration object
 func GetConfig() *Config {
-	return config
+	return cfg
 }
 
+// UserConfig represents the persistent user preferences
 type UserConfig struct {
 	Name            string       `yaml:"name"`
 	Mode            string       `yaml:"mode"`
@@ -124,6 +132,7 @@ type UserConfig struct {
 	PointsConfig    PointsConfig `yaml:"points_config"`
 }
 
+// FeatureFlags toggles specific application functionalities
 type FeatureFlags struct {
 	FocusCloud   bool `yaml:"focus_cloud"`
 	HabitCloud   bool `yaml:"habit_cloud"`
@@ -143,6 +152,7 @@ type PointsConfig struct {
 	Quest   int `yaml:"quest"`
 }
 
+// SetDefaults ensures that the UserConfig has sensible default values
 func (uc *UserConfig) SetDefaults() {
 	// Feature flags defaults
 	// Note: in YAML, a missing bool is false.
@@ -170,21 +180,21 @@ func (uc *UserConfig) SetDefaults() {
 	}
 }
 
+// ValidateUserConfig checks if the user configuration is valid and exists
 func ValidateUserConfig(cmd *cobra.Command) {
 	// check if user_config.yaml exists
 	logger := log.Get()
 	configPath := GetUserConfigPath()
 	if utils.FileExists(configPath) {
 		logger.Debug().Msgf("User config exists at %s", configPath)
-	} else {
-		if cmd.Use != "configure" {
-			utils.PrintWarnln("Warn: user config does not exist, create a new one or run `mindloop configure`.")
-			logger.Warn().Msg("User config does not exist, warned user")
-			os.Exit(0)
-		}
+	} else if cmd.Use != "configure" {
+		utils.PrintWarnln("Warn: user config does not exist, create a new one or run `mindloop configure`.")
+		logger.Warn().Msg("User config does not exist, warned user")
+		os.Exit(0)
 	}
 }
 
+// WriteToYAML persists the current UserConfig to a YAML file
 func (uc UserConfig) WriteToYAML() {
 	marshalled, err := yaml.Marshal(uc)
 	if err != nil {
@@ -199,6 +209,7 @@ func (uc UserConfig) WriteToYAML() {
 	utils.PrintSuccessln("User config written to YAML successfully")
 }
 
+// ReadFromYAML loads the UserConfig from a YAML file
 func (uc *UserConfig) ReadFromYAML() error {
 	data, err := os.ReadFile(GetUserConfigPath())
 	if err != nil {

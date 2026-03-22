@@ -9,6 +9,7 @@ import (
 	"gorm.io/gorm"
 )
 
+// Service handles the logic for managing user intents
 type Service struct {
 	DB *gorm.DB
 }
