@@ -1,12 +1,28 @@
 {{ define "content" }}
 <style>
+    .card-hover {
+        transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+    }
+    .card-hover:hover {
+        transform: translateY(-4px) scale(1.01);
+        box-shadow: 0 12px 24px -10px rgba(0,0,0,0.15);
+        border-color: var(--primary);
+    }
     .card-hover:hover i[data-lucide] {
         transform: scale(1.2) rotate(-5deg);
+        color: var(--primary);
+    }
+    
+    .timeline-item {
+        transition: transform 0.2s ease;
+    }
+    .timeline-item:hover {
+        transform: translateX(8px);
     }
 </style>
 
 <div class="about-hero animate-fade-in text-center mb-xl" style="padding: 4rem 1rem;">
-    <h1 style="margin-bottom: 1.5rem; font-size: 3rem; color: var(--text-main); font-weight: 800;">About Mindloop</h1>
+    <h1 style="margin-bottom: 1.5rem; font-size: 3rem; color: var(--text-main); font-weight: 800; animation: popIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;">About Mindloop</h1>
     <p style="font-size: 1.25rem; color: var(--text-muted); max-width: 700px; margin: 0 auto; line-height: 1.6;">
         Mindloop is designed to bring clarity to your chaotic digital life. By simplifying how you track your habits, focus, and intentions, we help you close the loops in your mind.
     </p>
@@ -64,21 +80,21 @@
     <div class="card mb-xl animate-slide-up" style="animation-delay: 0.8s; animation-fill-mode: both;">
         <h2 class="mb-md"><i data-lucide="map" class="icon-md" style="vertical-align: middle; margin-right: 0.5rem; color: var(--primary);"></i> Roadmap & Vision</h2>
         <ul style="list-style-type: none; padding-left: 0;">
-            <li style="margin-bottom: 1rem; display: flex; align-items: flex-start;">
+            <li class="timeline-item" style="margin-bottom: 1rem; display: flex; align-items: flex-start;">
                 <i data-lucide="check-circle-2" style="color: var(--success); margin-right: 1rem; margin-top: 0.2rem;"></i>
                 <div>
                     <strong>Phase 1: Local Foundation</strong>
                     <p class="text-sm text-muted mb-0">CLI + Local SQLite + Core Features (Intents, Focus, Habits, Journal).</p>
                 </div>
             </li>
-            <li style="margin-bottom: 1rem; display: flex; align-items: flex-start;">
+            <li class="timeline-item" style="margin-bottom: 1rem; display: flex; align-items: flex-start;">
                 <i data-lucide="check-circle-2" style="color: var(--success); margin-right: 1rem; margin-top: 0.2rem;"></i>
                 <div>
                     <strong>Phase 2: Web Interface</strong>
                     <p class="text-sm text-muted mb-0">Responsive UI, Markdown Notes, Themes, and Visual Data Representation.</p>
                 </div>
             </li>
-            <li style="margin-bottom: 1rem; display: flex; align-items: flex-start;">
+            <li class="timeline-item" style="margin-bottom: 1rem; display: flex; align-items: flex-start;">
                 <i data-lucide="circle" style="color: var(--primary); margin-right: 1rem; margin-top: 0.2rem;"></i>
                 <div>
                     <strong>Phase 3: Workflows & Integration (Upcoming)</strong>
