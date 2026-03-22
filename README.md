@@ -7,6 +7,15 @@
 
 **Mindloop** is a comprehensive productivity suite designed for local-first workflow management. It operates as a **CLI tool**, a **local API**, and a **UI**, utilizing a local SQLite database with BYODB (Bring Your Own Database) support.
 
+## Table of Contents
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Build Commands](#build-commands)
+- [Documentation](#documentation)
+- [Configuration](#configuration)
+- [Motivation](#motivation)
+
 ## Getting Started
 
 ### Prerequisites

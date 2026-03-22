@@ -2,6 +2,20 @@
 
 This guide provides a detailed overview of the `mindloop` CLI commands and how to use them to manage your productivity.
 
+## Table of Contents
+- [Getting Started](#getting-started)
+- [Intent Management](#intent-management)
+- [Side Quests](#side-quests)
+- [Focus Sessions](#focus-sessions)
+- [Habit Tracking](#habit-tracking)
+- [Journaling](#journaling)
+- [Quick Notes](#quick-notes)
+- [Tasks](#tasks)
+- [Routines](#routines)
+- [Summary](#summary)
+- [Data Management (Backup & Restore)](#data-management-backup--restore)
+- [Help](#help)
+
 ## Getting Started
 
 Before using the CLI, it is recommended to run the configuration command to set up your profile and database preferences.

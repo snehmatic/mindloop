@@ -2,6 +2,12 @@
 
 > **Status Update**: Development is currently in a **maintenance mode**. New features will be added slowly as the core stability and user experience are prioritized. Expect a slower release cycle.
 
+## Table of Contents
+- [🚀 CLI Roadmap](#-cli-roadmap)
+- [🎨 UI Roadmap](#-ui-roadmap)
+- [🏗 Architecture Roadmap](#-architecture-roadmap)
+- [✅ Recently Completed](#-recently-completed)
+
 ## 🚀 CLI Roadmap
 The command-line interface is the heart of Mindloop. Future work will focus on speed, scriptability, and deeper integrations.
 

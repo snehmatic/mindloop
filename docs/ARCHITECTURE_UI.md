@@ -2,6 +2,19 @@
 
 This document outlines the architectural principles and technical details of the Mindloop web interface, specifically following the "Frontend Modernization" (Issue #49).
 
+## Table of Contents
+- [Core Philosophy: The "Snappy Monolith"](#core-philosophy-the-snappy-monolith)
+- [HTMX Integration](#htmx-integration)
+  - [Partial Templates](#partial-templates)
+  - [Backend Handling](#backend-handling)
+- [CSS Design System](#css-design-system)
+  - [Key Variables](#key-variables)
+  - [Dark Mode](#dark-mode)
+- [Iconography](#iconography)
+- [Module Specifics](#module-specifics)
+  - [Focus Module](#focus-module)
+  - [Habits Module](#habits-module)
+
 ## Core Philosophy: The "Snappy Monolith"
 
 Mindloop adheres to a **Server-Side Rendered (SSR)** architecture enhanced with **HTMX**. This allows us to maintain a single binary deployment (Go) while providing a modern, Single-Page-Application (SPA) feel.

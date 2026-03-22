@@ -2,6 +2,13 @@
 
 This document outlines the process for releasing a new version of Mindloop. Mindloop uses [GoReleaser](https://goreleaser.com/) combined with GitHub Actions to automate the build and release process.
 
+## Table of Contents
+- [Triggering a Release](#triggering-a-release)
+  - [Steps to Release](#steps-to-release)
+- [What Happens Next?](#what-happens-next)
+- [Testing Releases Locally (Snapshot)](#testing-releases-locally-snapshot)
+- [Troubleshooting](#troubleshooting)
+
 ## Triggering a Release
 
 Releases are triggered automatically when a new Git tag starting with `v` is pushed to the repository.

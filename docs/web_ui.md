@@ -2,6 +2,17 @@
 
 Mindloop now includes a comprehensive Web UI to manage your productivity workflow. This interface provides access to all core features including Journaling, Habit Tracking, Focus Timer, Intent Management, and Daily Summaries.
 
+## Table of Contents
+- [Home Dashboard](#home-dashboard)
+- [Journal](#journal)
+- [Habit Tracker](#habit-tracker)
+- [Focus Timer](#focus-timer)
+- [Daily Intent](#daily-intent)
+- [Summary](#summary)
+- [Gamification & Celebrations](#gamification--celebrations)
+- [Dark Mode](#dark-mode)
+- [Technical Architecture](#technical-architecture)
+
 ## Home Dashboard
 The home page provides an at-a-glance view of your current status, including today's intent and quick access to other features.
 
