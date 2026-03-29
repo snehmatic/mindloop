@@ -322,6 +322,7 @@ type SummaryReport struct {
 	Points         PointStats
 	TasksCompleted int
 }
+
 // SideQuest represents an ad-hoc task during a focus session
 type SideQuest struct {
 	gorm.Model
@@ -353,7 +354,7 @@ type SubTask struct {
 
 // SubTaskView is a simplified representation of a SubTask for the UI
 type SubTaskView struct {
-	ID     uint   `json:"id"`
+	ID       uint   `json:"id"`
 	TaskID   uint   `json:"task_id"`
 	Title    string `json:"title"`
 	Status   string `json:"status"`
@@ -362,7 +363,7 @@ type SubTaskView struct {
 
 func ToSubTaskView(st SubTask) SubTaskView {
 	return SubTaskView{
-		ID:     st.ID,
+		ID:       st.ID,
 		TaskID:   st.TaskID,
 		Title:    st.Title,
 		Status:   st.Status,
@@ -372,16 +373,16 @@ func ToSubTaskView(st SubTask) SubTaskView {
 
 // TaskView is a simplified representation of a Task for the UI
 type TaskView struct {
-	ID             uint          `json:"id"`
-	Title          string        `json:"title"`
-	Status         string        `json:"status"`
+	ID                uint          `json:"id"`
+	Title             string        `json:"title"`
+	Status            string        `json:"status"`
 	IntentID          *uint         `json:"intent_id,omitempty"`
 	IntentName        string        `json:"intent_name,omitempty"`
 	FocusSessionID    *uint         `json:"focus_session_id,omitempty"`
 	FocusSessionTitle string        `json:"focus_session_title,omitempty"`
 	Position          int           `json:"position"`
-	SubTasks       []SubTaskView `json:"sub_tasks"`
-	CreatedAt      string        `json:"created_at"`
+	SubTasks          []SubTaskView `json:"sub_tasks"`
+	CreatedAt         string        `json:"created_at"`
 }
 
 func ToTaskView(t Task) TaskView {

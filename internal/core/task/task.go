@@ -46,12 +46,12 @@ func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 	if err := s.db.Save(&task).Error; err != nil {
 		return false, err
 	}
-	
+
 	milestoneReached, err := points.AwardPoints(s.db, models.CategoryTask, task.ID, pointsVal)
 	if err != nil {
 		logger.Error().Err(err).Msg("Error awarding points for task")
 	}
-	
+
 	return milestoneReached, nil
 }
 
@@ -89,12 +89,12 @@ func (s *Service) CompleteSubTask(id uint, pointsVal int) (bool, error) {
 	if err := s.db.Save(&st).Error; err != nil {
 		return false, err
 	}
-	
+
 	milestoneReached, err := points.AwardPoints(s.db, models.CategorySubTask, st.ID, pointsVal)
 	if err != nil {
 		logger.Error().Err(err).Msg("Error awarding points for subtask")
 	}
-	
+
 	return milestoneReached, nil
 }
 

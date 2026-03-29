@@ -63,11 +63,12 @@ func (mlh *MindloopHandler) HandleTaskList(w http.ResponseWriter, r *http.Reques
 	}
 
 	if success := r.URL.Query().Get("success"); success != "" {
-		if success == "added" || success == "true" {
+		switch success {
+		case "added", "true":
 			data["SuccessMessage"] = "Action completed."
-		} else if success == "done" {
+		case "done":
 			data["SuccessMessage"] = "Task completed successfully! Great job!"
-		} else if success == "milestone" {
+		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
 		}
 	}

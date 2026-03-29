@@ -242,6 +242,7 @@ func FileExists(filename string) bool {
 	}
 	return true
 }
+
 // FileWrite writes data to a file
 func FileWrite(filename string, data []byte) error {
 	if err := os.WriteFile(filename, data, 0644); err != nil {
@@ -251,6 +252,7 @@ func FileWrite(filename string, data []byte) error {
 	logger.Info().Str("file", filename).Msg("file written successfully")
 	return nil
 }
+
 // FileRead reads data from a file
 func FileRead(filename string) ([]byte, error) {
 	data, err := os.ReadFile(filename)
@@ -261,6 +263,7 @@ func FileRead(filename string) ([]byte, error) {
 	logger.Info().Str("file", filename).Msg("file read successfully")
 	return data, nil
 }
+
 // FileDelete deletes a file at the given path
 func FileDelete(filename string) error {
 	if err := os.Remove(filename); err != nil {
