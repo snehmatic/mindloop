@@ -76,6 +76,9 @@ var taskCompleteCmd = &cobra.Command{
 		}
 
 		appConfig := config.GetConfig()
+		uc := config.UserConfig{}
+		_ = uc.ReadFromYAML()
+
 		database, err := db.ConnectToDb(*appConfig)
 		if err != nil {
 			utils.PrintErrorln("Failed to connect to database")
@@ -83,7 +86,7 @@ var taskCompleteCmd = &cobra.Command{
 		}
 
 		svc := task.NewService(database)
-		err = svc.CompleteTask(uint(id))
+		_, err = svc.CompleteTask(uint(id), uc.PointsConfig.Task)
 		if err != nil {
 			utils.PrintErrorln(fmt.Sprintf("Failed to complete task: %v", err))
 			return
@@ -120,11 +123,81 @@ var taskListCmd = &cobra.Command{
 	},
 }
 
+var subtaskCmd = &cobra.Command{
+	Use:   "subtask",
+	Short: "Manage subtasks",
+}
+
+var subtaskAddCmd = &cobra.Command{
+	Use:   "add [task-id] [title]",
+	Short: "Add a subtask to a task",
+	Args:  cobra.ExactArgs(2),
+	Run: func(cmd *cobra.Command, args []string) {
+		taskID, err := strconv.ParseUint(args[0], 10, 32)
+		if err != nil {
+			utils.PrintErrorln("Invalid task ID")
+			return
+		}
+		title := args[1]
+
+		appConfig := config.GetConfig()
+		database, err := db.ConnectToDb(*appConfig)
+		if err != nil {
+			utils.PrintErrorln("Failed to connect to database")
+			return
+		}
+
+		svc := task.NewService(database)
+		st, err := svc.AddSubTask(uint(taskID), title)
+		if err != nil {
+			utils.PrintErrorln(fmt.Sprintf("Failed to add subtask: %v", err))
+			return
+		}
+
+		utils.PrintSuccessln(fmt.Sprintf("Added subtask '%s' (ID: %d) to task %d", st.Title, st.ID, taskID))
+	},
+}
+
+var subtaskCompleteCmd = &cobra.Command{
+	Use:   "complete [id]",
+	Short: "Complete a subtask",
+	Args:  cobra.ExactArgs(1),
+	Run: func(cmd *cobra.Command, args []string) {
+		id, err := strconv.ParseUint(args[0], 10, 32)
+		if err != nil {
+			utils.PrintErrorln("Invalid subtask ID")
+			return
+		}
+
+		appConfig := config.GetConfig()
+		uc := config.UserConfig{}
+		_ = uc.ReadFromYAML()
+
+		database, err := db.ConnectToDb(*appConfig)
+		if err != nil {
+			utils.PrintErrorln("Failed to connect to database")
+			return
+		}
+
+		svc := task.NewService(database)
+		_, err = svc.CompleteSubTask(uint(id), uc.PointsConfig.SubTask)
+		if err != nil {
+			utils.PrintErrorln(fmt.Sprintf("Failed to complete subtask: %v", err))
+			return
+		}
+
+		utils.PrintSuccessln(fmt.Sprintf("Subtask %d marked as completed", id))
+	},
+}
+
 func init() {
 	rootCmd.AddCommand(taskCmd)
 	taskCmd.AddCommand(taskAddCmd)
 	taskCmd.AddCommand(taskCompleteCmd)
 	taskCmd.AddCommand(taskListCmd)
+	taskCmd.AddCommand(subtaskCmd)
+	subtaskCmd.AddCommand(subtaskAddCmd)
+	subtaskCmd.AddCommand(subtaskCompleteCmd)
 
 	taskAddCmd.Flags().String("intent-id", "", "ID of the linked intent")
 	taskAddCmd.Flags().String("focus-id", "", "ID of the linked focus session")

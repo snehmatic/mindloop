@@ -16,6 +16,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/note"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
+	"github.com/snehmatic/mindloop/internal/core/task"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -49,8 +50,9 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 	qService := quest.NewService(db)
 	sService := summary.NewService(db)
 	bService := backup.NewService(db)
+	tService := task.NewService(db)
 
-	mlh := NewMindloopHandler(jService, nService, hService, fService, iService, qService, sService, bService)
+	mlh := NewMindloopHandler(jService, nService, hService, fService, iService, qService, sService, bService, tService)
 	return mlh, db
 }
 

@@ -34,6 +34,43 @@
             </button>
         </form>
 
+        <!-- Inline Tasks for Focus Session -->
+        <div style="width: 100%; max-width: 600px; margin: 3rem auto 0; border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: left;">
+            <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-sm">
+                <h3 class="mb-0">Session Tasks</h3>
+                <button type="button" onclick="document.getElementById('focus-add-task-form').style.display = document.getElementById('focus-add-task-form').style.display === 'none' ? 'flex' : 'none'" class="btn btn-sm btn-primary-outline" style="padding: 0.25rem 0.75rem; background: transparent; color: var(--primary); border: 1px solid var(--primary);"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Task</button>
+            </div>
+            
+            <form id="focus-add-task-form" action="/tasks/new" method="POST" class="flex-center gap-sm mb-md" style="display: none; border-left: 3px solid var(--primary); padding-left: 1rem;">
+                <input type="hidden" name="focus_id" value="{{ $activeSession.ID }}">
+                <input type="hidden" name="source" value="/focus">
+                <input type="text" name="title" class="form-control" placeholder="New task..." required style="flex: 1;">
+                <button type="submit" class="btn btn-primary btn-sm">Save</button>
+            </form>
+    
+            {{ if $.ActiveTasks }}
+            <div class="flex-col gap-sm">
+                {{ range $.ActiveTasks }}
+                <div class="card p-sm" style="display: flex; justify-content: space-between; align-items: center; {{ if eq .Status "completed" }}opacity: 0.7;{{ end }}">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; {{ if eq .Status "completed" }}text-decoration: line-through;{{ end }}">
+                        <i data-lucide="{{ if eq .Status "completed" }}check-circle{{ else }}circle{{ end }}" style="color: {{ if eq .Status "completed" }}var(--success){{ else }}var(--text-secondary){{ end }}; width: 18px;"></i>
+                        {{ .Title }}
+                    </div>
+                    {{ if ne .Status "completed" }}
+                    <form action="/tasks/complete" method="POST" class="mb-0">
+                        <input type="hidden" name="id" value="{{ .ID }}">
+                        <input type="hidden" name="source" value="/focus">
+                        <button type="submit" class="btn btn-sm btn-success-outline" style="padding: 0.25rem 0.5rem;">Done</button>
+                    </form>
+                    {{ end }}
+                </div>
+                {{ end }}
+            </div>
+            {{ else }}
+            <p class="text-sm text-muted text-center">No tasks added to this session yet.</p>
+            {{ end }}
+        </div>
+
         <script>
             (function () {
                 const startTime = new Date("{{ $activeSession.CreatedAt | iso8601 }}").getTime();

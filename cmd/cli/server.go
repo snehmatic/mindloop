@@ -10,6 +10,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/note"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
+	"github.com/snehmatic/mindloop/internal/core/task"
 	"github.com/snehmatic/mindloop/internal/server"
 	"github.com/spf13/cobra"
 )
@@ -31,6 +32,7 @@ var serverCmd = &cobra.Command{
 		questService := quest.NewService(gdb)
 		summaryService := summary.NewService(gdb)
 		habitService := habit.NewService(gdb)
+		taskService := task.NewService(gdb)
 
 		mlh := v1.NewMindloopHandler(
 			journalService,
@@ -41,6 +43,7 @@ var serverCmd = &cobra.Command{
 			questService,
 			summaryService,
 			backupService,
+			taskService,
 		)
 
 		server.Serve(mlh, serverPort)

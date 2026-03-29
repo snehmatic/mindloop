@@ -374,6 +374,23 @@ html.dark-mode .card-danger {
     border-color: var(--danger);
 }
 
+.btn-success {
+    background-color: var(--success);
+    color: white;
+}
+
+.btn-success-outline {
+    background-color: transparent;
+    border-color: var(--success-bg);
+    color: var(--success);
+}
+
+.btn-success-outline:hover {
+    background-color: var(--success);
+    color: white;
+    border-color: var(--success);
+}
+
 .btn-sm {
     padding: 0.5rem;
     height: 2.5rem;

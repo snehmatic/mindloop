@@ -6,7 +6,7 @@
 - [Habits](#habits)
 - [Journal](#journal)
 - [Summary](#summary)
-- [Tasks & Sub-tasks (CLI Only)](#tasks--sub-tasks-cli-only)
+- [Tasks & Sub-tasks](#tasks--sub-tasks)
 - [Routines & Rituals (CLI Only)](#routines--rituals-cli-only)
 - [Gamification & Points](#gamification--points)
 - [Settings & Configuration](#settings--configuration)
@@ -38,11 +38,16 @@ High-level metrics and a bird's-eye view of your productivity data.
 - Review completed intents and habit consistency.
 - Filter data by date ranges.
 
-## Tasks & Sub-tasks (CLI Only)
+## Tasks & Sub-tasks
 Manage independent to-do items and link them to your bigger goals.
-- Link tasks to an active Intent or a Focus Session.
-- Break down tasks further into actionable sub-tasks.
-- *Note: Web UI support coming soon.*
+- **Full Web UI**: Create, complete, and delete tasks directly from the Tasks page.
+- **Sub-tasks**: Break tasks into smaller, actionable sub-tasks with independent completion tracking.
+- **Link to Intents & Focus Sessions**: Optionally attach tasks to an active Intent or Focus Session when creating them.
+- **Inline Task Creation**: Add tasks directly from within the Intent or Focus Session views via a toggleable form.
+- **Drag & Drop Reordering**: Reorder tasks and sub-tasks with persistent drag-and-drop (powered by SortableJS).
+- **Status Filtering**: Filter the task list by All, Pending, or Completed status.
+- **Gamification**: Earn points only on task/sub-task completion (configurable in Settings). No rewards for just adding items.
+- **Visual Polish**: Completed tasks are dimmed with a subtle green tint; pill-shaped action buttons with hover effects.
 
 ## Routines & Rituals (CLI Only)
 Group habits into logical time-blocks (e.g., "Morning Routine").
@@ -52,7 +57,7 @@ Group habits into logical time-blocks (e.g., "Morning Routine").
 
 ## Gamification & Points
 Turn your productivity into a game with a built-in reward system.
-- **Earn Points**: Get rewarded for completing focus sessions, habits, intents, journals, and side quests.
+- **Earn Points**: Get rewarded for completing focus sessions, habits, intents, journals, tasks, sub-tasks, and side quests.
 - **Milestones**: Reach point milestones (every 100 pts) to trigger special celebration screens.
 - **Customizable Rewards**: Define your own point values for different activities in the Settings.
 - **Visual Progress**: Track your points over time with a dedicated chart in the Summary report.

@@ -18,6 +18,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/note"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
+	"github.com/snehmatic/mindloop/internal/core/task"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -60,6 +61,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 	summaryService := summary.NewService(database)
 	habitService := habit.NewService(database)
 	backupService := backup.NewService(database)
+	taskService := task.NewService(database)
 
 	return v1.NewMindloopHandler(
 		journalService,
@@ -70,6 +72,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 		questService,
 		summaryService,
 		backupService,
+		taskService,
 	)
 }
 

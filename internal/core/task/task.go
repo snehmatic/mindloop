@@ -3,6 +3,7 @@ package task
 import (
 	"errors"
 
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
@@ -35,23 +36,31 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 }
 
 // CompleteTask marks a task as completed in the database
-func (s *Service) CompleteTask(id uint) error {
+func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 	var task models.Task
 	if err := s.db.First(&task, id).Error; err != nil {
-		return errors.New("task not found")
+		return false, errors.New("task not found")
 	}
 
 	task.Status = "completed"
 	if err := s.db.Save(&task).Error; err != nil {
-		return err
+		return false, err
 	}
-	return nil
+	
+	milestoneReached, err := points.AwardPoints(s.db, models.CategoryTask, task.ID, pointsVal)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error awarding points for task")
+	}
+	
+	return milestoneReached, nil
 }
 
 // ListTasks retrieves all tasks from the database
 func (s *Service) ListTasks() ([]models.Task, error) {
 	var tasks []models.Task
-	if err := s.db.Preload("SubTasks").Find(&tasks).Error; err != nil {
+	if err := s.db.Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
+		return db.Order("Position ASC, CreatedAt DESC")
+	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
 		return nil, err
 	}
 	return tasks, nil
@@ -70,15 +79,80 @@ func (s *Service) AddSubTask(taskID uint, title string) (*models.SubTask, error)
 }
 
 // CompleteSubTask marks a sub-task as completed in the database
-func (s *Service) CompleteSubTask(id uint) error {
+func (s *Service) CompleteSubTask(id uint, pointsVal int) (bool, error) {
 	var st models.SubTask
 	if err := s.db.First(&st, id).Error; err != nil {
-		return errors.New("subtask not found")
+		return false, errors.New("subtask not found")
 	}
 
 	st.Status = "completed"
 	if err := s.db.Save(&st).Error; err != nil {
+		return false, err
+	}
+	
+	milestoneReached, err := points.AwardPoints(s.db, models.CategorySubTask, st.ID, pointsVal)
+	if err != nil {
+		logger.Error().Err(err).Msg("Error awarding points for subtask")
+	}
+	
+	return milestoneReached, nil
+}
+
+// GetTasksByIntent retrieves all tasks linked to a specific intent
+func (s *Service) GetTasksByIntent(intentID uint) ([]models.Task, error) {
+	var tasks []models.Task
+	if err := s.db.Where("IntentID = ?", intentID).Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
+		return db.Order("Position ASC, CreatedAt DESC")
+	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
+
+// GetTasksByFocusSession retrieves all tasks linked to a specific focus session
+func (s *Service) GetTasksByFocusSession(focusID uint) ([]models.Task, error) {
+	var tasks []models.Task
+	if err := s.db.Where("FocusSessionID = ?", focusID).Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
+		return db.Order("Position ASC, CreatedAt DESC")
+	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
+		return nil, err
+	}
+	return tasks, nil
+}
+
+// DeleteTask removes a task from the database
+func (s *Service) DeleteTask(id uint) error {
+	if err := s.db.Where("TaskID = ?", id).Delete(&models.SubTask{}).Error; err != nil {
 		return err
 	}
-	return nil
+	return s.db.Delete(&models.Task{}, id).Error
+}
+
+// DeleteSubTask removes a subtask from the database
+func (s *Service) DeleteSubTask(id uint) error {
+	return s.db.Delete(&models.SubTask{}, id).Error
+}
+
+// ReorderTasks updates the position of a list of tasks
+func (s *Service) ReorderTasks(ids []uint) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		for i, id := range ids {
+			if err := tx.Model(&models.Task{}).Where("id = ?", id).Update("position", i).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
+}
+
+// ReorderSubTasks updates the position of a list of subtasks
+func (s *Service) ReorderSubTasks(ids []uint) error {
+	return s.db.Transaction(func(tx *gorm.DB) error {
+		for i, id := range ids {
+			if err := tx.Model(&models.SubTask{}).Where("id = ?", id).Update("position", i).Error; err != nil {
+				return err
+			}
+		}
+		return nil
+	})
 }

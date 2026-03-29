@@ -175,6 +175,16 @@
                             <input type="number" id="pts_quest" name="pts_quest"
                                 value="{{ .Config.PointsConfig.Quest }}" min="0">
                         </div>
+                        <div class="form-group">
+                            <label for="pts_task" class="text-xs">Task Complete</label>
+                            <input type="number" id="pts_task" name="pts_task"
+                                value="{{ .Config.PointsConfig.Task }}" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="pts_subtask" class="text-xs">Subtask Complete</label>
+                            <input type="number" id="pts_subtask" name="pts_subtask"
+                                value="{{ .Config.PointsConfig.SubTask }}" min="0">
+                        </div>
                     </div>
                 </div>
             </div>

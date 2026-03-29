@@ -7,10 +7,16 @@ import (
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 func setupTestDB(t *testing.T) *gorm.DB {
-	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
+		NamingStrategy: schema.NamingStrategy{
+			SingularTable: true,
+			NoLowerCase:   true,
+		},
+	})
 	if err != nil {
 		t.Fatalf("failed to connect database: %v", err)
 	}
@@ -93,7 +99,7 @@ func TestGetPointsInRange(t *testing.T) {
 		Points:       5,
 	}
 	db.Create(&tx1)
-	db.Model(&tx1).Update("created_at", now.AddDate(0, 0, -1))
+	db.Model(&tx1).Update("CreatedAt", now.AddDate(0, 0, -1))
 
 	// Transaction 2 (Today)
 	tx2 := models.PointTransaction{
@@ -110,7 +116,7 @@ func TestGetPointsInRange(t *testing.T) {
 		Points:       10,
 	}
 	db.Create(&tx3)
-	db.Model(&tx3).Update("created_at", now.AddDate(0, 0, 1))
+	db.Model(&tx3).Update("CreatedAt", now.AddDate(0, 0, 1))
 
 	startStr := now.AddDate(0, 0, -2).Format("2006-01-02 15:04:05")
 	endStr := now.Add(time.Hour).Format("2006-01-02 15:04:05")

@@ -106,6 +106,7 @@ func (s *Service) RateSession(id int, rating int) (*models.FocusSession, error) 
 }
 
 func (s *Service) DeleteSession(id int) error {
+	s.DB.Model(&models.Task{}).Where("focus_session_id = ?", id).Update("focus_session_id", nil)
 	return s.DB.Delete(&models.FocusSession{}, id).Error
 }
 

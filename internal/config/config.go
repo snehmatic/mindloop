@@ -150,6 +150,8 @@ type PointsConfig struct {
 	Intent  int `yaml:"intent"`
 	Journal int `yaml:"journal"`
 	Quest   int `yaml:"quest"`
+	Task    int `yaml:"task"`
+	SubTask int `yaml:"subtask"`
 }
 
 // SetDefaults ensures that the UserConfig has sensible default values
@@ -177,6 +179,12 @@ func (uc *UserConfig) SetDefaults() {
 	}
 	if uc.PointsConfig.Quest == 0 {
 		uc.PointsConfig.Quest = 5
+	}
+	if uc.PointsConfig.Task == 0 {
+		uc.PointsConfig.Task = 3
+	}
+	if uc.PointsConfig.SubTask == 0 {
+		uc.PointsConfig.SubTask = 1
 	}
 }
 

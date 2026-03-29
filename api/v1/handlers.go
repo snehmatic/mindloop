@@ -19,6 +19,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/note"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
+	"github.com/snehmatic/mindloop/internal/core/task"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/snehmatic/mindloop/web"
@@ -79,6 +80,7 @@ type MindloopHandler struct {
 	quest   *quest.Service
 	summary *summary.Service
 	backup  *backup.Service
+	task    *task.Service
 }
 
 func NewMindloopHandler(
@@ -90,6 +92,7 @@ func NewMindloopHandler(
 	quest *quest.Service,
 	summary *summary.Service,
 	backup *backup.Service,
+	task *task.Service,
 ) *MindloopHandler {
 	return &MindloopHandler{
 		config:  config.GetConfig(),
@@ -101,6 +104,7 @@ func NewMindloopHandler(
 		quest:   quest,
 		summary: summary,
 		backup:  backup,
+		task:    task,
 	}
 }
 

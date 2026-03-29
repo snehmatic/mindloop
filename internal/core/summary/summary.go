@@ -39,12 +39,16 @@ func (s *Service) GenerateSummary(start, end time.Time) (models.SummaryReport, e
 		TotalPoints: totalPoints,
 	}
 
+	var tasksCompleted int64
+	s.DB.Model(&models.Task{}).Where("Status = ? AND UpdatedAt >= ? AND UpdatedAt <= ?", "completed", start, end).Count(&tasksCompleted)
+
 	return models.SummaryReport{
-		DateRange: fmt.Sprintf("%s to %s", start.Format("02-Jan-2006"), end.Format("02-Jan-2006")),
-		Focus:     focusStats,
-		Habits:    habitStats,
-		Intents:   intentStats,
-		Points:    pointStats,
+		DateRange:      fmt.Sprintf("%s to %s", start.Format("02-Jan-2006"), end.Format("02-Jan-2006")),
+		Focus:          focusStats,
+		Habits:         habitStats,
+		Intents:        intentStats,
+		Points:         pointStats,
+		TasksCompleted: int(tasksCompleted),
 	}, nil
 }
 

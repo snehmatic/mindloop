@@ -50,8 +50,8 @@ func GetPointsInRange(db *gorm.DB, start, end string) ([]models.PointTransaction
 	var history []models.PointTransaction
 	query := db.Model(&models.PointTransaction{})
 	if start != "" && end != "" {
-		query = query.Where("created_at >= ? AND created_at <= ?", start, end)
+		query = query.Where("CreatedAt >= ? AND CreatedAt <= ?", start, end)
 	}
-	err := query.Order("created_at asc").Find(&history).Error
+	err := query.Order("CreatedAt ASC").Find(&history).Error
 	return history, err
 }

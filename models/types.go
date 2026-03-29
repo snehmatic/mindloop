@@ -315,11 +315,12 @@ type IntentStats struct {
 }
 
 type SummaryReport struct {
-	DateRange string
-	Focus     FocusStats
-	Habits    []HabitStats
-	Intents   []IntentStats
-	Points    PointStats
+	DateRange      string
+	Focus          FocusStats
+	Habits         []HabitStats
+	Intents        []IntentStats
+	Points         PointStats
+	TasksCompleted int
 }
 // SideQuest represents an ad-hoc task during a focus session
 type SideQuest struct {
@@ -337,15 +338,68 @@ type Task struct {
 	Status         string    `gorm:"default:pending" json:"status"` // pending, completed
 	IntentID       *uint     `json:"intent_id,omitempty"`
 	FocusSessionID *uint     `json:"focus_session_id,omitempty"`
+	Position       int       `gorm:"default:0" json:"position"`
 	SubTasks       []SubTask `gorm:"foreignKey:TaskID" json:"sub_tasks"`
 }
 
 // SubTask is a smaller component of a Task
 type SubTask struct {
 	gorm.Model
-	TaskID uint   `gorm:"not null" json:"task_id"`
-	Title  string `gorm:"not null" json:"title"`
-	Status string `gorm:"default:pending" json:"status"` // pending, completed
+	TaskID   uint   `gorm:"not null" json:"task_id"`
+	Title    string `gorm:"not null" json:"title"`
+	Status   string `gorm:"default:pending" json:"status"` // pending, completed
+	Position int    `gorm:"default:0" json:"position"`
+}
+
+// SubTaskView is a simplified representation of a SubTask for the UI
+type SubTaskView struct {
+	ID     uint   `json:"id"`
+	TaskID   uint   `json:"task_id"`
+	Title    string `json:"title"`
+	Status   string `json:"status"`
+	Position int    `json:"position"`
+}
+
+func ToSubTaskView(st SubTask) SubTaskView {
+	return SubTaskView{
+		ID:     st.ID,
+		TaskID:   st.TaskID,
+		Title:    st.Title,
+		Status:   st.Status,
+		Position: st.Position,
+	}
+}
+
+// TaskView is a simplified representation of a Task for the UI
+type TaskView struct {
+	ID             uint          `json:"id"`
+	Title          string        `json:"title"`
+	Status         string        `json:"status"`
+	IntentID          *uint         `json:"intent_id,omitempty"`
+	IntentName        string        `json:"intent_name,omitempty"`
+	FocusSessionID    *uint         `json:"focus_session_id,omitempty"`
+	FocusSessionTitle string        `json:"focus_session_title,omitempty"`
+	Position          int           `json:"position"`
+	SubTasks       []SubTaskView `json:"sub_tasks"`
+	CreatedAt      string        `json:"created_at"`
+}
+
+func ToTaskView(t Task) TaskView {
+	subTasks := make([]SubTaskView, len(t.SubTasks))
+	for i, st := range t.SubTasks {
+		subTasks[i] = ToSubTaskView(st)
+	}
+
+	return TaskView{
+		ID:             t.ID,
+		Title:          t.Title,
+		Status:         t.Status,
+		IntentID:       t.IntentID,
+		FocusSessionID: t.FocusSessionID,
+		Position:       t.Position,
+		SubTasks:       subTasks,
+		CreatedAt:      t.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
 }
 
 // SideQuestView is a simplified representation of a SideQuest for the UI
@@ -387,6 +441,10 @@ const (
 	CategoryJournal PointCategory = "journal"
 	// CategoryQuest for side quest completions
 	CategoryQuest PointCategory = "quest"
+	// CategoryTask for task completions
+	CategoryTask PointCategory = "task"
+	// CategorySubTask for subtask completions
+	CategorySubTask PointCategory = "subtask"
 )
 
 // PointTransaction records points earned for a specific activity

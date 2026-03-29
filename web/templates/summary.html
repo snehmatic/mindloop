@@ -32,7 +32,7 @@
     </div>
 </div>
 
-<div class="grid">
+<div class="grid" style="grid-template-columns: repeat(2, 1fr);">
     <!-- Points Stats -->
     <div class="card">
         <h3>Gamification</h3>
@@ -60,6 +60,15 @@
                     .Report.Focus.LongestSession }}{{ else }}0 mins{{ end }}</div>
                 <div class="stat-label">Longest Session</div>
             </div>
+        </div>
+    </div>
+
+    <!-- Tasks Stats -->
+    <div class="card">
+        <h3>Tasks</h3>
+        <div class="mt-md">
+            <div class="stat-value" style="color: var(--success);">{{ .Report.TasksCompleted }}</div>
+            <div class="stat-label">Tasks Completed</div>
         </div>
     </div>
 

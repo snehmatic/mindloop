@@ -430,10 +430,19 @@ func (mlh *MindloopHandler) HandleIntent(w http.ResponseWriter, r *http.Request)
 		currentQuest = q
 	}
 
+	var intentTasks []models.TaskView
+	if currentIntent != nil {
+		tasks, _ := mlh.task.GetTasksByIntent(currentIntent.ID)
+		for _, t := range tasks {
+			intentTasks = append(intentTasks, models.ToTaskView(t))
+		}
+	}
+
 	data := map[string]interface{}{
 		"Title":         "Intent",
 		"CurrentIntent": currentIntent,
 		"CurrentQuest":  currentQuest,
+		"Tasks":         intentTasks,
 		"History":       allIntents,
 	}
 
@@ -547,9 +556,19 @@ func (mlh *MindloopHandler) HandleIntentDelete(w http.ResponseWriter, r *http.Re
 func (mlh *MindloopHandler) HandleFocus(w http.ResponseWriter, r *http.Request) {
 	sessions, _ := mlh.focus.ListSessions()
 
+	var activeTasks []models.TaskView
+	activeSession, _ := mlh.focus.GetActiveSession()
+	if activeSession != nil {
+		tasks, _ := mlh.task.GetTasksByFocusSession(activeSession.ID)
+		for _, t := range tasks {
+			activeTasks = append(activeTasks, models.ToTaskView(t))
+		}
+	}
+
 	data := map[string]interface{}{
-		"Title":    "Focus",
-		"Sessions": sessions,
+		"Title":       "Focus",
+		"Sessions":    sessions,
+		"ActiveTasks": activeTasks,
 	}
 
 	if success := r.URL.Query().Get("success"); success != "" {
@@ -627,7 +646,7 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 			}
 		}
 		sessions, _ := mlh.focus.ListSessions()
-		data := map[string]interface{}{"Sessions": sessions}
+		data := map[string]interface{}{"Sessions": sessions, "ActiveTasks": []models.TaskView{}}
 		mlh.renderPartial(w, "focus_active_timer.html", data)
 		mlh.renderPartial(w, "focus_session_list.html", data)
 		return
@@ -1095,6 +1114,8 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	ptsIntent, _ := strconv.Atoi(r.FormValue("pts_intent"))
 	ptsJournal, _ := strconv.Atoi(r.FormValue("pts_journal"))
 	ptsQuest, _ := strconv.Atoi(r.FormValue("pts_quest"))
+	ptsTask, _ := strconv.Atoi(r.FormValue("pts_task"))
+	ptsSubTask, _ := strconv.Atoi(r.FormValue("pts_subtask"))
 
 	uc := config.UserConfig{
 		Name:            name,
@@ -1114,6 +1135,8 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 			Intent:  ptsIntent,
 			Journal: ptsJournal,
 			Quest:   ptsQuest,
+			Task:    ptsTask,
+			SubTask: ptsSubTask,
 		},
 	}
 
