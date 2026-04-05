@@ -211,7 +211,7 @@
                 if (status === 'pending') {
                     icon.innerHTML = '<i data-lucide="party-popper" style="color: var(--success); width: 48px; height: 48px;"></i>';
                     title.textContent = 'All Caught Up!';
-                    desc.textContent = 'You\'ve cleared your To-Do list. Awesome work! Take a breather or add a new task when you\'re ready.';
+                    desc.innerHTML = 'You\'ve cleared your To-Do list. Awesome work!<br><br>Take a breather or add a new task when you\'re ready.';
                 } else if (status === 'completed') {
                     icon.innerHTML = '<i data-lucide="circle-dashed" style="width: 48px; height: 48px;"></i>';
                     title.textContent = 'No Completed Tasks';
