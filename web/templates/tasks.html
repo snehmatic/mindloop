@@ -176,6 +176,7 @@
     }
 
     function filterTasks(status) {
+        sessionStorage.setItem('tasksFilter', status);
         // Update active button state
         document.querySelectorAll('.filter-btn').forEach(btn => {
             btn.classList.remove('active');
@@ -193,6 +194,10 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
+        // Apply saved filter state
+        const savedFilter = sessionStorage.getItem('tasksFilter') || 'all';
+        filterTasks(savedFilter);
+
         // Initialize SortableJS for main tasks list
         const tasksList = document.getElementById('tasks-list-container');
         if (tasksList) {

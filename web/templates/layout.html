@@ -240,6 +240,23 @@
                 document.getElementById('write-dropdown').classList.remove('active');
             }
         });
+
+        // Global Scroll Position Memory
+        window.addEventListener('beforeunload', () => {
+            sessionStorage.setItem('scrollPos_' + window.location.pathname, window.scrollY);
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const key = 'scrollPos_' + window.location.pathname;
+            const scrollPos = sessionStorage.getItem(key);
+            if (scrollPos) {
+                // Request animation frame ensures the browser has rendered the page
+                requestAnimationFrame(() => {
+                    window.scrollTo(0, parseInt(scrollPos, 10));
+                });
+                sessionStorage.removeItem(key);
+            }
+        });
     </script>
 </body>
 

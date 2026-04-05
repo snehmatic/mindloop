@@ -59,7 +59,7 @@ func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 func (s *Service) ListTasks() ([]models.Task, error) {
 	var tasks []models.Task
 	if err := s.db.Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
-		return db.Order("Position ASC, CreatedAt DESC")
+		return db.Order("Position ASC, CreatedAt ASC")
 	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
 		return nil, err
 	}
@@ -102,7 +102,7 @@ func (s *Service) CompleteSubTask(id uint, pointsVal int) (bool, error) {
 func (s *Service) GetTasksByIntent(intentID uint) ([]models.Task, error) {
 	var tasks []models.Task
 	if err := s.db.Where("IntentID = ?", intentID).Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
-		return db.Order("Position ASC, CreatedAt DESC")
+		return db.Order("Position ASC, CreatedAt ASC")
 	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
 		return nil, err
 	}
@@ -113,7 +113,7 @@ func (s *Service) GetTasksByIntent(intentID uint) ([]models.Task, error) {
 func (s *Service) GetTasksByFocusSession(focusID uint) ([]models.Task, error) {
 	var tasks []models.Task
 	if err := s.db.Where("FocusSessionID = ?", focusID).Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
-		return db.Order("Position ASC, CreatedAt DESC")
+		return db.Order("Position ASC, CreatedAt ASC")
 	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
 		return nil, err
 	}
