@@ -55,12 +55,12 @@
 </div>
 
 <div class="flex-center mb-lg gap-sm" style="justify-content: flex-start;">
-    <button class="btn btn-sm btn-secondary filter-btn active" data-filter="all"
-        onclick="filterTasks('all')">All</button>
-    <button class="btn btn-sm btn-secondary filter-btn" data-filter="pending"
-        onclick="filterTasks('pending')">Pending</button>
+    <button class="btn btn-sm btn-secondary filter-btn active" data-filter="pending"
+        onclick="filterTasks('pending')">To-Do</button>
     <button class="btn btn-sm btn-secondary filter-btn" data-filter="completed"
         onclick="filterTasks('completed')">Completed</button>
+    <button class="btn btn-sm btn-secondary filter-btn" data-filter="all"
+        onclick="filterTasks('all')">All</button>
 </div>
 
 <div id="tasks-list-container" class="habits-list">
@@ -195,7 +195,7 @@
 
     document.addEventListener('DOMContentLoaded', function () {
         // Apply saved filter state
-        const savedFilter = sessionStorage.getItem('tasksFilter') || 'all';
+        const savedFilter = sessionStorage.getItem('tasksFilter') || 'pending';
         filterTasks(savedFilter);
 
         // Initialize SortableJS for main tasks list
