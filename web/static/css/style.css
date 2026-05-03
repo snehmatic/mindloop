@@ -745,6 +745,28 @@ label {
     background-color: #4f46e5;
 }
 
+/* Large Screen Optimization */
+@media (min-width: 1600px) {
+    .container {
+        max-width: 1440px;
+    }
+}
+
+/* Hamburger Menu Toggle */
+.hamburger-menu {
+    display: none;
+    background: none;
+    border: none;
+    color: var(--text-main);
+    cursor: pointer;
+    padding: 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+.hamburger-menu:hover {
+    background-color: var(--bg-surface-alt);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .container {
@@ -759,22 +781,55 @@ label {
         font-size: 2rem;
     }
 
-    /* On mobile, we might not want hover expand if space is tight, or just keep icon only */
-    .nav-link:hover .nav-text {
-        max-width: 0;
-        opacity: 0;
-    }
-
-    .nav-link:hover {
-        gap: 0;
+    /* Mobile Navigation */
+    .hamburger-menu {
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
 
     .nav-links {
-        gap: 0.25rem;
+        display: none;
+        position: absolute;
+        top: 4rem;
+        left: 0;
+        right: 0;
+        background-color: var(--bg-header);
+        backdrop-filter: blur(12px);
+        flex-direction: column;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border);
+        box-shadow: var(--shadow-md);
+        gap: 0.5rem;
+        z-index: 40;
+    }
+
+    .nav-links.active {
+        display: flex;
     }
 
     .nav-link {
-        padding: 0.5rem;
+        width: 100%;
+        justify-content: flex-start;
+        padding: 0.75rem 1rem;
+        height: auto;
+    }
+
+    .nav-link:hover .nav-text {
+        max-width: none;
+        opacity: 1;
+        transform: none;
+    }
+
+    .nav-link .nav-text {
+        max-width: none;
+        opacity: 1;
+        transform: none;
+        white-space: normal;
+    }
+
+    .nav-link:hover {
+        gap: 0.75rem;
     }
 
     .grid {

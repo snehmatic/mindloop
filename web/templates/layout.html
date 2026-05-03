@@ -35,7 +35,10 @@
                     <i data-lucide="infinity"></i>
                     Mindloop
                 </a>
-                <ul class="nav-links">
+                <button class="hamburger-menu" id="mobile-menu-toggle" aria-label="Toggle navigation">
+                    <i data-lucide="menu"></i>
+                </button>
+                <ul class="nav-links" id="nav-links">
                     <li><a href="/" class="nav-link" title="Home"><i data-lucide="home"></i> <span
                                 class="nav-text">Home</span></a></li>
                     <li><a href="/intent" class="nav-link" title="Intent"><i data-lucide="crosshair"></i> <span
@@ -239,6 +242,13 @@
             if (!e.target.closest('#write-dropdown')) {
                 document.getElementById('write-dropdown').classList.remove('active');
             }
+
+            // Close mobile menu if clicked outside
+            const navLinks = document.getElementById('nav-links');
+            const hamburger = document.getElementById('mobile-menu-toggle');
+            if (navLinks && navLinks.classList.contains('active') && !e.target.closest('#nav-links') && !e.target.closest('#mobile-menu-toggle')) {
+                navLinks.classList.remove('active');
+            }
         });
 
         // Global Scroll Position Memory
@@ -247,6 +257,17 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Hamburger menu toggle
+            const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
+            const navLinks = document.getElementById('nav-links');
+            if (mobileMenuToggle && navLinks) {
+                mobileMenuToggle.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    navLinks.classList.toggle('active');
+                });
+            }
+
             const key = 'scrollPos_' + window.location.pathname;
             const scrollPos = sessionStorage.getItem(key);
             if (scrollPos) {
