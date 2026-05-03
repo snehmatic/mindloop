@@ -794,8 +794,7 @@ label {
         top: 4rem;
         left: 0;
         right: 0;
-        background-color: var(--bg-header);
-        backdrop-filter: blur(12px);
+        background-color: var(--bg-surface);
         flex-direction: column;
         padding: 1rem;
         border-bottom: 1px solid var(--border);
@@ -810,7 +809,8 @@ label {
 
     .nav-link {
         width: 100%;
-        justify-content: flex-start;
+        justify-content: flex-end;
+        gap: 0.75rem;
         padding: 0.75rem 1rem;
         height: auto;
     }
