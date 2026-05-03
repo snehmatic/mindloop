@@ -44,4 +44,4 @@ server.log
 
 .gemini/
 gha-creds-*.json
-.agents/
+.agent/
