@@ -3,10 +3,11 @@
 ## Table of Contents
 - [Intents](#intents)
 - [Focus Sessions](#focus-sessions)
-- [Habits](#habits)
-- [Journal](#journal)
-- [Summary](#summary)
 - [Tasks & Sub-tasks](#tasks--sub-tasks)
+- [Habits](#habits)
+- [Write (Journal & Notes)](#write-journal--notes)
+- [The Void](#the-void)
+- [Summary](#summary)
 - [Routines & Rituals (CLI Only)](#routines--rituals-cli-only)
 - [Gamification & Points](#gamification--points)
 - [Settings & Configuration](#settings--configuration)
@@ -21,33 +22,34 @@ Break your intents into deep work chunks with a built-in timer.
 - Track duration and frequency of deep work.
 - Associate sessions directly with your active Intent.
 
-## Habits
-Track daily and weekly habits to build consistency.
-- **Activity Heatmap**: Visualize your consistency with a GitHub-style activity grid.
-- Simple check-in system with streak tracking.
-
-## Journal
-A dedicated space for reflections, end-of-day closure, or gratitude logging.
-- **Mood Tracking**: Log your daily mood with a clean, consistent UI.
-- Markdown support for rich text entries.
-- "Close the loop" at the end of your workday.
-
-## Summary
-High-level metrics and a bird's-eye view of your productivity data.
-- Visualize time spent in focus.
-- Review completed intents and habit consistency.
-- Filter data by date ranges.
-
 ## Tasks & Sub-tasks
 Manage independent to-do items and link them to your bigger goals.
 - **Full Web UI**: Create, complete, and delete tasks directly from the Tasks page.
 - **Sub-tasks**: Break tasks into smaller, actionable sub-tasks with independent completion tracking.
 - **Link to Intents & Focus Sessions**: Optionally attach tasks to an active Intent or Focus Session when creating them.
 - **Inline Task Creation**: Add tasks directly from within the Intent or Focus Session views via a toggleable form.
-- **Drag & Drop Reordering**: Reorder tasks and sub-tasks with persistent drag-and-drop (powered by SortableJS).
+- **Drag & Drop Reordering**: Reorder tasks and sub-tasks with persistent drag-and-drop.
 - **Status Filtering**: Filter the task list by All, Pending, or Completed status.
-- **Gamification**: Earn points only on task/sub-task completion (configurable in Settings). No rewards for just adding items.
 - **Visual Polish**: Completed tasks are dimmed with a subtle green tint; pill-shaped action buttons with hover effects.
+
+## Habits
+Track daily and weekly habits to build consistency.
+- **Activity Heatmap**: Visualize your consistency with a GitHub-style activity grid.
+- Simple check-in system with streak tracking.
+
+## Write (Journal & Notes)
+A dedicated space for your thoughts.
+- **Journal**: A space for reflections, end-of-day closure, or gratitude logging. Features mood tracking and rich markdown support. "Close the loop" at the end of your workday.
+- **Notes**: Quickly capture thoughts, ideas, or longer-form reference material that doesn't fit into a daily journal entry.
+
+## The Void
+A specialized feature to write down thoughts, worries, or frustrations and let them disappear. Perfect for clearing your mind before deep work.
+
+## Summary
+High-level metrics and a bird's-eye view of your productivity data.
+- Visualize time spent in focus.
+- Review completed intents and habit consistency.
+- Filter data by date ranges.
 
 ## Routines & Rituals (CLI Only)
 Group habits into logical time-blocks (e.g., "Morning Routine").
@@ -58,13 +60,13 @@ Group habits into logical time-blocks (e.g., "Morning Routine").
 ## Gamification & Points
 Turn your productivity into a game with a built-in reward system.
 - **Earn Points**: Get rewarded for completing focus sessions, habits, intents, journals, tasks, sub-tasks, and side quests.
-- **Milestones**: Reach point milestones (every 100 pts) to trigger special celebration screens.
+- **Milestones**: Reach point milestones (every 100 pts) to trigger special full-screen celebration screens.
 - **Customizable Rewards**: Define your own point values for different activities in the Settings.
 - **Visual Progress**: Track your points over time with a dedicated chart in the Summary report.
 - **Celebrations**: Enjoy confetti animations when you finish tasks and reach new heights.
 
 ## Settings & Configuration
-- **Stacked Layout**: Clean, organized settings page with vertical stacking for better focus.
+- **Stacked Layout**: Clean, organized settings page with vertical stacking for better focus. Includes segmented controls and toggle switches.
 - **Data Management**: Easy backup, restore, and reset options.
 - **BYODB**: Bring Your Own Database (PostgreSQL) support.
 
