@@ -1,5 +1,9 @@
 # Mindloop
 
+<p align="center">
+  <img src="web/static/images/logo-readme.svg" width="200" alt="Mindloop Logo">
+</p>
+
 ![CI Status](https://github.com/snehmatic/mindloop/actions/workflows/ci.yml/badge.svg)
 ![Release Version](https://img.shields.io/github/v/release/snehmatic/mindloop)
 ![License](https://img.shields.io/github/license/snehmatic/mindloop)

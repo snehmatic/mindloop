@@ -1,5 +1,9 @@
 # Web UI Documentation
 
+<p align="center">
+  <img src="img/../static/images/logo-readme.svg" width="160" alt="Mindloop Logo">
+</p>
+
 Mindloop now includes a comprehensive Web UI to manage your productivity workflow. This interface provides access to all core features including Tasks, Journaling, Notes, Habit Tracking, Focus Timer, Intent Management, and Daily Summaries.
 
 ## Table of Contents

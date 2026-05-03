@@ -4,8 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ .Title }} - Mindloop</title>
-    <link rel="icon" type="image/x-icon" href="/static/favicon_io/favicon.ico">
+        <title>{{ .Title }} - Mindloop</title>
+    <link rel="icon" type="image/svg+xml" href="/static/favicon_io/favicon.svg">
     <link rel="stylesheet" href='{{ asset "/static/css/style.css" }}'>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -28,10 +28,13 @@
 </head>
 
 <body>
-    <header>
+        <header>
         <nav>
             <a href="/" class="logo">
-                <i data-lucide="infinity"></i>
+                <svg width="28" height="14" viewBox="0 0 100 50" class="logo-svg">
+                    <path fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" d="M 25,25 m -15,0 a 15,15 0 1,0 30,0 a 15,15 0 1,0 -30,0 M 75,25 m -15,0 a 15,15 0 1,0 30,0 a 15,15 0 1,0 -30,0" />
+                    <path fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" d="M 40,25 Q 50,40 60,25 Q 50,10 40,25" />
+                </svg>
                 Mindloop
             </a>
             <button class="hamburger-menu" id="mobile-menu-toggle" aria-label="Toggle navigation">

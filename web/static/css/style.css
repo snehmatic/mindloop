@@ -240,7 +240,7 @@ nav {
     letter-spacing: -0.02em;
 }
 
-.logo i {
+.logo .logo-svg {
     color: var(--primary);
 }
 

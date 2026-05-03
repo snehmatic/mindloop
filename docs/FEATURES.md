@@ -1,5 +1,9 @@
 # Mindloop Features
 
+<p align="center">
+  <img src="../web/static/images/logo-readme.svg" width="160" alt="Mindloop Logo">
+</p>
+
 ## Table of Contents
 - [Intents](#intents)
 - [Focus Sessions](#focus-sessions)
