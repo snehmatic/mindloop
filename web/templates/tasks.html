@@ -1,10 +1,10 @@
 {{ define "content" }}
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
 
-<div class="content-header flex-between mb-lg">
+<div class="page-header">
     <div>
         <h1 style="margin-bottom: 0.2rem;">Tasks</h1>
-        <p class="subtitle" style="margin-bottom: 0;">Manage your standalone tasks and subtasks.</p>
+        <p class="text-muted" style="margin-bottom: 0;">Manage your standalone tasks and subtasks.</p>
     </div>
     <button onclick="toggleAddTask()" class="btn btn-primary shadow-sm"
         style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem;">
@@ -54,12 +54,12 @@
     </form>
 </div>
 
-<div class="flex-center mb-lg gap-sm" style="justify-content: flex-start;">
-    <button class="btn btn-sm btn-secondary filter-btn active" data-filter="pending"
+<div class="segmented-control mb-lg">
+    <button class="segmented-btn filter-btn active" data-filter="pending"
         onclick="filterTasks('pending')">To-Do</button>
-    <button class="btn btn-sm btn-secondary filter-btn" data-filter="completed"
+    <button class="segmented-btn filter-btn" data-filter="completed"
         onclick="filterTasks('completed')">Completed</button>
-    <button class="btn btn-sm btn-secondary filter-btn" data-filter="all"
+    <button class="segmented-btn filter-btn" data-filter="all"
         onclick="filterTasks('all')">All</button>
 </div>
 
@@ -286,12 +286,6 @@
 </script>
 
 <style>
-    .filter-btn.active {
-        background-color: var(--primary);
-        color: var(--text-on-primary);
-        border-color: transparent;
-    }
-
     .sortable-ghost {
         opacity: 0.4;
         background-color: var(--bg-secondary);

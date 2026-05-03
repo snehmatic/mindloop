@@ -40,8 +40,9 @@
             <div class="form-group mt-md">
                 <label class="settings-toggle">
                     <span class="text-sm font-bold">Default Editor Width (Notes & Journals)</span>
-                    <input type="checkbox" class="toggle-input" name="editor_wide_width" {{ if .Config.EditorWideWidth
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="editor_wide_width" {{ if .Config.EditorWideWidth
                         }}checked{{ end }}>
+                    <div class="toggle-switch"></div>
                 </label>
                 <p class="text-sm text-muted mt-xs mb-0">Check to use full-width mode for editors by default.</p>
             </div>
@@ -101,28 +102,33 @@
 
                 <label class="settings-toggle">
                     <span class="text-sm font-bold">Focus Sessions</span>
-                    <input type="checkbox" class="toggle-input" name="focus_cloud" {{ if $flags.FocusCloud }}checked{{
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="focus_cloud" {{ if $flags.FocusCloud }}checked{{
                         end }}>
+                    <div class="toggle-switch"></div>
                 </label>
                 <label class="settings-toggle">
                     <span class="text-sm font-bold">Habits</span>
-                    <input type="checkbox" class="toggle-input" name="habit_cloud" {{ if $flags.HabitCloud }}checked{{
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="habit_cloud" {{ if $flags.HabitCloud }}checked{{
                         end }}>
+                    <div class="toggle-switch"></div>
                 </label>
                 <label class="settings-toggle">
                     <span class="text-sm font-bold">Intents</span>
-                    <input type="checkbox" class="toggle-input" name="intent_cloud" {{ if $flags.IntentCloud }}checked{{
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="intent_cloud" {{ if $flags.IntentCloud }}checked{{
                         end }}>
+                    <div class="toggle-switch"></div>
                 </label>
                 <label class="settings-toggle">
                     <span class="text-sm font-bold">Journals</span>
-                    <input type="checkbox" class="toggle-input" name="journal_cloud" {{ if $flags.JournalCloud
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="journal_cloud" {{ if $flags.JournalCloud
                         }}checked{{ end }}>
+                    <div class="toggle-switch"></div>
                 </label>
                 <label class="settings-toggle">
                     <span class="text-sm font-bold">Notes</span>
-                    <input type="checkbox" class="toggle-input" name="note_cloud" {{ if $flags.NoteCloud }}checked{{ end
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="note_cloud" {{ if $flags.NoteCloud }}checked{{ end
                         }}>
+                    <div class="toggle-switch"></div>
                 </label>
             </div>
         </div>
@@ -141,8 +147,9 @@
                 {{ $flags := .Config.FeatureFlags }}
                 <label class="settings-toggle mb-md">
                     <span class="text-sm font-bold">Enable Points & Confetti</span>
-                    <input type="checkbox" class="toggle-input" name="gamification" id="gamification-toggle"
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="gamification" id="gamification-toggle"
                         onchange="togglePointDefinitions(this.checked)" {{ if $flags.Gamification }}checked{{ end }}>
+                    <div class="toggle-switch"></div>
                 </label>
 
                 <div id="points-definition-container"
@@ -237,10 +244,12 @@
         <form action="/backup/import" method="POST" enctype="multipart/form-data" class="flex-col gap-md"
             style="flex: 1; display: flex; flex-direction: column;">
             <div style="flex: 1;">
-                <label for="backup_file" class="text-xs font-bold text-muted mb-sm" style="display: block;">Select
-                    Backup File (.json)</label>
-                <input type="file" id="backup_file" name="backup_file" accept=".json" required
-                    style="width: 100%; padding: 0.5rem; font-size: 0.9rem; border: 1px dashed var(--border); border-radius: var(--radius-md); background: var(--bg-body);">
+                <label for="backup_file" style="display: block; text-align: center; padding: 2rem 1rem; border: 2px dashed var(--border); border-radius: var(--radius-md); background: var(--bg-surface-alt); cursor: pointer; transition: all 0.2s ease;">
+                    <i data-lucide="upload-cloud" class="icon-sm text-muted mb-sm" style="width: 32px; height: 32px;"></i>
+                    <div class="text-sm font-bold text-main" id="file_name_display">Click to upload .json</div>
+                    <div class="text-xs text-muted" id="file_desc_display">or drag and drop</div>
+                    <input type="file" id="backup_file" name="backup_file" accept=".json" required style="display: none;" onchange="this.parentElement.style.borderColor = 'var(--primary)'; this.parentElement.style.background = 'var(--bg-surface)'; document.getElementById('file_name_display').textContent = this.files[0].name; document.getElementById('file_desc_display').style.display='none';">
+                </label>
             </div>
             <button type="submit" class="btn btn-danger-outline"
                 style="width: 100%; justify-content: center; margin-top: auto;"

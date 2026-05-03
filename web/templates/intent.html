@@ -137,10 +137,8 @@
 </div>
 
 <!-- Side Quest Modal/Overlay -->
-<div id="quest-form"
-    style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
-    <div class="card"
-        style="width: 100%; max-width: 500px; box-shadow: var(--shadow-lg); animation: slideUp 0.2s ease-out;">
+<div id="quest-form" class="modal-backdrop">
+    <div class="modal-content">
         <div class="flex-between mb-md">
             <h3 class="mb-0">Start a Side Quest</h3>
             <button onclick="toggleQuestForm()" class="btn btn-sm btn-secondary"
@@ -162,28 +160,15 @@
     </div>
 </div>
 
-<style>
-    @keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(20px);
-        }
 
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-</style>
 {{ else }}
-<div class="hero">
+<div class="empty-state mt-xl">
+    <div class="empty-icon mb-md"><i data-lucide="target" style="width: 48px; height: 48px; color: var(--primary);"></i></div>
     <h2 class="mb-md">What are we doing today?</h2>
-    <p class="text-lg">Set a single intention to guide your actions.</p>
-    <form action="/intent/set" method="POST" class="flex-center mt-lg">
-        <div class="flex-center gap-sm" style="width: 100%; max-width: 400px;">
-            <input type="text" name="name" placeholder="e.g. Finish the API Refactor" required class="text-center">
-            <button type="submit" class="btn btn-primary">Set Intent</button>
-        </div>
+    <p class="text-muted">Set a single intention to guide your actions.</p>
+    <form action="/intent/set" method="POST" class="flex-col mt-lg" style="width: 100%; max-width: 400px; gap: 1rem;">
+        <input type="text" name="name" placeholder="e.g. Finish the API Refactor" required class="text-center">
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">Set Intent</button>
     </form>
 </div>
 {{ end }}

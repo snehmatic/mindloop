@@ -1,14 +1,14 @@
 {{ define "content" }}
-<div class="flex-between mobile-stack mb-md">
+<div class="page-header">
     <div>
-        <h1>
+        <h1 style="margin-bottom: 0.2rem;">
             {{ if .UserName }}
             <span class="text-gradient-name">{{ .UserName }}'s</span> Habits
             {{ else }}
             Your Habits
             {{ end }}
         </h1>
-        <p>Consistent actions create consistent results.</p>
+        <p class="text-muted" style="margin-bottom: 0;">Consistent actions create consistent results.</p>
     </div>
     <div class="flex-center gap-sm">
         <button onclick="document.getElementById('new-habit-form').style.display='block'" class="btn btn-primary">
@@ -60,9 +60,10 @@
     {{ range .Habits }}
     {{ template "_habit_card.html" . }}
     {{ else }}
-    <div class="card text-center" style="grid-column: 1 / -1; padding: 4rem 2rem;">
-        <h3>No habits yet</h3>
-        <p>Start small. Create your first habit today.</p>
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-icon mb-md"><i data-lucide="repeat" style="width: 48px; height: 48px; color: var(--primary);"></i></div>
+        <h3 class="mb-sm">No habits yet</h3>
+        <p class="mb-md">Start small. Create your first habit today.</p>
         <button onclick="document.getElementById('new-habit-form').style.display='block'" class="btn btn-primary">
             Create Habit
         </button>

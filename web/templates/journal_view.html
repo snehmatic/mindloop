@@ -7,7 +7,7 @@
     <div class="breadcrumb-item active">{{ .Entry.Title }}</div>
 </div>
 
-<div class="mb-lg flex-between">
+<div class="page-header" style="align-items: center;">
     <a href="/journal" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
         <i data-lucide="arrow-left" class="icon-sm"></i> Back
     </a>
@@ -53,93 +53,7 @@
     </div>
 </div>
 
-<style>
-    .markdown-body {
-        line-height: 1.8;
-        font-size: 1.1rem;
-    }
 
-    .markdown-body h1,
-    .markdown-body h2,
-    .markdown-body h3 {
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    .markdown-body p {
-        margin-bottom: 1.5rem;
-    }
-
-    .markdown-body ul,
-    .markdown-body ol {
-        margin-bottom: 1.5rem;
-        padding-left: 2rem;
-    }
-
-    .markdown-body code {
-        background: var(--secondary-light);
-        padding: 0.2rem 0.4rem;
-        border-radius: 4px;
-        font-family: monospace;
-    }
-
-    .markdown-body pre {
-        background: #1e293b;
-        color: #f8fafc;
-        padding: 1.5rem;
-        border-radius: var(--radius-md);
-        overflow-x: auto;
-        margin-bottom: 1.5rem;
-    }
-
-    .markdown-body blockquote {
-        border-left: 4px solid var(--primary);
-        padding-left: 1.5rem;
-        margin-left: 0;
-        color: var(--text-muted);
-        font-style: italic;
-    }
-
-    /* EasyMDE Dark Mode Tweaks */
-    .dark-mode .EasyMDEContainer .editor-toolbar {
-        background: var(--bg-surface);
-        border-color: var(--border);
-        color: var(--text-color);
-    }
-
-    .dark-mode .EasyMDEContainer .editor-toolbar button {
-        color: var(--text-color);
-    }
-
-    .dark-mode .EasyMDEContainer .editor-toolbar button.active,
-    .dark-mode .EasyMDEContainer .editor-toolbar button:hover {
-        background: var(--secondary);
-        border-color: var(--border);
-    }
-
-    .dark-mode .CodeMirror {
-        background: var(--bg-surface);
-        color: var(--text-color);
-        border-color: var(--border);
-    }
-
-    .dark-mode .CodeMirror-cursor {
-        border-left-color: var(--text-color);
-    }
-
-    .dark-mode .editor-preview {
-        background: var(--bg-surface);
-        color: var(--text-color);
-    }
-
-    #title-input:focus {
-        outline: none;
-    }
-
-    .EasyMDEContainer {
-        margin-top: 1rem;
-    }
-</style>
 
 <script>
     // Configuration from backend
@@ -234,9 +148,8 @@
 
             if (res.ok) {
                 const toast = document.createElement('div');
-                toast.className = 'card animate-pop-in';
-                toast.style.cssText = 'position: fixed; bottom: 80px; right: 20px; background: var(--success-bg); color: var(--success); border-color: var(--success); padding: 0.75rem 1.5rem; z-index: 1000; font-weight: 500; font-size: 0.9rem; box-shadow: var(--shadow-md);';
-                toast.innerText = 'Journal entry saved successfully!';
+                toast.className = 'toast-notification';
+                toast.innerHTML = '<i data-lucide="check-circle" class="icon-sm"></i> Journal entry saved successfully!';
                 document.body.appendChild(toast);
                 setTimeout(() => {
                     toast.style.opacity = '0';

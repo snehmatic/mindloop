@@ -9,7 +9,7 @@
     <link rel="stylesheet" href='{{ asset "/static/css/style.css" }}'>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="/static/js/lucide.min.js"></script>
@@ -29,57 +29,46 @@
 
 <body>
     <header>
-        <div class="container">
-            <nav>
-                <a href="/" class="logo">
-                    <i data-lucide="infinity"></i>
-                    Mindloop
-                </a>
-                <button class="hamburger-menu" id="mobile-menu-toggle" aria-label="Toggle navigation">
-                    <i data-lucide="menu"></i>
-                </button>
-                <ul class="nav-links" id="nav-links">
-                    <li><a href="/" class="nav-link" title="Home"><i data-lucide="home"></i> <span
-                                class="nav-text">Home</span></a></li>
-                    <li><a href="/intent" class="nav-link" title="Intent"><i data-lucide="crosshair"></i> <span
-                                class="nav-text">Intent</span></a></li>
-                    <li><a href="/focus" class="nav-link" title="Focus"><i data-lucide="zap"></i> <span
-                                class="nav-text">Focus</span></a></li>
-                    <li><a href="/tasks" class="nav-link" title="Tasks"><i data-lucide="list-todo"></i> <span
-                                class="nav-text">Tasks</span></a></li>
-                    <li><a href="/habits" class="nav-link" title="Habits"><i data-lucide="check-square"></i> <span
-                                class="nav-text">Habits</span></a></li>
+        <nav>
+            <a href="/" class="logo">
+                <i data-lucide="infinity"></i>
+                Mindloop
+            </a>
+            <button class="hamburger-menu" id="mobile-menu-toggle" aria-label="Toggle navigation">
+                <i data-lucide="menu"></i>
+            </button>
+            <ul class="nav-links" id="nav-links">
+                <li><a href="/" class="nav-link" title="Home"><i data-lucide="home"></i> <span class="nav-text">Home</span></a></li>
+                <li><a href="/intent" class="nav-link" title="Intent"><i data-lucide="crosshair"></i> <span class="nav-text">Intent</span></a></li>
+                <li><a href="/focus" class="nav-link" title="Focus"><i data-lucide="zap"></i> <span class="nav-text">Focus</span></a></li>
+                <li><a href="/tasks" class="nav-link" title="Tasks"><i data-lucide="list-todo"></i> <span class="nav-text">Tasks</span></a></li>
+                <li><a href="/habits" class="nav-link" title="Habits"><i data-lucide="check-square"></i> <span class="nav-text">Habits</span></a></li>
 
-                    <!-- Write Dropdown -->
-                    <li class="dropdown" id="write-dropdown">
-                        <a href="#" class="nav-link" onclick="toggleWriteDropdown(event)" title="Write">
-                            <i data-lucide="pen-tool"></i> <span class="nav-text">Write</span> <i
-                                data-lucide="chevron-down" style="width: 0.8em; height: 0.8em; opacity: 0.7;"></i>
-                        </a>
-                        <div class="dropdown-content">
-                            <a href="/journal" class="dropdown-item"><i data-lucide="book"></i> Journal</a>
-                            <a href="/notes" class="dropdown-item"><i data-lucide="file-text"></i> Notes</a>
-                        </div>
-                    </li>
+                <!-- Write Dropdown -->
+                <li class="dropdown" id="write-dropdown">
+                    <a href="#" class="nav-link" onclick="toggleWriteDropdown(event)" title="Write">
+                        <i data-lucide="pen-tool"></i> <span class="nav-text">Write</span> <i data-lucide="chevron-down" style="width: 0.8em; height: 0.8em; opacity: 0.7;"></i>
+                    </a>
+                    <div class="dropdown-content">
+                        <a href="/journal" class="dropdown-item"><i data-lucide="book"></i> Journal</a>
+                        <a href="/notes" class="dropdown-item"><i data-lucide="file-text"></i> Notes</a>
+                    </div>
+                </li>
 
-                    <li><a href="/void" class="nav-link" title="The Void"><i data-lucide="ghost"></i> <span
-                                class="nav-text">Void</span></a></li>
-                    <li><a href="/summary" class="nav-link" title="Summary"><i data-lucide="bar-chart-2"></i> <span
-                                class="nav-text">Summary</span></a></li>
+                <li><a href="/void" class="nav-link" title="The Void"><i data-lucide="ghost"></i> <span class="nav-text">Void</span></a></li>
+                <li><a href="/summary" class="nav-link" title="Summary"><i data-lucide="bar-chart-2"></i> <span class="nav-text">Summary</span></a></li>
 
-                    <!-- Icon-only items -->
-                    <li><a href="/about" class="nav-link" title="About"><i data-lucide="info"></i></a></li>
-                    <li><a href="/settings" class="nav-link" title="Settings"><i data-lucide="settings"></i></a></li>
+                <!-- Icon-only items -->
+                <li><a href="/about" class="nav-link" title="About"><i data-lucide="info"></i></a></li>
+                <li><a href="/settings" class="nav-link" title="Settings"><i data-lucide="settings"></i></a></li>
 
-                    <li><button id="theme-toggle" class="btn btn-sm btn-secondary">
-                            <i data-lucide="moon" class="icon-moon" style="width: 1.1em; height: 1.1em;"></i>
-                            <i data-lucide="sun" class="icon-sun"
-                                style="width: 1.1em; height: 1.1em; display: none;"></i>
-                        </button>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+                <li><button id="theme-toggle" class="btn btn-sm btn-secondary">
+                        <i data-lucide="moon" class="icon-moon" style="width: 1.1em; height: 1.1em;"></i>
+                        <i data-lucide="sun" class="icon-sun" style="width: 1.1em; height: 1.1em; display: none;"></i>
+                    </button>
+                </li>
+            </ul>
+        </nav>
     </header>
     <main class="container">
         {{ if .SuccessMessage }}

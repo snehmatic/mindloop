@@ -1,6 +1,6 @@
 {{ define "content" }}
 <div class="card mb-md">
-    <div class="flex-between mobile-stack">
+    <div class="page-header" style="margin-bottom: 0;">
         <div>
             <h1>
                 {{ if .UserName }}
@@ -37,7 +37,7 @@
     <div class="card">
         <h3>Gamification</h3>
         <div class="mt-md">
-            <div class="stat-value" style="color: var(--warning);">{{ .Report.Points.TotalPoints }} <span class="text-sm">pts</span></div>
+            <div class="stat-display" style="color: var(--warning);">{{ .Report.Points.TotalPoints }} <span class="text-sm">pts</span></div>
             <div class="stat-label">Lifetime Points</div>
         </div>
     </div>
@@ -46,7 +46,7 @@
     <div class="card">
         <h3>Focus</h3>
         <div class="mt-md">
-            <div class="stat-value">{{ if .Report.Focus.TotalDuration }}{{ .Report.Focus.TotalDuration }}{{ else }}0
+            <div class="stat-display">{{ if .Report.Focus.TotalDuration }}{{ .Report.Focus.TotalDuration }}{{ else }}0
                 mins{{ end }}</div>
             <div class="stat-label">Total Focus Time</div>
         </div>
@@ -67,7 +67,7 @@
     <div class="card">
         <h3>Tasks</h3>
         <div class="mt-md">
-            <div class="stat-value" style="color: var(--success);">{{ .Report.TasksCompleted }}</div>
+            <div class="stat-display" style="color: var(--success);">{{ .Report.TasksCompleted }}</div>
             <div class="stat-label">Tasks Completed</div>
         </div>
     </div>
@@ -158,8 +158,8 @@
                 datasets: [{
                     label: 'Minutes',
                     data: focusData,
-                    backgroundColor: 'rgba(99, 102, 241, 0.5)',
-                    borderColor: 'rgba(99, 102, 241, 1)',
+                    backgroundColor: 'rgba(13, 148, 136, 0.5)',
+                    borderColor: 'rgba(13, 148, 136, 1)',
                     borderWidth: 1,
                     borderRadius: 4
                 }]

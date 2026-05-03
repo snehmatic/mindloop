@@ -1,6 +1,8 @@
 {{ define "content" }}
-<div class="mb-md flex-between">
-    <h2 class="mb-0">Recent Entries</h2>
+<div class="page-header">
+    <div>
+        <h1 style="margin-bottom: 0.2rem;">Recent Entries</h1>
+    </div>
     <div class="flex-center gap-sm">
         <form action="/cleanslate" method="POST" onsubmit="return confirm('Delete all journal entries?');" class="mb-0">
             <input type="hidden" name="type" value="journal">
@@ -105,8 +107,10 @@
     </div>
     {{ end }}
     {{ else }}
-    <div class="card">
-        <p>No entries found. Start journaling!</p>
+    <div class="empty-state">
+        <div class="empty-icon mb-md"><i data-lucide="book" style="width: 48px; height: 48px; color: var(--primary);"></i></div>
+        <h3 class="mb-sm">No entries found</h3>
+        <p class="mb-md">Start journaling your thoughts and reflections.</p>
     </div>
     {{ end }}
 </div>

@@ -7,7 +7,7 @@
     <div class="breadcrumb-item active">{{ if .Note.Title }}{{ .Note.Title }}{{ else }}Untitled Note{{ end }}</div>
 </div>
 
-<div class="mb-lg flex-between">
+<div class="page-header" style="align-items: center;">
     <a href="/notes" class="btn btn-secondary btn-sm" style="display: inline-flex; align-items: center; gap: 0.5rem;">
         <i data-lucide="arrow-left" class="icon-sm"></i> Back
     </a>
@@ -46,9 +46,7 @@
             <!-- Labels in View -->
             {{ if .Note.Labels }}
             {{ range (split .Note.Labels ",") }}
-            <span class="badge"
-                style="background: var(--primary-light); color: var(--primary); padding: 0.2rem 0.8rem; border-radius: 999px; font-size: 0.85rem; font-weight: 600;">{{
-                . }}</span>
+            <span class="badge badge-primary">{{ . }}</span>
             {{ end }}
             {{ end }}
         </div>
@@ -65,93 +63,7 @@
     </div>
 </div>
 
-<style>
-    .markdown-body {
-        line-height: 1.8;
-        font-size: 1.1rem;
-    }
 
-    .markdown-body h1,
-    .markdown-body h2,
-    .markdown-body h3 {
-        margin-top: 2rem;
-        margin-bottom: 1rem;
-    }
-
-    .markdown-body p {
-        margin-bottom: 1.5rem;
-    }
-
-    .markdown-body ul,
-    .markdown-body ol {
-        margin-bottom: 1.5rem;
-        padding-left: 2rem;
-    }
-
-    .markdown-body code {
-        background: var(--secondary-light);
-        padding: 0.2rem 0.4rem;
-        border-radius: 4px;
-        font-family: monospace;
-    }
-
-    .markdown-body pre {
-        background: #1e293b;
-        color: #f8fafc;
-        padding: 1.5rem;
-        border-radius: var(--radius-md);
-        overflow-x: auto;
-        margin-bottom: 1.5rem;
-    }
-
-    .markdown-body blockquote {
-        border-left: 4px solid var(--primary);
-        padding-left: 1.5rem;
-        margin-left: 0;
-        color: var(--text-muted);
-        font-style: italic;
-    }
-
-    /* EasyMDE Dark Mode Tweaks */
-    .dark-mode .EasyMDEContainer .editor-toolbar {
-        background: var(--bg-surface);
-        border-color: var(--border);
-        color: var(--text-color);
-    }
-
-    .dark-mode .EasyMDEContainer .editor-toolbar button {
-        color: var(--text-color);
-    }
-
-    .dark-mode .EasyMDEContainer .editor-toolbar button.active,
-    .dark-mode .EasyMDEContainer .editor-toolbar button:hover {
-        background: var(--secondary);
-        border-color: var(--border);
-    }
-
-    .dark-mode .CodeMirror {
-        background: var(--bg-surface);
-        color: var(--text-color);
-        border-color: var(--border);
-    }
-
-    .dark-mode .CodeMirror-cursor {
-        border-left-color: var(--text-color);
-    }
-
-    .dark-mode .editor-preview {
-        background: var(--bg-surface);
-        color: var(--text-color);
-    }
-
-    #title-input:focus {
-        outline: none;
-    }
-
-    .EasyMDEContainer {
-        margin-top: 1rem;
-    }
-</style>
 
 <script>
     // Configuration from backend
@@ -248,8 +160,8 @@
 
             if (res.ok) {
                 const toast = document.createElement('div');
-                toast.className = 'toast bg-success text-white animate-fade-in';
-                toast.innerText = 'Note saved successfully';
+                toast.className = 'toast-notification';
+                toast.innerHTML = '<i data-lucide="check-circle" class="icon-sm"></i> Note saved successfully';
                 document.body.appendChild(toast);
                 setTimeout(() => window.location.reload(), 1000);
             } else {

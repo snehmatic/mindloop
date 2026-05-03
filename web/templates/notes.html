@@ -1,9 +1,11 @@
 {{ define "content" }}
 <div class="grid" style="grid-template-columns: 1fr; gap: 2rem;">
     <!-- New Note Section -->
-    <div class="mb-md flex-between">
-        <h2 class="mb-0">Recent Notes</h2>
-        <div class="flex-center gap-sm">
+    <div class="page-header">
+    <div>
+        <h1 style="margin-bottom: 0.2rem;">Recent Notes</h1>
+    </div>
+    <div class="flex-center gap-sm">
             <button class="btn btn-primary btn-sm"
                 onclick="document.getElementById('new-note-form').style.display='block'; this.style.display='none';"><i
                     data-lucide="plus" class="icon-sm"></i> New Note</button>
@@ -53,8 +55,7 @@
                     <div class="mb-md" style="display: flex; flex-wrap: wrap; gap: 0.4rem;">
                         {{ if .Labels }}
                         {{ range (split .Labels ",") }}
-                        <span
-                            style="background: var(--primary-light); color: var(--primary); padding: 0.1rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600;">{{
+                        <span class="badge badge-primary">{{
                             . }}</span>
                         {{ end }}
                         {{ end }}
@@ -104,7 +105,9 @@
         </div>
         {{ else }}
         <div class="empty-state">
-            <p>No notes captured yet. Start by writing something above!</p>
+            <div class="empty-icon mb-md"><i data-lucide="file-text" style="width: 48px; height: 48px; color: var(--primary);"></i></div>
+            <h3 class="mb-sm">No notes captured</h3>
+            <p class="mb-md">Start by writing something above!</p>
         </div>
         {{ end }}
     </div>
