@@ -1,7 +1,7 @@
 {{ define "content" }}
 
 {{ if .CurrentQuest }}
-<div class="grid" style="grid-template-columns: 1fr 1fr; align-items: start; gap: 2rem;">
+<div class="grid animate-slide-up" style="grid-template-columns: 1fr 1fr; align-items: start; gap: 2rem;">
 
     <!-- Active Intent (Paused) -->
     <div class="card" style="opacity: 0.7; border-style: dashed; display: flex; flex-direction: column; height: 100%;">
@@ -39,7 +39,7 @@
     </div>
 </div>
 {{ else if .CurrentIntent }}
-<div class="hero flex-col flex-center">
+<div class="hero flex-col flex-center animate-slide-up">
 
     {{ if eq .CurrentIntent.Status "paused" }}
     <div style="opacity: 0.6;">
@@ -162,7 +162,7 @@
 
 
 {{ else }}
-<div class="empty-state mt-xl">
+<div class="empty-state mt-xl animate-slide-up">
     <div class="empty-icon mb-md"><i data-lucide="target" style="width: 48px; height: 48px; color: var(--primary);"></i></div>
     <h2 class="mb-md">What are we doing today?</h2>
     <p class="text-muted">Set a single intention to guide your actions.</p>
@@ -173,7 +173,7 @@
 </div>
 {{ end }}
 
-<div class="mt-lg">
+<div class="mt-lg animate-fade-in" style="animation-delay: 0.2s; animation-fill-mode: both;">
     <div class="flex-between mb-md">
         <h3>History</h3>
         <div class="flex-center gap-md">
