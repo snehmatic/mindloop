@@ -90,7 +90,7 @@ func (s *Service) EndIntent(idStr string, pointsToAward int) (*models.Intent, bo
 }
 
 func (s *Service) DeleteIntent(id string) error {
-	s.DB.Model(&models.Task{}).Where("intent_id = ?", id).Update("intent_id", nil)
+	s.DB.Model(&models.Task{}).Where("IntentID = ?", id).Update("IntentID", nil)
 	return s.DB.Delete(&models.Intent{}, "id = ?", id).Error
 }
 
