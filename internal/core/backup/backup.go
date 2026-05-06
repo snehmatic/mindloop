@@ -20,12 +20,17 @@ func NewService(db *gorm.DB) *Service {
 
 // Data represents the structure of the exported JSON backup file
 type Data struct {
-	Intents        []models.Intent       `json:"intents"`
-	FocusSessions  []models.FocusSession `json:"focus_sessions"`
-	Habits         []models.Habit        `json:"habits"`
-	HabitLogs      []models.HabitLog     `json:"habit_logs"`
-	JournalEntries []models.JournalEntry `json:"journal_entries"`
-	Notes          []models.Note         `json:"notes,omitempty"`
+	Intents           []models.Intent           `json:"intents"`
+	FocusSessions     []models.FocusSession     `json:"focus_sessions"`
+	Routines          []models.Routine          `json:"routines,omitempty"`
+	Habits            []models.Habit            `json:"habits"`
+	HabitLogs         []models.HabitLog         `json:"habit_logs"`
+	JournalEntries    []models.JournalEntry     `json:"journal_entries"`
+	Notes             []models.Note             `json:"notes,omitempty"`
+	SideQuests        []models.SideQuest        `json:"side_quests,omitempty"`
+	Tasks             []models.Task             `json:"tasks,omitempty"`
+	SubTasks          []models.SubTask          `json:"sub_tasks,omitempty"`
+	PointTransactions []models.PointTransaction `json:"point_transactions,omitempty"`
 }
 
 // Export saves all application data to a JSON file
@@ -34,10 +39,15 @@ func (s *Service) Export(filePath string) error {
 
 	s.DB.Find(&data.Intents)
 	s.DB.Find(&data.FocusSessions)
+	s.DB.Find(&data.Routines)
 	s.DB.Find(&data.Habits)
 	s.DB.Find(&data.HabitLogs)
 	s.DB.Find(&data.JournalEntries)
 	s.DB.Find(&data.Notes)
+	s.DB.Find(&data.SideQuests)
+	s.DB.Find(&data.Tasks)
+	s.DB.Find(&data.SubTasks)
+	s.DB.Find(&data.PointTransactions)
 
 	jsonData, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
@@ -61,14 +71,42 @@ func (s *Service) Import(filePath string) error {
 
 	// Use a transaction for import
 	return s.DB.Transaction(func(tx *gorm.DB) error {
-		// Clear existing data before restoring
-		// This ensures we don't have primary key conflicts and matches "restore" behavior
-		tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Intent{})
-		tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.FocusSession{})
-		tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Habit{})
-		tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.HabitLog{})
-		tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.JournalEntry{})
-		tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Note{})
+		// Clear existing data before restoring. Use Unscoped deletes so soft-deleted
+		// rows do not keep primary keys occupied when the backup recreates records
+		// with their original IDs.
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.PointTransaction{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.SubTask{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.Task{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.SideQuest{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.Intent{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.FocusSession{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.HabitLog{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.Habit{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.Routine{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.JournalEntry{}).Error; err != nil {
+			return err
+		}
+		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.Note{}).Error; err != nil {
+			return err
+		}
 
 		if len(data.Intents) > 0 {
 			if err := tx.Create(&data.Intents).Error; err != nil {
@@ -77,6 +115,11 @@ func (s *Service) Import(filePath string) error {
 		}
 		if len(data.FocusSessions) > 0 {
 			if err := tx.Create(&data.FocusSessions).Error; err != nil {
+				return err
+			}
+		}
+		if len(data.Routines) > 0 {
+			if err := tx.Create(&data.Routines).Error; err != nil {
 				return err
 			}
 		}
@@ -97,6 +140,26 @@ func (s *Service) Import(filePath string) error {
 		}
 		if len(data.Notes) > 0 {
 			if err := tx.Create(&data.Notes).Error; err != nil {
+				return err
+			}
+		}
+		if len(data.SideQuests) > 0 {
+			if err := tx.Create(&data.SideQuests).Error; err != nil {
+				return err
+			}
+		}
+		if len(data.Tasks) > 0 {
+			if err := tx.Create(&data.Tasks).Error; err != nil {
+				return err
+			}
+		}
+		if len(data.SubTasks) > 0 {
+			if err := tx.Create(&data.SubTasks).Error; err != nil {
+				return err
+			}
+		}
+		if len(data.PointTransactions) > 0 {
+			if err := tx.Create(&data.PointTransactions).Error; err != nil {
 				return err
 			}
 		}
