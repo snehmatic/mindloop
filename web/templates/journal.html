@@ -37,8 +37,11 @@
         btn.disabled = true;
         
         fetch(`/api/v1/ai/generate?period=${period}`)
-            .then(res => {
-                if(!res.ok) throw new Error("Generation failed. Have you configured your API token in Settings?");
+            .then(async res => {
+                if(!res.ok) {
+                    const errText = await res.text();
+                    throw new Error(errText || "Generation failed. Have you configured your API token in Settings?");
+                }
                 return res.json();
             })
             .then(data => {
