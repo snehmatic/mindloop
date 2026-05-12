@@ -63,6 +63,18 @@ func (mlh *MindloopHandler) HandleListAIModels(w http.ResponseWriter, r *http.Re
 	})
 }
 
+func (mlh *MindloopHandler) HandleTestAIConnection(w http.ResponseWriter, r *http.Request) {
+	aiService := ai.NewService(mlh.journal.DB)
+	if err := aiService.TestConnection(); err != nil {
+		http.Error(w, "Connection test failed: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Connection successful!"})
+}
+
 func (mlh *MindloopHandler) HandleGenerateAIJournal(w http.ResponseWriter, r *http.Request) {
 	period := r.URL.Query().Get("period")
 	if period == "" {

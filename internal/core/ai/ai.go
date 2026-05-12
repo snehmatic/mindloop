@@ -88,13 +88,14 @@ func (s *Service) ListModels() ([]string, error) {
 		return nil, fmt.Errorf("AI token not configured")
 	}
 
-	if provider == "openai" {
+	switch provider {
+	case "openai":
 		return s.listOpenAIModels(token)
-	} else if provider == "anthropic" {
+	case "anthropic":
 		return nil, fmt.Errorf("anthropic support coming soon")
+	default:
+		return s.listGeminiModels(token)
 	}
-	
-	return s.listGeminiModels(token)
 }
 
 func (s *Service) listGeminiModels(token string) ([]string, error) {
@@ -167,6 +168,27 @@ func (s *Service) listOpenAIModels(token string) ([]string, error) {
 	}
 	return models, nil
 }
+// TestConnection sends a minimal prompt to verify the configuration works
+func (s *Service) TestConnection() error {
+	provider, model, token, _ := s.GetSettings()
+	if token == "" {
+		return fmt.Errorf("AI token not configured")
+	}
+
+	testData := `{"test": true}`
+
+	var err error
+	switch provider {
+	case "openai":
+		_, err = s.generateOpenAI(model, token, testData)
+	case "anthropic":
+		_, err = s.generateAnthropic(model, token, testData)
+	default:
+		_, err = s.generateGemini(model, token, testData)
+	}
+	return err
+}
+
 func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) {
 	provider, model, token, _ := s.GetSettings()
 	if token == "" {

@@ -93,6 +93,7 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/api/v1/ai/settings", mlh.HandleGetAISettings).Methods("GET")
 	r.HandleFunc("/api/v1/ai/settings", mlh.HandleSaveAISettings).Methods("POST")
 	r.HandleFunc("/api/v1/ai/models", mlh.HandleListAIModels).Methods("GET")
+	r.HandleFunc("/api/v1/ai/test", mlh.HandleTestAIConnection).Methods("POST")
 	r.HandleFunc("/api/v1/ai/generate", mlh.HandleGenerateAIJournal).Methods("GET")
 
 	// Backup Routes

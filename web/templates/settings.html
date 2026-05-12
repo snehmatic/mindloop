@@ -169,6 +169,12 @@
                 <input type="password" id="aiToken" placeholder="Enter new token to update" onblur="saveAISettings()">
                 <p class="text-sm text-muted mt-xs mb-0" id="tokenStatus"></p>
             </div>
+            <div class="form-group mt-sm flex-center gap-sm" style="justify-content: flex-start;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btnTestConnection" onclick="testConnection()">
+                    <i data-lucide="activity" class="icon-sm"></i> Test Connection
+                </button>
+                <span id="testConnectionStatus" class="text-sm font-bold"></span>
+            </div>
         </div>
 
         <script>
@@ -188,6 +194,39 @@
                         }
                     });
             });
+
+            function testConnection() {
+                const btn = document.getElementById('btnTestConnection');
+                const status = document.getElementById('testConnectionStatus');
+                const originalHtml = btn.innerHTML;
+                
+                btn.innerHTML = '<i data-lucide="loader" class="icon-sm" style="animation: spin 1s linear infinite;"></i> Testing...';
+                btn.disabled = true;
+                status.innerText = "";
+                status.className = "text-sm font-bold";
+
+                fetch('/api/v1/ai/test', { method: 'POST' })
+                    .then(async res => {
+                        if(!res.ok) {
+                            const errText = await res.text();
+                            throw new Error(errText);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        status.innerText = "Connection successful!";
+                        status.classList.add('text-success');
+                    })
+                    .catch(err => {
+                        status.innerText = "Error: " + err.message;
+                        status.classList.add('text-danger');
+                    })
+                    .finally(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    });
+            }
 
             function fetchModels() {
                 const modelSelect = document.getElementById('aiModel');
