@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
@@ -42,10 +43,10 @@ func (s *Service) GetSettings() (provider, model, token string, err error) {
 	if tSetting.Value != "" {
 		decrypted, err := utils.Decrypt(tSetting.Value)
 		if err == nil {
-			token = decrypted
+			token = strings.TrimSpace(decrypted)
 		}
 	} else if envToken != "" {
-		token = envToken
+		token = strings.TrimSpace(envToken)
 	}
 
 	if provider == "" {
@@ -107,6 +108,7 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 	if model == "" {
 		model = "gemini-1.5-flash"
 	}
+	model = strings.TrimPrefix(model, "models/")
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, token)
 	
 	reqBody := map[string]interface{}{
