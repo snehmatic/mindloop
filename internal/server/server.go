@@ -89,6 +89,11 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/settings/update", mlh.HandleSettingsUpdate).Methods("POST")
 	r.HandleFunc("/settings/update-width", mlh.HandleSettingsUpdateWidth).Methods("POST")
 
+	// AI Routes
+	r.HandleFunc("/api/v1/ai/settings", mlh.HandleGetAISettings).Methods("GET")
+	r.HandleFunc("/api/v1/ai/settings", mlh.HandleSaveAISettings).Methods("POST")
+	r.HandleFunc("/api/v1/ai/generate", mlh.HandleGenerateAIJournal).Methods("GET")
+
 	// Backup Routes
 	r.HandleFunc("/backup/export", mlh.HandleBackupExport).Methods("GET")
 	r.HandleFunc("/backup/import", mlh.HandleBackupImport).Methods("POST")

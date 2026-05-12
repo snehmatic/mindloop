@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"time"
 
 	"reflect"
 	"strings"
@@ -329,6 +330,24 @@ func CaptureWithEditor(filenamePattern, header, initialContent string) (string, 
 	}
 
 	return strings.TrimSpace(content.String()), nil
+}
+
+// GetDateRange returns start and end time for common periods (daily, weekly, yearly)
+func GetDateRange(period string) (time.Time, time.Time) {
+	now := time.Now()
+	switch period {
+	case "yearly", "year":
+		return time.Date(now.Year()-1, now.Month(), now.Day(), 0, 0, 0, 0, now.Location()), now
+	case "weekly", "week":
+		end := time.Now()
+		start := end.AddDate(0, 0, -7)
+		start = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
+		return start, end
+	case "daily", "day":
+		return now.Add(-24 * time.Hour), now
+	default:
+		return now.Add(-24 * time.Hour), now
+	}
 }
 
 // FormatMinutes converts float64 minutes into a human-readable string like "1hr 2min"
