@@ -30,9 +30,9 @@ func NewService(db *gorm.DB) *Service {
 // GetSettings retrieves the AI configuration from the database
 func (s *Service) GetSettings() (provider, model, token string, err error) {
 	var pSetting, mSetting, tSetting models.AppSetting
-	s.DB.Where("key = ?", SettingKeyAIProvider).First(&pSetting)
-	s.DB.Where("key = ?", SettingKeyAIModel).First(&mSetting)
-	s.DB.Where("key = ?", SettingKeyAIToken).First(&tSetting)
+	s.DB.Where("key = ?", SettingKeyAIProvider).Limit(1).Find(&pSetting)
+	s.DB.Where("key = ?", SettingKeyAIModel).Limit(1).Find(&mSetting)
+	s.DB.Where("key = ?", SettingKeyAIToken).Limit(1).Find(&tSetting)
 
 	provider = pSetting.Value
 	model = mSetting.Value
@@ -71,7 +71,8 @@ func (s *Service) SaveSettings(provider, model, token string) error {
 
 func (s *Service) saveOrUpdate(key, value string) {
 	var setting models.AppSetting
-	if s.DB.Where("key = ?", key).First(&setting).Error == gorm.ErrRecordNotFound {
+	result := s.DB.Where("key = ?", key).Limit(1).Find(&setting)
+	if result.RowsAffected == 0 {
 		s.DB.Create(&models.AppSetting{Key: key, Value: value})
 	} else {
 		setting.Value = value
