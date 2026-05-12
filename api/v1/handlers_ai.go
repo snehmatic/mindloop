@@ -48,6 +48,21 @@ func (mlh *MindloopHandler) HandleSaveAISettings(w http.ResponseWriter, r *http.
 	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Settings saved successfully"})
 }
 
+func (mlh *MindloopHandler) HandleListAIModels(w http.ResponseWriter, r *http.Request) {
+	aiService := ai.NewService(mlh.journal.DB)
+	models, err := aiService.ListModels()
+	if err != nil {
+		http.Error(w, "Failed to list models: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
+		"models": models,
+	})
+}
+
 func (mlh *MindloopHandler) HandleGenerateAIJournal(w http.ResponseWriter, r *http.Request) {
 	period := r.URL.Query().Get("period")
 	if period == "" {

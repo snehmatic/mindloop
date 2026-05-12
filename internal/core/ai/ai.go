@@ -81,7 +81,92 @@ func (s *Service) saveOrUpdate(key, value string) {
 	}
 }
 
-// GenerateJournal generates a journal entry based on the summary report
+// ListModels fetches the available models for the configured provider
+func (s *Service) ListModels() ([]string, error) {
+	provider, _, token, _ := s.GetSettings()
+	if token == "" {
+		return nil, fmt.Errorf("AI token not configured")
+	}
+
+	if provider == "openai" {
+		return s.listOpenAIModels(token)
+	} else if provider == "anthropic" {
+		return nil, fmt.Errorf("anthropic support coming soon")
+	}
+	
+	return s.listGeminiModels(token)
+}
+
+func (s *Service) listGeminiModels(token string) ([]string, error) {
+	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models?key=%s", token)
+	resp, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("gemini API error (%d): %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Models []struct {
+			Name string `json:"name"`
+			SupportedGenerationMethods []string `json:"supportedGenerationMethods"`
+		} `json:"models"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var models []string
+	for _, m := range result.Models {
+		for _, method := range m.SupportedGenerationMethods {
+			if method == "generateContent" {
+				models = append(models, strings.TrimPrefix(m.Name, "models/"))
+				break
+			}
+		}
+	}
+	return models, nil
+}
+
+func (s *Service) listOpenAIModels(token string) ([]string, error) {
+	url := "https://api.openai.com/v1/models"
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Authorization", "Bearer "+token)
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode != http.StatusOK {
+		body, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("openAI API error (%d): %s", resp.StatusCode, string(body))
+	}
+
+	var result struct {
+		Data []struct {
+			ID string `json:"id"`
+		} `json:"data"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, err
+	}
+
+	var models []string
+	for _, m := range result.Data {
+		if strings.HasPrefix(m.ID, "gpt-") || strings.HasPrefix(m.ID, "o1-") {
+			models = append(models, m.ID)
+		}
+	}
+	return models, nil
+}
 func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) {
 	provider, model, token, _ := s.GetSettings()
 	if token == "" {
@@ -106,7 +191,7 @@ func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) 
 
 func (s *Service) generateGemini(model, token, contextData string) (string, error) {
 	if model == "" {
-		model = "gemini-1.5-flash"
+		model = "gemini-1.5-flash-latest"
 	}
 	model = strings.TrimPrefix(model, "models/")
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, token)

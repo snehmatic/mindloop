@@ -154,8 +154,15 @@
             </div>
             <div class="form-group">
                 <label for="aiModel">Model</label>
-                <input type="text" id="aiModel" placeholder="e.g., gemini-1.5-flash" onblur="saveAISettings()">
-                <p class="text-sm text-muted mt-xs mb-0">Leave blank for default provider model.</p>
+                <div class="flex-center gap-sm">
+                    <select id="aiModel" class="select select-bordered w-full max-w-xs" onchange="saveAISettings()">
+                        <option value="">Loading models...</option>
+                    </select>
+                    <button type="button" class="btn btn-icon btn-sm" onclick="fetchModels()" title="Refresh Models">
+                        <i data-lucide="refresh-cw" class="icon-sm"></i>
+                    </button>
+                </div>
+                <p class="text-sm text-muted mt-xs mb-0" id="modelStatus">If empty, please ensure token is set and click refresh.</p>
             </div>
             <div class="form-group">
                 <label for="aiToken">API Token</label>
@@ -165,16 +172,60 @@
         </div>
 
         <script>
+            let currentModel = "";
             document.addEventListener('DOMContentLoaded', () => {
                 fetch('/api/v1/ai/settings')
                     .then(res => res.json())
                     .then(data => {
                         if(data.provider) document.getElementById('aiProvider').value = data.provider;
-                        if(data.model) document.getElementById('aiModel').value = data.model;
+                        if(data.model) currentModel = data.model;
                         document.getElementById('tokenStatus').innerText = data.hasToken ? "Status: Token is configured securely." : "Status: Token is not configured.";
-                        if(data.hasToken) document.getElementById('tokenStatus').classList.add('text-success');
+                        if(data.hasToken) {
+                            document.getElementById('tokenStatus').classList.add('text-success');
+                            fetchModels();
+                        } else {
+                            document.getElementById('aiModel').innerHTML = '<option value="">No token configured</option>';
+                        }
                     });
             });
+
+            function fetchModels() {
+                const modelSelect = document.getElementById('aiModel');
+                const originalHtml = modelSelect.innerHTML;
+                modelSelect.innerHTML = '<option value="">Loading...</option>';
+                
+                fetch('/api/v1/ai/models')
+                    .then(async res => {
+                        if(!res.ok) {
+                            const errText = await res.text();
+                            throw new Error(errText);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        modelSelect.innerHTML = '';
+                        if(data.models && data.models.length > 0) {
+                            data.models.forEach(m => {
+                                const opt = document.createElement('option');
+                                opt.value = m;
+                                opt.textContent = m;
+                                if(m === currentModel) opt.selected = true;
+                                modelSelect.appendChild(opt);
+                            });
+                            document.getElementById('modelStatus').innerText = "Models loaded successfully.";
+                            document.getElementById('modelStatus').classList.add('text-success');
+                        } else {
+                            modelSelect.innerHTML = '<option value="">No models found</option>';
+                            document.getElementById('modelStatus').innerText = "No models available for this token.";
+                        }
+                    })
+                    .catch(err => {
+                        modelSelect.innerHTML = '<option value="">Failed to load</option>';
+                        document.getElementById('modelStatus').innerText = "Error: " + err.message;
+                        document.getElementById('modelStatus').classList.remove('text-success');
+                        document.getElementById('modelStatus').classList.add('text-danger');
+                    });
+            }
 
             function saveAISettings() {
                 const payload = {
@@ -182,16 +233,19 @@
                     model: document.getElementById('aiModel').value,
                     token: document.getElementById('aiToken').value,
                 };
-                // Only send token if it's not empty, otherwise don't overwrite
+                
+                const hasNewToken = payload.token.trim() !== "";
+                
                 fetch('/api/v1/ai/settings', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
                 }).then(() => {
-                    if (payload.token) {
+                    if (hasNewToken) {
                         document.getElementById('aiToken').value = ''; // clear field
                         document.getElementById('tokenStatus').innerText = "Status: Token is configured securely.";
                         document.getElementById('tokenStatus').classList.add('text-success');
+                        fetchModels(); // Refresh models since token changed
                     }
                 }).catch(err => console.error("Failed to save AI settings", err));
             }
