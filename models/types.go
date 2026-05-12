@@ -461,3 +461,10 @@ type PointStats struct {
 	TotalPoints int
 	History     []PointTransaction
 }
+
+// AppSetting represents a key-value store for application settings (like encrypted AI tokens)
+type AppSetting struct {
+	gorm.Model
+	Key   string `gorm:"type:varchar(100);uniqueIndex;not null" json:"key"`
+	Value string `gorm:"type:text" json:"value"` // encrypted if sensitive
+}
