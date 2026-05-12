@@ -71,7 +71,7 @@ var generateCmd = &cobra.Command{
 
 		fmt.Print("Would you like to save this into the journal? (y/N): ")
 		var response string
-		fmt.Scanln(&response)
+		_, _ = fmt.Scanln(&response)
 		if response == "y" || response == "Y" {
 			title := fmt.Sprintf("AI Summary: %s", report.DateRange)
 			// Assuming journal points default to 5 if config isn't read fully
@@ -235,6 +235,12 @@ func init() {
 	journalCmd.AddCommand(journalListCmd)
 	journalCmd.AddCommand(journalViewCmd)
 	journalCmd.AddCommand(journalDeleteCmd)
+	
+	generateCmd.Flags().BoolP("daily", "d", false, "Generate daily summary")
+	generateCmd.Flags().BoolP("weekly", "w", false, "Generate weekly summary")
+	generateCmd.Flags().BoolP("yearly", "y", false, "Generate yearly summary")
+	journalCmd.AddCommand(generateCmd)
+
 	rootCmd.AddCommand(journalCmd)
 
 	mood = journalNewCmd.Flags().StringP("mood", "m", "neutral", "Set journal mood")

@@ -23,7 +23,7 @@ func (mlh *MindloopHandler) HandleGetAISettings(w http.ResponseWriter, r *http.R
 	hasToken := token != ""
 	
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"provider": provider,
 		"model":    model,
 		"hasToken": hasToken,
@@ -45,7 +45,7 @@ func (mlh *MindloopHandler) HandleSaveAISettings(w http.ResponseWriter, r *http.
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{"message": "Settings saved successfully"})
+	_ = json.NewEncoder(w).Encode(map[string]string{"message": "Settings saved successfully"})
 }
 
 func (mlh *MindloopHandler) HandleGenerateAIJournal(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +71,7 @@ func (mlh *MindloopHandler) HandleGenerateAIJournal(w http.ResponseWriter, r *ht
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(map[string]string{
+	_ = json.NewEncoder(w).Encode(map[string]string{
 		"content": generatedText,
 		"title":   "AI Summary: " + report.DateRange,
 	})

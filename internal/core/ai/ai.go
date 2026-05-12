@@ -92,13 +92,15 @@ func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) 
 		return "", err
 	}
 
-	if provider == "openai" {
+	switch provider {
+	case "openai":
 		return s.generateOpenAI(model, token, string(dataBytes))
-	} else if provider == "anthropic" {
+	case "anthropic":
 		return s.generateAnthropic(model, token, string(dataBytes))
+	default:
+		// Default to gemini format
+		return s.generateGemini(model, token, string(dataBytes))
 	}
-	// Default to gemini format
-	return s.generateGemini(model, token, string(dataBytes))
 }
 
 func (s *Service) generateGemini(model, token, contextData string) (string, error) {
@@ -125,11 +127,11 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("Gemini API error (%d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("gemini API error (%d): %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {
@@ -176,11 +178,11 @@ func (s *Service) generateOpenAI(model, token, contextData string) (string, erro
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("OpenAI API error (%d): %s", resp.StatusCode, string(body))
+		return "", fmt.Errorf("openAI API error (%d): %s", resp.StatusCode, string(body))
 	}
 
 	var result struct {
