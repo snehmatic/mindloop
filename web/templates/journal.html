@@ -12,8 +12,56 @@
         <button class="btn btn-primary btn-sm"
             onclick="document.getElementById('new-entry-form').style.display='block'; this.style.display='none';"><i
                 data-lucide="plus" class="icon-sm"></i> New</button>
+        <div style="position: relative; display: inline-block;">
+            <button class="btn btn-secondary btn-sm" onclick="toggleDropdown('ai-gen-dropdown')" id="btn-ai-gen"><i data-lucide="sparkles" class="icon-sm"></i> Auto-generate</button>
+            <div id="ai-gen-dropdown" class="card" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.5rem; width: 200px; z-index: 50; padding: 0.5rem;">
+                <button class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start; margin-bottom: 0.2rem;" onclick="generateAIJournal('daily')">Daily Summary</button>
+                <button class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start; margin-bottom: 0.2rem;" onclick="generateAIJournal('weekly')">Weekly Summary</button>
+                <button class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start;" onclick="generateAIJournal('yearly')">Yearly Summary</button>
+            </div>
+        </div>
     </div>
 </div>
+
+<script>
+    function toggleDropdown(id) {
+        const el = document.getElementById(id);
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+
+    function generateAIJournal(period) {
+        document.getElementById('ai-gen-dropdown').style.display = 'none';
+        const btn = document.getElementById('btn-ai-gen');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i data-lucide="loader" class="icon-sm" style="animation: spin 1s linear infinite;"></i> Generating...';
+        btn.disabled = true;
+        
+        fetch(`/api/v1/ai/generate?period=${period}`)
+            .then(res => {
+                if(!res.ok) throw new Error("Generation failed. Have you configured your API token in Settings?");
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById('new-entry-form').style.display='block';
+                document.getElementById('title').value = data.title;
+                document.getElementById('content').value = data.content;
+                document.getElementById('mood').value = "neutral";
+                // Show the form, hide the New button
+                document.querySelector('.btn-primary.btn-sm').style.display = 'none';
+                
+                // If EasyMDE is present, update it
+                if (window.easyMDEInstance) {
+                    window.easyMDEInstance.value(data.content);
+                }
+            })
+            .catch(err => alert(err.message))
+            .finally(() => {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+                lucide.createIcons();
+            });
+    }
+</script>
 
 <div class="card mb-lg animate-pop-in" id="new-entry-form" style="display: none;">
     <div class="flex-between mb-md">

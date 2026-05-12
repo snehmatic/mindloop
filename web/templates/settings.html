@@ -133,6 +133,70 @@
             </div>
         </div>
 
+        <!-- AI Configuration -->
+        <div class="card">
+            <div class="flex-between mb-md">
+                <div class="flex-center gap-sm">
+                    <i data-lucide="bot" class="icon-sm text-primary"></i>
+                    <h3 class="mb-0">AI Configuration</h3>
+                </div>
+                <span class="badge badge-warning"
+                    style="font-size: 0.7rem; background: #fffbeb; color: #b45309; padding: 2px 6px; border-radius: 4px;">Beta</span>
+            </div>
+            <p class="text-sm text-muted mb-md">Configure your AI provider for auto-generating journal summaries.</p>
+
+            <div class="form-group">
+                <label for="aiProvider">Provider</label>
+                <select id="aiProvider" class="select select-bordered w-full max-w-xs" onchange="saveAISettings()">
+                    <option value="gemini">Google Gemini</option>
+                    <option value="openai">OpenAI</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="aiModel">Model</label>
+                <input type="text" id="aiModel" placeholder="e.g., gemini-1.5-flash" onblur="saveAISettings()">
+                <p class="text-sm text-muted mt-xs mb-0">Leave blank for default provider model.</p>
+            </div>
+            <div class="form-group">
+                <label for="aiToken">API Token</label>
+                <input type="password" id="aiToken" placeholder="Enter new token to update" onblur="saveAISettings()">
+                <p class="text-sm text-muted mt-xs mb-0" id="tokenStatus"></p>
+            </div>
+        </div>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                fetch('/api/v1/ai/settings')
+                    .then(res => res.json())
+                    .then(data => {
+                        if(data.provider) document.getElementById('aiProvider').value = data.provider;
+                        if(data.model) document.getElementById('aiModel').value = data.model;
+                        document.getElementById('tokenStatus').innerText = data.hasToken ? "Status: Token is configured securely." : "Status: Token is not configured.";
+                        if(data.hasToken) document.getElementById('tokenStatus').classList.add('text-success');
+                    });
+            });
+
+            function saveAISettings() {
+                const payload = {
+                    provider: document.getElementById('aiProvider').value,
+                    model: document.getElementById('aiModel').value,
+                    token: document.getElementById('aiToken').value,
+                };
+                // Only send token if it's not empty, otherwise don't overwrite
+                fetch('/api/v1/ai/settings', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    if (payload.token) {
+                        document.getElementById('aiToken').value = ''; // clear field
+                        document.getElementById('tokenStatus').innerText = "Status: Token is configured securely.";
+                        document.getElementById('tokenStatus').classList.add('text-success');
+                    }
+                }).catch(err => console.error("Failed to save AI settings", err));
+            }
+        </script>
+
         <!-- Gamification -->
         <div class="card">
             <div class="flex-between mb-md">
