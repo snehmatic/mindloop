@@ -12,13 +12,24 @@
         <button class="btn btn-primary btn-sm"
             onclick="document.getElementById('new-entry-modal').style.display='flex';"><i
                 data-lucide="plus" class="icon-sm"></i> New</button>
-        <div style="position: relative; display: inline-block;">
-            <button class="btn btn-secondary btn-sm" onclick="toggleDropdown('ai-gen-dropdown')" id="btn-ai-gen"><i data-lucide="sparkles" class="icon-sm"></i> Auto-generate</button>
-            <div id="ai-gen-dropdown" class="card" style="display: none; position: absolute; right: 0; top: 100%; margin-top: 0.5rem; width: 200px; z-index: 50; padding: 0.5rem;">
-                <button class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start; margin-bottom: 0.2rem;" onclick="generateAIJournal('daily')">Daily Summary</button>
-                <button class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start; margin-bottom: 0.2rem;" onclick="generateAIJournal('weekly')">Weekly Summary</button>
-                <button class="btn btn-secondary btn-sm" style="width: 100%; justify-content: flex-start;" onclick="generateAIJournal('yearly')">Yearly Summary</button>
-            </div>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('ai-period-modal').style.display='flex';" id="btn-ai-gen"><i data-lucide="sparkles" class="icon-sm"></i> Auto-generate</button>
+    </div>
+</div>
+
+<!-- Period Selection Modal -->
+<div id="ai-period-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content" style="max-width: 400px; text-align: center;">
+        <div class="flex-between mb-md">
+            <h3 class="mb-0">Select Timeframe</h3>
+            <button class="btn btn-icon btn-sm btn-secondary" style="padding: 0.25rem; border: none;"
+                onclick="document.getElementById('ai-period-modal').style.display='none';"><i
+                    data-lucide="x" class="icon-sm"></i></button>
+        </div>
+        <p class="text-sm text-muted mb-lg">What period should the AI summarize?</p>
+        <div class="flex-col gap-sm">
+            <button class="btn btn-primary" style="width: 100%; justify-content: center;" onclick="generateAIJournal('daily')">Today</button>
+            <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="generateAIJournal('weekly')">This Week</button>
+            <button class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="generateAIJournal('yearly')">This Year</button>
         </div>
     </div>
 </div>
@@ -33,13 +44,8 @@
 </div>
 
 <script>
-    function toggleDropdown(id) {
-        const el = document.getElementById(id);
-        el.style.display = el.style.display === 'none' ? 'block' : 'none';
-    }
-
     function generateAIJournal(period) {
-        document.getElementById('ai-gen-dropdown').style.display = 'none';
+        document.getElementById('ai-period-modal').style.display = 'none';
         const loadingModal = document.getElementById('ai-loading-modal');
         loadingModal.style.display = 'flex';
         
@@ -68,9 +74,18 @@
             });
     }
 
-    // Auto-generate based on URL parameter
+    // Handle auto-opening modals based on URL parameters
     document.addEventListener('DOMContentLoaded', () => {
         const urlParams = new URLSearchParams(window.location.search);
+        
+        const openAiModal = urlParams.get('openAiModal');
+        if (openAiModal === 'true') {
+            // Clean up URL without refreshing
+            window.history.replaceState({}, document.title, window.location.pathname);
+            document.getElementById('ai-period-modal').style.display = 'flex';
+            return;
+        }
+
         const autoGen = urlParams.get('autoGenerate');
         if (autoGen) {
             // Clean up URL without refreshing
