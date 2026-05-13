@@ -10,7 +10,7 @@
                 Reset All</button>
         </form>
         <button class="btn btn-primary btn-sm"
-            onclick="document.getElementById('new-entry-form').style.display='block'; this.style.display='none';"><i
+            onclick="document.getElementById('new-entry-modal').style.display='flex';"><i
                 data-lucide="plus" class="icon-sm"></i> New</button>
         <div style="position: relative; display: inline-block;">
             <button class="btn btn-secondary btn-sm" onclick="toggleDropdown('ai-gen-dropdown')" id="btn-ai-gen"><i data-lucide="sparkles" class="icon-sm"></i> Auto-generate</button>
@@ -23,6 +23,15 @@
     </div>
 </div>
 
+<!-- Loading Modal -->
+<div id="ai-loading-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content" style="text-align: center; max-width: 300px;">
+        <i data-lucide="loader" style="width: 48px; height: 48px; color: var(--primary); animation: spin 1s linear infinite; margin: 0 auto 1rem auto; display: block;"></i>
+        <h3 style="margin-bottom: 0;">Reflecting...</h3>
+        <p class="text-sm text-muted">AI is writing your journal entry.</p>
+    </div>
+</div>
+
 <script>
     function toggleDropdown(id) {
         const el = document.getElementById(id);
@@ -31,10 +40,8 @@
 
     function generateAIJournal(period) {
         document.getElementById('ai-gen-dropdown').style.display = 'none';
-        const btn = document.getElementById('btn-ai-gen');
-        const originalHtml = btn.innerHTML;
-        btn.innerHTML = '<i data-lucide="loader" class="icon-sm" style="animation: spin 1s linear infinite;"></i> Generating...';
-        btn.disabled = true;
+        const loadingModal = document.getElementById('ai-loading-modal');
+        loadingModal.style.display = 'flex';
         
         fetch(`/api/v1/ai/generate?period=${period}`)
             .then(async res => {
@@ -45,12 +52,10 @@
                 return res.json();
             })
             .then(data => {
-                document.getElementById('new-entry-form').style.display='block';
+                document.getElementById('new-entry-modal').style.display='flex';
                 document.getElementById('title').value = data.title;
                 document.getElementById('content').value = data.content;
                 document.getElementById('mood').value = "neutral";
-                // Show the form, hide the New button
-                document.querySelector('.btn-primary.btn-sm').style.display = 'none';
                 
                 // If EasyMDE is present, update it
                 if (window.easyMDEInstance) {
@@ -59,43 +64,56 @@
             })
             .catch(err => alert(err.message))
             .finally(() => {
-                btn.innerHTML = originalHtml;
-                btn.disabled = false;
-                lucide.createIcons();
+                loadingModal.style.display = 'none';
             });
     }
+
+    // Auto-generate based on URL parameter
+    document.addEventListener('DOMContentLoaded', () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const autoGen = urlParams.get('autoGenerate');
+        if (autoGen) {
+            // Clean up URL without refreshing
+            window.history.replaceState({}, document.title, window.location.pathname);
+            generateAIJournal(autoGen);
+        }
+    });
 </script>
 
-<div class="card mb-lg animate-pop-in" id="new-entry-form" style="display: none;">
-    <div class="flex-between mb-md">
-        <h2 class="mb-0">New Entry</h2>
-        <button class="btn btn-icon"
-            onclick="document.getElementById('new-entry-form').style.display='none'; document.querySelector('.btn-primary.btn-sm').style.display='inline-flex';"><i
-                data-lucide="x" class="icon-sm"></i></button>
+<!-- New Entry Modal -->
+<div id="new-entry-modal" class="modal-backdrop" style="display: none;">
+    <div class="modal-content" style="max-width: 800px; width: 90%;">
+        <div class="flex-between mb-md">
+            <h2 class="mb-0">New Entry</h2>
+            <button class="btn btn-icon btn-sm btn-secondary" style="padding: 0.25rem; border: none;"
+                onclick="document.getElementById('new-entry-modal').style.display='none';"><i
+                    data-lucide="x" class="icon-sm"></i></button>
+        </div>
+        <form action="/journal/new" method="POST">
+            <div class="form-group mb-sm">
+                <input type="text" id="title" name="title" class="form-control" required
+                    placeholder="Title your thoughts..." style="font-size: 1.1rem; padding: 0.75rem;">
+            </div>
+            <div class="form-group mb-sm" style="display: flex; align-items: center; gap: 1rem;">
+                <label for="mood" style="margin:0; min-width: max-content;">Mood:</label>
+                <select id="mood" name="mood" class="form-control" style="width: auto;">
+                    <option value="neutral">Neutral 😐</option>
+                    <option value="happy">Happy 😊</option>
+                    <option value="sad">Sad 😔</option>
+                    <option value="energetic">Energetic ⚡</option>
+                    <option value="calm">Calm 😌</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <textarea id="content" name="content" class="form-control" rows="10" required
+                    placeholder="Write your daily reflection here..."></textarea>
+            </div>
+            <div class="flex-end mt-md gap-sm">
+                <button type="button" class="btn btn-secondary" onclick="document.getElementById('new-entry-modal').style.display='none';">Cancel</button>
+                <button type="submit" class="btn btn-primary px-lg">Save Entry</button>
+            </div>
+        </form>
     </div>
-    <form action="/journal/new" method="POST">
-        <div class="form-group mb-sm">
-            <input type="text" id="title" name="title" class="form-control" required
-                placeholder="Title your thoughts...">
-        </div>
-        <div class="form-group mb-sm" style="display: flex; align-items: center; gap: 1rem;">
-            <label for="mood" style="margin:0; min-width: max-content;">Mood:</label>
-            <select id="mood" name="mood" class="form-control" style="width: auto;">
-                <option value="neutral">Neutral 😐</option>
-                <option value="happy">Happy 😊</option>
-                <option value="sad">Sad 😔</option>
-                <option value="energetic">Energetic ⚡</option>
-                <option value="calm">Calm 😌</option>
-            </select>
-        </div>
-        <div class="form-group">
-            <textarea id="content" name="content" class="form-control" rows="4" required
-                placeholder="Write your daily reflection here..."></textarea>
-        </div>
-        <div class="flex-end mt-md">
-            <button type="submit" class="btn btn-primary px-lg">Save Entry</button>
-        </div>
-    </form>
 </div>
 
 <div class="entries">
