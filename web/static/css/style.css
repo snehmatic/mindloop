@@ -210,7 +210,7 @@ main.container {
 header {
     position: sticky;
     top: 1rem;
-    z-index: 50;
+    z-index: 200;
     margin: 0 auto 2rem auto;
     width: calc(100% - 2rem);
     max-width: 1200px;
