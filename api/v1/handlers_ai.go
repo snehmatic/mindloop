@@ -64,8 +64,21 @@ func (mlh *MindloopHandler) HandleListAIModels(w http.ResponseWriter, r *http.Re
 }
 
 func (mlh *MindloopHandler) HandleTestAIConnection(w http.ResponseWriter, r *http.Request) {
+	var req AISettingsRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Invalid request payload", http.StatusBadRequest)
+		return
+	}
+
 	aiService := ai.NewService(mlh.journal.DB)
-	if err := aiService.TestConnection(); err != nil {
+	
+	// If token is empty in the request, fallback to the saved token
+	if req.Token == "" {
+		_, _, savedToken, _ := aiService.GetSettings()
+		req.Token = savedToken
+	}
+
+	if err := aiService.TestConnection(req.Provider, req.Model, req.Token); err != nil {
 		http.Error(w, "Connection test failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

@@ -169,8 +169,7 @@ func (s *Service) listOpenAIModels(token string) ([]string, error) {
 	return models, nil
 }
 // TestConnection sends a minimal prompt to verify the configuration works
-func (s *Service) TestConnection() error {
-	provider, model, token, _ := s.GetSettings()
+func (s *Service) TestConnection(provider, model, token string) error {
 	if token == "" {
 		return fmt.Errorf("AI token not configured")
 	}
