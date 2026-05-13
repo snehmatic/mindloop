@@ -3,6 +3,7 @@ package task
 import (
 	"errors"
 
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/models"
@@ -14,11 +15,18 @@ var logger = log.Get()
 // Service handles business logic for tasks and sub-tasks
 type Service struct {
 	db *gorm.DB
+	uc *config.UserConfig
 }
 
 // NewService creates a new task Service instance
 func NewService(db *gorm.DB) *Service {
-	return &Service{db: db}
+	uc := config.UserConfig{}
+	err := uc.ReadFromYAML()
+	if err != nil {
+		logger.Fatal().Err(err).Msg("Failed to read user config")
+	}
+
+	return &Service{db: db, uc: &uc}
 }
 
 // CreateTask persists a new task to the database
@@ -38,13 +46,21 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 // CompleteTask marks a task as completed in the database
 func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 	var task models.Task
-	if err := s.db.First(&task, id).Error; err != nil {
+	if err := s.db.Preload("SubTasks").First(&task, id).Error; err != nil {
 		return false, errors.New("task not found")
 	}
 
 	task.Status = "completed"
 	if err := s.db.Save(&task).Error; err != nil {
 		return false, err
+	}
+
+	for _, st := range task.SubTasks {
+		if st.Status != "completed" {
+			if _, err := s.CompleteSubTask(st.ID, s.uc.PointsConfig.SubTask); err != nil {
+				logger.Error().Err(err).Uint("subtask_id", st.ID).Msg("Failed to complete subtask while completing task")
+			}
+		}
 	}
 
 	milestoneReached, err := points.AwardPoints(s.db, models.CategoryTask, task.ID, pointsVal)
