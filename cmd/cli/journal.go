@@ -235,7 +235,7 @@ func init() {
 	journalCmd.AddCommand(journalListCmd)
 	journalCmd.AddCommand(journalViewCmd)
 	journalCmd.AddCommand(journalDeleteCmd)
-	
+
 	generateCmd.Flags().BoolP("daily", "d", false, "Generate daily summary")
 	generateCmd.Flags().BoolP("weekly", "w", false, "Generate weekly summary")
 	generateCmd.Flags().BoolP("yearly", "y", false, "Generate yearly summary")

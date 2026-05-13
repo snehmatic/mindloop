@@ -59,7 +59,7 @@ func (s *Service) GetSettings() (provider, model, token string, err error) {
 func (s *Service) SaveSettings(provider, model, token string) error {
 	s.saveOrUpdate(SettingKeyAIProvider, provider)
 	s.saveOrUpdate(SettingKeyAIModel, model)
-	
+
 	if token != "" {
 		encrypted, err := utils.Encrypt(token)
 		if err != nil {
@@ -113,7 +113,7 @@ func (s *Service) listGeminiModels(token string) ([]string, error) {
 
 	var result struct {
 		Models []struct {
-			Name string `json:"name"`
+			Name                       string   `json:"name"`
 			SupportedGenerationMethods []string `json:"supportedGenerationMethods"`
 		} `json:"models"`
 	}
@@ -168,6 +168,7 @@ func (s *Service) listOpenAIModels(token string) ([]string, error) {
 	}
 	return models, nil
 }
+
 // TestConnection sends a minimal prompt to verify the configuration works
 func (s *Service) TestConnection(provider, model, token string) error {
 	if token == "" {
@@ -216,7 +217,7 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 	}
 	model = strings.TrimPrefix(model, "models/")
 	url := fmt.Sprintf("https://generativelanguage.googleapis.com/v1beta/models/%s:generateContent?key=%s", model, token)
-	
+
 	reqBody := map[string]interface{}{
 		"system_instruction": map[string]interface{}{
 			"parts": map[string]interface{}{"text": JournalSystemPrompt},
@@ -229,7 +230,7 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 			},
 		},
 	}
-	
+
 	bodyBytes, _ := json.Marshal(reqBody)
 	resp, err := http.Post(url, "application/json", bytes.NewBuffer(bodyBytes))
 	if err != nil {
@@ -268,7 +269,7 @@ func (s *Service) generateOpenAI(model, token, contextData string) (string, erro
 		model = "gpt-4o-mini"
 	}
 	url := "https://api.openai.com/v1/chat/completions"
-	
+
 	reqBody := map[string]interface{}{
 		"model": model,
 		"messages": []map[string]interface{}{
@@ -276,7 +277,7 @@ func (s *Service) generateOpenAI(model, token, contextData string) (string, erro
 			{"role": "user", "content": "Here is my activity summary data:\n" + contextData},
 		},
 	}
-	
+
 	bodyBytes, _ := json.Marshal(reqBody)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")

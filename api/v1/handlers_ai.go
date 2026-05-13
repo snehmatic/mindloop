@@ -19,9 +19,9 @@ func (mlh *MindloopHandler) HandleGetAISettings(w http.ResponseWriter, r *http.R
 	// Re-initialize AI service with current DB
 	aiService := ai.NewService(mlh.journal.DB) // hack: accessing DB via a service that has it
 	provider, model, token, _ := aiService.GetSettings()
-	
+
 	hasToken := token != ""
-	
+
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"provider": provider,
@@ -71,7 +71,7 @@ func (mlh *MindloopHandler) HandleTestAIConnection(w http.ResponseWriter, r *htt
 	}
 
 	aiService := ai.NewService(mlh.journal.DB)
-	
+
 	// If token is empty in the request, fallback to the saved token
 	if req.Token == "" {
 		_, _, savedToken, _ := aiService.GetSettings()
