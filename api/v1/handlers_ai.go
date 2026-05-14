@@ -76,11 +76,14 @@ func (mlh *MindloopHandler) HandleTestAIConnection(w http.ResponseWriter, r *htt
 
 	// If token is empty in the request, fallback to the saved token
 	if req.Token == "" {
-		_, _, savedToken, _, _ := aiService.GetSettings()
+		_, _, savedToken, savedBaseURL, _ := aiService.GetSettings()
 		req.Token = savedToken
+		if req.BaseURL == "" {
+			req.BaseURL = savedBaseURL
+		}
 	}
 
-	if err := aiService.TestConnection(req.Provider, req.Model, req.Token); err != nil {
+	if err := aiService.TestConnection(req.Provider, req.Model, req.Token, req.BaseURL); err != nil {
 		http.Error(w, "Connection test failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

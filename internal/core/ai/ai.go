@@ -87,14 +87,14 @@ func (s *Service) saveOrUpdate(key, value string) {
 
 // ListModels fetches the available models for the configured provider
 func (s *Service) ListModels() ([]string, error) {
-	provider, _, token, _, _ := s.GetSettings()
+	provider, _, token, baseURL, _ := s.GetSettings()
 	if token == "" {
 		return nil, fmt.Errorf("AI token not configured")
 	}
 
 	switch provider {
-	case "openai":
-		return s.listOpenAIModels(token)
+	case "openai", "custom":
+		return s.listOpenAIModels(token, baseURL)
 	case "anthropic":
 		return nil, fmt.Errorf("anthropic support coming soon")
 	default:
@@ -138,8 +138,11 @@ func (s *Service) listGeminiModels(token string) ([]string, error) {
 	return models, nil
 }
 
-func (s *Service) listOpenAIModels(token string) ([]string, error) {
+func (s *Service) listOpenAIModels(token, baseURL string) ([]string, error) {
 	url := "https://api.openai.com/v1/models"
+	if baseURL != "" {
+		url = strings.TrimSuffix(baseURL, "/") + "/models"
+	}
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Authorization", "Bearer "+token)
 
@@ -174,7 +177,7 @@ func (s *Service) listOpenAIModels(token string) ([]string, error) {
 }
 
 // TestConnection sends a minimal prompt to verify the configuration works
-func (s *Service) TestConnection(provider, model, token string) error {
+func (s *Service) TestConnection(provider, model, token, baseURL string) error {
 	if token == "" {
 		return fmt.Errorf("AI token not configured")
 	}
@@ -183,8 +186,8 @@ func (s *Service) TestConnection(provider, model, token string) error {
 
 	var err error
 	switch provider {
-	case "openai":
-		_, err = s.generateOpenAI(model, token, testData)
+	case "openai", "custom":
+		_, err = s.generateOpenAI(model, token, testData, baseURL)
 	case "anthropic":
 		_, err = s.generateAnthropic(model, token, testData)
 	default:
@@ -194,7 +197,7 @@ func (s *Service) TestConnection(provider, model, token string) error {
 }
 
 func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) {
-	provider, model, token, _, _ := s.GetSettings()
+	provider, model, token, baseURL, _ := s.GetSettings()
 	if token == "" {
 		return "", fmt.Errorf("AI token not configured. Set MINDLOOP_AI_TOKEN or configure via UI settings")
 	}
@@ -205,8 +208,8 @@ func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) 
 	}
 
 	switch provider {
-	case "openai":
-		return s.generateOpenAI(model, token, string(dataBytes))
+	case "openai", "custom":
+		return s.generateOpenAI(model, token, string(dataBytes), baseURL)
 	case "anthropic":
 		return s.generateAnthropic(model, token, string(dataBytes))
 	default:
@@ -268,11 +271,14 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 	return "", fmt.Errorf("no content generated")
 }
 
-func (s *Service) generateOpenAI(model, token, contextData string) (string, error) {
+func (s *Service) generateOpenAI(model, token, contextData, baseURL string) (string, error) {
 	if model == "" {
 		model = "gpt-4o-mini"
 	}
 	url := "https://api.openai.com/v1/chat/completions"
+	if baseURL != "" {
+		url = strings.TrimSuffix(baseURL, "/") + "/chat/completions"
+	}
 
 	reqBody := map[string]interface{}{
 		"model": model,
