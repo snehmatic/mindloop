@@ -21,12 +21,12 @@ type Service struct {
 // NewService creates a new task Service instance
 func NewService(db *gorm.DB) *Service {
 	uc := config.UserConfig{}
-	err := uc.ReadFromYAML()
-	if err != nil {
-		logger.Fatal().Err(err).Msg("Failed to read user config")
-	}
+	_ = uc.ReadFromYAML()
 
-	return &Service{db: db, uc: &uc}
+	return &Service{
+		db: db,
+		uc: &uc,
+	}
 }
 
 // CreateTask persists a new task to the database
