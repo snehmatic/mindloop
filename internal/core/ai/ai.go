@@ -18,6 +18,7 @@ const (
 	SettingKeyAIProvider = "ai_provider"
 	SettingKeyAIModel    = "ai_model"
 	SettingKeyAIToken    = "ai_token"
+	SettingKeyAIBaseURL  = "ai_base_url"
 )
 
 type Service struct {
@@ -29,14 +30,16 @@ func NewService(db *gorm.DB) *Service {
 }
 
 // GetSettings retrieves the AI configuration from the database
-func (s *Service) GetSettings() (provider, model, token string, err error) {
-	var pSetting, mSetting, tSetting models.AppSetting
+func (s *Service) GetSettings() (provider, model, token, baseURL string, err error) {
+	var pSetting, mSetting, tSetting, bSetting models.AppSetting
 	s.DB.Where("key = ?", SettingKeyAIProvider).Limit(1).Find(&pSetting)
 	s.DB.Where("key = ?", SettingKeyAIModel).Limit(1).Find(&mSetting)
 	s.DB.Where("key = ?", SettingKeyAIToken).Limit(1).Find(&tSetting)
+	s.DB.Where("key = ?", SettingKeyAIBaseURL).Limit(1).Find(&bSetting)
 
 	provider = pSetting.Value
 	model = mSetting.Value
+	baseURL = bSetting.Value
 
 	// Token from DB overrides env var, if exists
 	envToken := os.Getenv("MINDLOOP_AI_TOKEN")
@@ -52,13 +55,14 @@ func (s *Service) GetSettings() (provider, model, token string, err error) {
 	if provider == "" {
 		provider = "gemini" // default
 	}
-	return provider, model, token, nil
+	return provider, model, token, baseURL, nil
 }
 
 // SaveSettings encrypts the token and saves the configuration
-func (s *Service) SaveSettings(provider, model, token string) error {
+func (s *Service) SaveSettings(provider, model, token, baseURL string) error {
 	s.saveOrUpdate(SettingKeyAIProvider, provider)
 	s.saveOrUpdate(SettingKeyAIModel, model)
+	s.saveOrUpdate(SettingKeyAIBaseURL, baseURL)
 
 	if token != "" {
 		encrypted, err := utils.Encrypt(token)
@@ -83,7 +87,7 @@ func (s *Service) saveOrUpdate(key, value string) {
 
 // ListModels fetches the available models for the configured provider
 func (s *Service) ListModels() ([]string, error) {
-	provider, _, token, _ := s.GetSettings()
+	provider, _, token, _, _ := s.GetSettings()
 	if token == "" {
 		return nil, fmt.Errorf("AI token not configured")
 	}
@@ -190,7 +194,7 @@ func (s *Service) TestConnection(provider, model, token string) error {
 }
 
 func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) {
-	provider, model, token, _ := s.GetSettings()
+	provider, model, token, _, _ := s.GetSettings()
 	if token == "" {
 		return "", fmt.Errorf("AI token not configured. Set MINDLOOP_AI_TOKEN or configure via UI settings")
 	}
