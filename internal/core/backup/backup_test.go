@@ -48,11 +48,11 @@ func TestExportImportIncludesTasksAndSubTasks(t *testing.T) {
 	db := newBackupTestDB(t)
 	service := NewService(db)
 
-	task := models.Task{Title: "Back up tasks", Status: "pending", Position: 7}
+	task := models.Task{Title: "Back up tasks", Status: models.TaskStatusPending, Position: 7}
 	if err := db.Create(&task).Error; err != nil {
 		t.Fatalf("create task: %v", err)
 	}
-	subTask := models.SubTask{TaskID: task.ID, Title: "Back up subtasks", Status: "completed", Position: 3}
+	subTask := models.SubTask{TaskID: task.ID, Title: "Back up subtasks", Status: models.TaskStatusPending, Position: 3}
 	if err := db.Create(&subTask).Error; err != nil {
 		t.Fatalf("create subtask: %v", err)
 	}

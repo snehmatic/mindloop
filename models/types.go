@@ -335,30 +335,30 @@ type SideQuest struct {
 // Task represents a to-do item linked to an intent or focus session
 type Task struct {
 	gorm.Model
-	Title          string    `gorm:"not null" json:"title"`
-	Status         string    `gorm:"default:pending" json:"status"` // pending, completed
-	IntentID       *uint     `json:"intent_id,omitempty"`
-	FocusSessionID *uint     `json:"focus_session_id,omitempty"`
-	Position       int       `gorm:"default:0" json:"position"`
-	SubTasks       []SubTask `gorm:"foreignKey:TaskID" json:"sub_tasks"`
+	Title          string     `gorm:"not null" json:"title"`
+	Status         TaskStatus `gorm:"default:pending" json:"status"` // pending, completed
+	IntentID       *uint      `json:"intent_id,omitempty"`
+	FocusSessionID *uint      `json:"focus_session_id,omitempty"`
+	Position       int        `gorm:"default:0" json:"position"`
+	SubTasks       []SubTask  `gorm:"foreignKey:TaskID" json:"sub_tasks"`
 }
 
 // SubTask is a smaller component of a Task
 type SubTask struct {
 	gorm.Model
-	TaskID   uint   `gorm:"not null" json:"task_id"`
-	Title    string `gorm:"not null" json:"title"`
-	Status   string `gorm:"default:pending" json:"status"` // pending, completed
-	Position int    `gorm:"default:0" json:"position"`
+	TaskID   uint       `gorm:"not null" json:"task_id"`
+	Title    string     `gorm:"not null" json:"title"`
+	Status   TaskStatus `gorm:"default:pending" json:"status"` // pending, completed
+	Position int        `gorm:"default:0" json:"position"`
 }
 
 // SubTaskView is a simplified representation of a SubTask for the UI
 type SubTaskView struct {
-	ID       uint   `json:"id"`
-	TaskID   uint   `json:"task_id"`
-	Title    string `json:"title"`
-	Status   string `json:"status"`
-	Position int    `json:"position"`
+	ID       uint       `json:"id"`
+	TaskID   uint       `json:"task_id"`
+	Title    string     `json:"title"`
+	Status   TaskStatus `json:"status"`
+	Position int        `json:"position"`
 }
 
 func ToSubTaskView(st SubTask) SubTaskView {
@@ -375,7 +375,7 @@ func ToSubTaskView(st SubTask) SubTaskView {
 type TaskView struct {
 	ID                uint          `json:"id"`
 	Title             string        `json:"title"`
-	Status            string        `json:"status"`
+	Status            TaskStatus    `json:"status"`
 	IntentID          *uint         `json:"intent_id,omitempty"`
 	IntentName        string        `json:"intent_name,omitempty"`
 	FocusSessionID    *uint         `json:"focus_session_id,omitempty"`

@@ -1,8 +1,6 @@
 package task
 
 import (
-	"errors"
-
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/log"
@@ -47,16 +45,16 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 	var task models.Task
 	if err := s.db.Preload("SubTasks").First(&task, id).Error; err != nil {
-		return false, errors.New("task not found")
+		return false, ErrorTaskNotFound
 	}
 
-	task.Status = "completed"
+	task.Status = models.TaskStatusCompleted
 	if err := s.db.Save(&task).Error; err != nil {
 		return false, err
 	}
 
 	for _, st := range task.SubTasks {
-		if st.Status != "completed" {
+		if st.Status != models.TaskStatusCompleted {
 			if _, err := s.CompleteSubTask(st.ID, s.uc.PointsConfig.SubTask); err != nil {
 				logger.Error().Err(err).Uint("subtask_id", st.ID).Msg("Failed to complete subtask while completing task")
 			}
@@ -98,10 +96,10 @@ func (s *Service) AddSubTask(taskID uint, title string) (*models.SubTask, error)
 func (s *Service) CompleteSubTask(id uint, pointsVal int) (bool, error) {
 	var st models.SubTask
 	if err := s.db.First(&st, id).Error; err != nil {
-		return false, errors.New("subtask not found")
+		return false, ErrorSubTaskNotFound
 	}
 
-	st.Status = "completed"
+	st.Status = models.TaskStatusCompleted
 	if err := s.db.Save(&st).Error; err != nil {
 		return false, err
 	}
