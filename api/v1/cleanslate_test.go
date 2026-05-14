@@ -29,14 +29,18 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 
 	// AutoMigrate all models
 	err = db.AutoMigrate(
-		&models.JournalEntry{},
+		&models.Intent{},
+		&models.FocusSession{},
 		&models.Habit{},
 		&models.HabitLog{},
-		&models.FocusSession{},
-		&models.Intent{},
+		&models.JournalEntry{},
 		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
+		&models.Routine{},
+		&models.Task{},
+		&models.SubTask{},
+		&models.AppSetting{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate: %v", err)

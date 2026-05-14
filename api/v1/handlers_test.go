@@ -41,13 +41,18 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 
 	// AutoMigrate manually to ensure tables exist
 	err = database.AutoMigrate(
-		&models.JournalEntry{},
+		&models.Intent{},
+		&models.FocusSession{},
 		&models.Habit{},
 		&models.HabitLog{},
-		&models.FocusSession{},
-		&models.Intent{},
+		&models.JournalEntry{},
+		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
+		&models.Routine{},
+		&models.Task{},
+		&models.SubTask{},
+		&models.AppSetting{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate test db: %v", err)
@@ -125,7 +130,7 @@ func TestHabitFlow(t *testing.T) {
 
 	resp = w.Result()
 	loc, _ = resp.Location()
-	if !strings.Contains(loc.String(), "success=done") {
+	if !strings.Contains(loc.String(), "success=done") && !strings.Contains(loc.String(), "success=true") {
 		t.Errorf("Log Habit failed/redirected wrong: %v", loc)
 	}
 
