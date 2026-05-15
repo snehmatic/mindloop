@@ -17,6 +17,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/motivation"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 )
 
@@ -1116,6 +1117,7 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	ptsQuest, _ := strconv.Atoi(r.FormValue("pts_quest"))
 	ptsTask, _ := strconv.Atoi(r.FormValue("pts_task"))
 	ptsSubTask, _ := strconv.Atoi(r.FormValue("pts_subtask"))
+	ptsMilestoneInterval, _ := strconv.Atoi(r.FormValue("pts_milestone_interval"))
 
 	uc := config.UserConfig{
 		Name:            name,
@@ -1130,13 +1132,14 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 			Gamification: r.FormValue("gamification") == "on",
 		},
 		PointsConfig: config.PointsConfig{
-			Focus:   ptsFocus,
-			Habit:   ptsHabit,
-			Intent:  ptsIntent,
-			Journal: ptsJournal,
-			Quest:   ptsQuest,
-			Task:    ptsTask,
-			SubTask: ptsSubTask,
+			Focus:             ptsFocus,
+			Habit:             ptsHabit,
+			Intent:            ptsIntent,
+			Journal:           ptsJournal,
+			Quest:             ptsQuest,
+			Task:              ptsTask,
+			SubTask:           ptsSubTask,
+			MilestoneInterval: ptsMilestoneInterval,
 		},
 	}
 
@@ -1150,7 +1153,9 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 		}
 	}
 
+	uc.PointsConfig.MilestoneInterval = points.NormalizeMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 	uc.WriteToYAML()
+	points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 
 	// Update in-memory config to reflect changes immediately
 	if mlh.config != nil {

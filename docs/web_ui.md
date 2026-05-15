@@ -71,9 +71,9 @@ Customize your Mindloop experience. You can set your name, choose AI models, man
 ## Gamification & Celebrations
 Mindloop rewards your productivity with points and celebrations.
 - **Points System**: Earn points for every activity completed.
-- **Customization**: Set your own point rewards in the Settings page.
+- **Customization**: Set your own point rewards and milestone interval in the Settings page.
 - **Confetti**: Celebrate small wins with instant confetti animations.
-- **Milestones**: Reach 100-point increments to unlock a special full-screen milestone celebration.
+- **Milestones**: Reach configurable point increments, 200 points by default, to unlock a special full-screen milestone celebration.
 
 ## Dark Mode & Theming
 Mindloop features a classy "Teal and Orange" default theme. It includes a built-in Dark Mode for comfortable viewing in low-light environments. Toggle it using the moon/sun icon in the navigation bar.

@@ -2,8 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/gamification"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -60,7 +62,20 @@ var confCmd = &cobra.Command{
 			}
 		}
 
-		CreateUserConfigYAML(username, mode, dbConfig)
+		milestoneInterval := gamification.DefaultMilestoneInterval
+		fmt.Printf("Please enter your milestone interval [%d]: ", gamification.DefaultMilestoneInterval)
+		var milestoneInput string
+		_, _ = fmt.Scanln(&milestoneInput)
+		if milestoneInput != "" {
+			parsedInterval, err := strconv.Atoi(milestoneInput)
+			if err == nil && parsedInterval > 0 {
+				milestoneInterval = parsedInterval
+			} else {
+				utils.PrintWarnf("Invalid milestone interval. Using default %d.\n", gamification.DefaultMilestoneInterval)
+			}
+		}
+
+		CreateUserConfigYAML(username, mode, dbConfig, milestoneInterval)
 
 		utils.PrintSuccessf("Configuration complete! Your username is set to: %s, using mode: %s\n", username, mode)
 	},
@@ -70,10 +85,13 @@ func init() {
 	rootCmd.AddCommand(confCmd)
 }
 
-func CreateUserConfigYAML(username, mode string, dbConfig *config.DBConfig) {
+func CreateUserConfigYAML(username, mode string, dbConfig *config.DBConfig, milestoneInterval int) {
 	uc := config.UserConfig{
 		Name: username,
 		Mode: mode,
+		PointsConfig: config.PointsConfig{
+			MilestoneInterval: milestoneInterval,
+		},
 	}
 
 	if mode == "byodb" {
@@ -84,6 +102,7 @@ func CreateUserConfigYAML(username, mode string, dbConfig *config.DBConfig) {
 		uc.DbConfig = *dbConfig
 	}
 
+	uc.SetDefaults()
 	uc.WriteToYAML()
 	utils.PrintSuccessln("User config created successfully!")
 	utils.PrintInfof("You can find your config at: %s\n", config.GetUserConfigPath())
