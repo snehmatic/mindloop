@@ -14,6 +14,9 @@ func NewSQLTaskRepository(db *gorm.DB) TaskRepository {
 }
 
 func (r *taskRepository) CreateTask(title string, intentID, focusID *uint) (*models.Task, error) {
+	if err := ValidateTaskTitle(title); err != nil {
+		return nil, err
+	}
 	t := &models.Task{
 		Title:          title,
 		IntentID:       intentID,
@@ -57,6 +60,13 @@ func (r *taskRepository) ListTasks() ([]models.Task, error) {
 }
 
 func (r *taskRepository) AddSubTask(taskID uint, title string) (*models.SubTask, error) {
+	if err := ValidateTaskID(taskID); err != nil {
+		return nil, err
+	}
+	if err := ValidateSubTaskTitle(title); err != nil {
+		return nil, err
+	}
+	//TODO, check if task with taskID exist in DB
 	st := &models.SubTask{
 		TaskID: taskID,
 		Title:  title,

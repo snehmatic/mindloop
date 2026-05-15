@@ -139,3 +139,48 @@ func TestTaskRepositoryReorder(t *testing.T) {
 		t.Errorf("Tasks not in expected order")
 	}
 }
+
+func TestCreateTaskValidation(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewSQLTaskRepository(db)
+
+	_, err := repo.CreateTask("", nil, nil)
+	if err != ErrTaskTitleEmpty {
+		t.Errorf("Expected ErrTaskTitleEmpty, got %v", err)
+	}
+
+	longTitle := make([]byte, 101)
+	for i := range longTitle {
+		longTitle[i] = 'a'
+	}
+	_, err = repo.CreateTask(string(longTitle), nil, nil)
+	if err != ErrTaskTitleTooLong {
+		t.Errorf("Expected ErrTaskTitleTooLong, got %v", err)
+	}
+}
+
+func TestAddSubTaskValidation(t *testing.T) {
+	db := setupTestDB(t)
+	repo := NewSQLTaskRepository(db)
+
+	task, _ := repo.CreateTask("Test Task", nil, nil)
+
+	_, err := repo.AddSubTask(0, "Test SubTask")
+	if err != ErrSubTaskInvalidTaskID {
+		t.Errorf("Expected ErrSubTaskInvalidTaskID, got %v", err)
+	}
+
+	_, err = repo.AddSubTask(task.ID, "")
+	if err != ErrSubTaskTitleEmpty {
+		t.Errorf("Expected ErrSubTaskTitleEmpty, got %v", err)
+	}
+
+	longTitle := make([]byte, 101)
+	for i := range longTitle {
+		longTitle[i] = 'a'
+	}
+	_, err = repo.AddSubTask(task.ID, string(longTitle))
+	if err != ErrSubTaskTitleTooLong {
+		t.Errorf("Expected ErrSubTaskTitleTooLong, got %v", err)
+	}
+}
