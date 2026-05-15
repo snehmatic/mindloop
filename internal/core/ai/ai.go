@@ -90,7 +90,7 @@ func (s *Service) saveOrUpdate(key, value string) {
 // ListModels fetches the available models for the configured provider
 func (s *Service) ListModels() ([]string, error) {
 	provider, _, token, baseURL, _ := s.GetSettings()
-	if token == "" {
+	if token == "" && provider != "custom" {
 		return nil, fmt.Errorf("AI token not configured")
 	}
 
@@ -146,7 +146,9 @@ func (s *Service) listOpenAIModels(token, baseURL string) ([]string, error) {
 		url = strings.TrimSuffix(baseURL, "/") + "/models"
 	}
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Authorization", "Bearer "+token)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -180,7 +182,7 @@ func (s *Service) listOpenAIModels(token, baseURL string) ([]string, error) {
 
 // TestConnection sends a minimal prompt to verify the configuration works
 func (s *Service) TestConnection(provider, model, token, baseURL string) error {
-	if token == "" {
+	if token == "" && provider != "custom" {
 		return fmt.Errorf("AI token not configured")
 	}
 
@@ -200,7 +202,7 @@ func (s *Service) TestConnection(provider, model, token, baseURL string) error {
 
 func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) {
 	provider, model, token, baseURL, _ := s.GetSettings()
-	if token == "" {
+	if token == "" && provider != "custom" {
 		return "", fmt.Errorf("AI token not configured. Set MINDLOOP_AI_TOKEN or configure via UI settings")
 	}
 
@@ -293,7 +295,9 @@ func (s *Service) generateOpenAI(model, token, contextData, baseURL string) (str
 	bodyBytes, _ := json.Marshal(reqBody)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
