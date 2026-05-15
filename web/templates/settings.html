@@ -85,54 +85,6 @@
             </div>
         </div>
 
-        <!-- Cloud Sync -->
-        <div class="card">
-            <div class="flex-between mb-md">
-                <div class="flex-center gap-sm">
-                    <i data-lucide="cloud" class="icon-sm text-primary"></i>
-                    <h3 class="mb-0">Sync</h3>
-                </div>
-                <span class="badge badge-warning"
-                    style="font-size: 0.7rem; background: #fffbeb; color: #b45309; padding: 2px 6px; border-radius: 4px;">Beta</span>
-            </div>
-            <p class="text-sm text-muted mb-md">Select data to sync.</p>
-
-            <div class="flex-col">
-                {{ $flags := .Config.FeatureFlags }}
-
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold">Focus Sessions</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="focus_cloud" {{ if $flags.FocusCloud }}checked{{
-                        end }}>
-                    <div class="toggle-switch"></div>
-                </label>
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold">Habits</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="habit_cloud" {{ if $flags.HabitCloud }}checked{{
-                        end }}>
-                    <div class="toggle-switch"></div>
-                </label>
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold">Intents</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="intent_cloud" {{ if $flags.IntentCloud }}checked{{
-                        end }}>
-                    <div class="toggle-switch"></div>
-                </label>
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold">Journals</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="journal_cloud" {{ if $flags.JournalCloud
-                        }}checked{{ end }}>
-                    <div class="toggle-switch"></div>
-                </label>
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold">Notes</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="note_cloud" {{ if $flags.NoteCloud }}checked{{ end
-                        }}>
-                    <div class="toggle-switch"></div>
-                </label>
-            </div>
-        </div>
-
         <!-- AI Configuration -->
         <div class="card">
             <div class="flex-between mb-md">
@@ -390,6 +342,56 @@
                     </div>
                 </div>
             </div>
+        </div>
+
+        <!-- Cloud Sync (Coming Soon) -->
+        <div class="card" style="opacity: 0.6; cursor: not-allowed; position: relative; overflow: hidden;">
+            <div class="flex-between mb-md">
+                <div class="flex-center gap-sm">
+                    <i data-lucide="cloud" class="icon-sm text-muted"></i>
+                    <h3 class="mb-0 text-muted">Cloud Sync</h3>
+                </div>
+                <span class="badge"
+                    style="font-size: 0.7rem; background: var(--bg-surface-alt); color: var(--text-muted); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">Coming Soon</span>
+            </div>
+            <p class="text-sm text-muted mb-md">Sync your data across devices securely. This feature is currently under development.</p>
+
+            <div class="flex-col" style="pointer-events: none;">
+                {{ $flags := .Config.FeatureFlags }}
+
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold text-muted">Focus Sessions</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="focus_cloud" {{ if $flags.FocusCloud }}checked{{
+                        end }} disabled>
+                    <div class="toggle-switch" style="opacity: 0.5;"></div>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold text-muted">Habits</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="habit_cloud" {{ if $flags.HabitCloud }}checked{{
+                        end }} disabled>
+                    <div class="toggle-switch" style="opacity: 0.5;"></div>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold text-muted">Intents</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="intent_cloud" {{ if $flags.IntentCloud }}checked{{
+                        end }} disabled>
+                    <div class="toggle-switch" style="opacity: 0.5;"></div>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold text-muted">Journals</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="journal_cloud" {{ if $flags.JournalCloud
+                        }}checked{{ end }} disabled>
+                    <div class="toggle-switch" style="opacity: 0.5;"></div>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold text-muted">Notes</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="note_cloud" {{ if $flags.NoteCloud }}checked{{ end
+                        }} disabled>
+                    <div class="toggle-switch" style="opacity: 0.5;"></div>
+                </label>
+            </div>
+            <!-- Overlay to ensure non-interactivity -->
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;"></div>
         </div>
     </div>
 </form>
