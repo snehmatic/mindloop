@@ -147,10 +147,17 @@
 
             <div class="form-group">
                 <label for="aiProvider">Provider</label>
-                <select id="aiProvider" class="select select-bordered w-full max-w-xs" onchange="saveAISettings()">
+                <select id="aiProvider" class="select select-bordered w-full max-w-xs" onchange="toggleAIBaseURL(); saveAISettings()">
                     <option value="gemini">Google Gemini</option>
                     <option value="openai">OpenAI</option>
+                    <option value="custom">OpenAI-Compatible (Local / Custom)</option>
                 </select>
+            </div>
+            
+            <div class="form-group" id="aiBaseURLGroup" style="display: none;">
+                <label for="aiBaseURL">Base URL</label>
+                <input type="text" id="aiBaseURL" placeholder="http://localhost:11434/v1" onblur="saveAISettings()">
+                <p class="text-sm text-muted mt-xs mb-0">Endpoint for custom local providers (e.g. Ollama, LM Studio).</p>
             </div>
             <div class="form-group">
                 <label for="aiModel">Model</label>
@@ -184,7 +191,11 @@
                     .then(res => res.json())
                     .then(data => {
                         if(data.provider) document.getElementById('aiProvider').value = data.provider;
+                        if(data.baseURL) document.getElementById('aiBaseURL').value = data.baseURL;
                         if(data.model) currentModel = data.model;
+                        
+                        toggleAIBaseURL(); // New call
+
                         document.getElementById('tokenStatus').innerText = data.hasToken ? "Status: Token is configured securely." : "Status: Token is not configured.";
                         if(data.hasToken) {
                             document.getElementById('tokenStatus').classList.add('text-success');
@@ -194,6 +205,16 @@
                         }
                     });
             });
+
+            function toggleAIBaseURL() {
+                const provider = document.getElementById('aiProvider').value;
+                const group = document.getElementById('aiBaseURLGroup');
+                if (provider === 'custom') {
+                    group.style.display = 'block';
+                } else {
+                    group.style.display = 'none';
+                }
+            }
 
             function testConnection() {
                 const btn = document.getElementById('btnTestConnection');
@@ -209,6 +230,7 @@
                     provider: document.getElementById('aiProvider').value,
                     model: document.getElementById('aiModel').value,
                     token: document.getElementById('aiToken').value,
+                    baseURL: document.getElementById('aiBaseURL').value,
                 };
 
                 fetch('/api/v1/ai/test', { 
@@ -281,6 +303,7 @@
                     provider: document.getElementById('aiProvider').value,
                     model: document.getElementById('aiModel').value,
                     token: document.getElementById('aiToken').value,
+                    baseURL: document.getElementById('aiBaseURL').value,
                 };
                 
                 const hasNewToken = payload.token.trim() !== "";
