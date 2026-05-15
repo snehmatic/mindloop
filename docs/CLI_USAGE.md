@@ -27,6 +27,7 @@ mindloop configure
 This interactive command will guide you through setting up:
 *   **Username**: Your display name.
 *   **Mode**: Choose between `local` (SQLite) or `byodb` (Bring Your Own Database, e.g., PostgreSQL).
+*   **Milestone interval**: How many points are needed between milestone celebrations. The default is `200`.
 
 ---
 

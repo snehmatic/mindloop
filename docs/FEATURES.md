@@ -64,8 +64,8 @@ Group habits into logical time-blocks (e.g., "Morning Routine").
 ## Gamification & Points
 Turn your productivity into a game with a built-in reward system.
 - **Earn Points**: Get rewarded for completing focus sessions, habits, intents, journals, tasks, sub-tasks, and side quests.
-- **Milestones**: Reach point milestones (every 100 pts) to trigger special full-screen celebration screens.
-- **Customizable Rewards**: Define your own point values for different activities in the Settings.
+- **Milestones**: Reach configurable point milestones (200 pts by default) to trigger special full-screen celebration screens.
+- **Customizable Rewards**: Define your own point values and milestone interval in the Settings.
 - **Visual Progress**: Track your points over time with a dedicated chart in the Summary report.
 - **Celebrations**: Enjoy confetti animations when you finish tasks and reach new heights.
 

@@ -21,6 +21,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
@@ -164,6 +165,7 @@ func main() {
 
 	// Init global config
 	config.InitConfig(AppName, *mode, fmt.Sprintf(":%s", *port))
+	applyMilestoneInterval()
 	appConfig := config.GetConfig()
 
 	database, err := db.ConnectToDb(*appConfig)
@@ -195,4 +197,10 @@ func main() {
 	)
 
 	ServeMindloop(mlh)
+}
+
+func applyMilestoneInterval() {
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+	points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 }
