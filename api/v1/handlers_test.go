@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/glebarez/sqlite"
+	"github.com/rs/zerolog"
 	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
@@ -19,6 +20,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
+	task2 "github.com/snehmatic/mindloop/internal/repository/task"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -66,7 +68,8 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 	summaryService := summary.NewService(database)
 	habitService := habit.NewService(database)
 	backupService := backup.NewService(database)
-	taskService := task.NewService(database)
+	taskRepo := task2.NewSQLTaskRepository(database)
+	taskService := task.NewService(taskRepo, nil, zerolog.Nop())
 
 	return v1.NewMindloopHandler(
 		journalService,

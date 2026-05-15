@@ -24,6 +24,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
+	taskRepo "github.com/snehmatic/mindloop/internal/repository/task"
 	"github.com/snehmatic/mindloop/web"
 )
 
@@ -180,7 +181,8 @@ func main() {
 	questService := quest.NewService(database)
 	summaryService := summary.NewService(database)
 	habitService := habit.NewService(database)
-	taskService := task.NewService(database)
+	taskRepository := taskRepo.NewSQLTaskRepository(database)
+	taskService := task.NewService(taskRepository, nil, log.Logger)
 
 	mlh := v1.NewMindloopHandler(
 		journalService,
