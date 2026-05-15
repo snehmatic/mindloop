@@ -2,8 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/core/ai"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -63,6 +65,47 @@ var confCmd = &cobra.Command{
 		CreateUserConfigYAML(username, mode, dbConfig)
 
 		utils.PrintSuccessf("Configuration complete! Your username is set to: %s, using mode: %s\n", username, mode)
+
+		// NEW: AI Configuration Prompt
+		fmt.Print("\nWould you like to configure your AI provider now? [y/N]: ")
+		var configureAI string
+		_, _ = fmt.Scanln(&configureAI)
+		configureAI = strings.ToLower(strings.TrimSpace(configureAI))
+
+		if configureAI == "y" || configureAI == "yes" {
+			var aiProvider, aiModel, aiToken, aiBaseURL string
+
+			for {
+				fmt.Print("Provider [gemini/openai/custom]: ")
+				_, _ = fmt.Scanln(&aiProvider)
+				if aiProvider == "gemini" || aiProvider == "openai" || aiProvider == "custom" {
+					break
+				}
+				utils.PrintWarnln("Invalid provider. Please choose from: gemini, openai, custom.")
+			}
+
+			if aiProvider == "custom" {
+				fmt.Print("Base URL (e.g. http://localhost:11434/v1): ")
+				_, _ = fmt.Scanln(&aiBaseURL)
+			}
+
+			fmt.Print("Model (e.g. gpt-4o-mini or llama3): ")
+			_, _ = fmt.Scanln(&aiModel)
+
+			fmt.Print("API Token (Type 'none' if using local without auth): ")
+			_, _ = fmt.Scanln(&aiToken)
+			if aiToken == "none" {
+				aiToken = "sk-placeholder" // Dummy token if user inputs none for local
+			}
+
+			aiSvc := ai.NewService(gdb)
+			err := aiSvc.SaveSettings(aiProvider, aiModel, aiToken, aiBaseURL)
+			if err != nil {
+				utils.PrintErrorln("Failed to save AI configuration: " + err.Error())
+			} else {
+				utils.PrintSuccessln("AI Configuration saved successfully!")
+			}
+		}
 	},
 }
 
