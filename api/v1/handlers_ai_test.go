@@ -15,7 +15,7 @@ func TestAISettingsAndConnection(t *testing.T) {
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/chat/completions" {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"choices": [{"message": {"content": "mocked response"}}]}`))
+			_, _ = w.Write([]byte(`{"choices": [{"message": {"content": "mocked response"}}]}`))
 			return
 		}
 		w.WriteHeader(http.StatusNotFound)

@@ -1,6 +1,7 @@
 package cli
 
 import (
+	"bufio"
 	"bytes"
 	"strings"
 	"testing"
@@ -35,7 +36,7 @@ func TestSetupAIConfig(t *testing.T) {
 	svc := ai.NewService(db)
 
 	input := "openai\ngpt-4\ntest-token\n"
-	reader := strings.NewReader(input)
+	reader := bufio.NewReader(strings.NewReader(input))
 	var writer bytes.Buffer
 
 	err := SetupAIConfig(reader, &writer, svc)
@@ -67,7 +68,7 @@ func TestSetupAIConfigCustom(t *testing.T) {
 	svc := ai.NewService(db)
 
 	input := "custom\nhttp://localhost:11434/v1\nllama3\nnone\n"
-	reader := strings.NewReader(input)
+	reader := bufio.NewReader(strings.NewReader(input))
 	var writer bytes.Buffer
 
 	err := SetupAIConfig(reader, &writer, svc)
@@ -100,7 +101,7 @@ func TestSetupAIConfigInvalidProvider(t *testing.T) {
 
 	// first input is invalid, second is valid
 	input := "invalid\ngemini\ngemini-1.5-pro\ntoken\n"
-	reader := strings.NewReader(input)
+	reader := bufio.NewReader(strings.NewReader(input))
 	var writer bytes.Buffer
 
 	err := SetupAIConfig(reader, &writer, svc)
@@ -124,7 +125,7 @@ func TestSetupAIConfigInvalidBaseURL(t *testing.T) {
 
 	// invalid url first, then valid
 	input := "custom\nlocalhost:11434\nhttp://localhost:11434/v1\nllama3\nnone\n"
-	reader := strings.NewReader(input)
+	reader := bufio.NewReader(strings.NewReader(input))
 	var writer bytes.Buffer
 
 	err := SetupAIConfig(reader, &writer, svc)

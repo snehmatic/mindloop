@@ -69,8 +69,11 @@ var confCmd = &cobra.Command{
 
 // Prompt displays a message and reads a line of input from the reader
 func Prompt(reader *bufio.Reader, message, defaultValue string) string {
-	fmt.Print(message)
-	input, _ := reader.ReadString('\n')
+	_, _ = fmt.Print(message)
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return defaultValue
+	}
 	input = strings.TrimSpace(input)
 	if input == "" {
 		return defaultValue
@@ -79,54 +82,65 @@ func Prompt(reader *bufio.Reader, message, defaultValue string) string {
 }
 
 // SetupAIConfig extracts the AI setup logic for testability
-func SetupAIConfig(reader io.Reader, writer io.Writer, aiSvc *ai.Service) error {
-	bufReader := bufio.NewReader(reader)
+func SetupAIConfig(reader *bufio.Reader, writer io.Writer, aiSvc *ai.Service) error {
 	var aiProvider, aiModel, aiToken, aiBaseURL string
 
 	for {
-		fmt.Fprint(writer, "Provider [gemini/openai/custom]: ")
-		input, _ := bufReader.ReadString('\n')
+		_, _ = fmt.Fprint(writer, "Provider [gemini/openai/custom]: ")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
 		aiProvider = strings.TrimSpace(input)
 		if aiProvider == "gemini" || aiProvider == "openai" || aiProvider == "custom" {
 			break
 		}
-		fmt.Fprintln(writer, "Invalid provider. Please choose from: gemini, openai, custom.")
+		_, _ = fmt.Fprintln(writer, "Invalid provider. Please choose from: gemini, openai, custom.")
 	}
 
 	if aiProvider == "custom" {
 		for {
-			fmt.Fprint(writer, "Base URL (e.g. http://localhost:11434/v1): ")
-			input, _ := bufReader.ReadString('\n')
+			_, _ = fmt.Fprint(writer, "Base URL (e.g. http://localhost:11434/v1): ")
+			input, err := reader.ReadString('\n')
+			if err != nil {
+				return err
+			}
 			aiBaseURL = strings.TrimSpace(input)
 			if strings.HasPrefix(aiBaseURL, "http://") || strings.HasPrefix(aiBaseURL, "https://") {
 				break
 			}
-			fmt.Fprintln(writer, "Invalid Base URL. Must start with http:// or https://")
+			_, _ = fmt.Fprintln(writer, "Invalid Base URL. Must start with http:// or https://")
 		}
 	}
 
 	for {
-		fmt.Fprint(writer, "Model (e.g. gpt-4o-mini or llama3): ")
-		input, _ := bufReader.ReadString('\n')
+		_, _ = fmt.Fprint(writer, "Model (e.g. gpt-4o-mini or llama3): ")
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return err
+		}
 		aiModel = strings.TrimSpace(input)
 		if aiModel != "" {
 			break
 		}
-		fmt.Fprintln(writer, "Model name cannot be empty.")
+		_, _ = fmt.Fprintln(writer, "Model name cannot be empty.")
 	}
 
-	fmt.Fprint(writer, "API Token (Type 'none' or leave blank if using local without auth): ")
-	input, _ := bufReader.ReadString('\n')
+	_, _ = fmt.Fprint(writer, "API Token (Type 'none' or leave blank if using local without auth): ")
+	input, err := reader.ReadString('\n')
+	if err != nil {
+		return err
+	}
 	aiToken = strings.TrimSpace(input)
 	if aiToken == "none" {
 		aiToken = ""
 	}
 
-	err := aiSvc.SaveSettings(aiProvider, aiModel, aiToken, aiBaseURL)
+	err = aiSvc.SaveSettings(aiProvider, aiModel, aiToken, aiBaseURL)
 	if err != nil {
 		return err
 	}
-	fmt.Fprintln(writer, "AI Configuration saved successfully!")
+	_, _ = fmt.Fprintln(writer, "AI Configuration saved successfully!")
 	return nil
 }
 
