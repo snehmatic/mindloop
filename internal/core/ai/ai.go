@@ -64,13 +64,15 @@ func (s *Service) SaveSettings(provider, model, token, baseURL string) error {
 	s.saveOrUpdate(SettingKeyAIModel, model)
 	s.saveOrUpdate(SettingKeyAIBaseURL, baseURL)
 
+	encrypted := ""
 	if token != "" {
-		encrypted, err := utils.Encrypt(token)
+		var err error
+		encrypted, err = utils.Encrypt(token)
 		if err != nil {
 			return err
 		}
-		s.saveOrUpdate(SettingKeyAIToken, encrypted)
 	}
+	s.saveOrUpdate(SettingKeyAIToken, encrypted)
 	return nil
 }
 

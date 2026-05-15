@@ -1,7 +1,10 @@
 package cli
 
 import (
+	"bufio"
 	"fmt"
+	"io"
+	"os"
 	"strings"
 
 	"github.com/snehmatic/mindloop/internal/config"
@@ -17,16 +20,13 @@ var confCmd = &cobra.Command{
 	Short:   "configure your mindloop profile",
 	Example: `mindloop configure"`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// Placeholder for configuration logic
-		// This could involve setting user preferences, etc.
+		reader := bufio.NewReader(os.Stdin)
 		utils.PrintRocketln("Welcome to Mindloop configuration!")
-		fmt.Print("Please enter your preferred username: ")
-		var username string
-		_, _ = fmt.Scanln(&username)
+
+		username := Prompt(reader, "Please enter your preferred username: ", "")
 		var mode string
 		for {
-			fmt.Print("Please enter your preferred mode [local/byodb]: ")
-			_, _ = fmt.Scanln(&mode)
+			mode = Prompt(reader, "Please enter your preferred mode [local/byodb]: ", "local")
 			if models.IsValidMode(mode) {
 				break
 			}
@@ -35,24 +35,12 @@ var confCmd = &cobra.Command{
 
 		dbConfig := &config.DBConfig{}
 		if mode == "byodb" {
-			fmt.Print("Please enter your database host name: ")
-			var dbHost string
-			_, _ = fmt.Scanln(&dbHost)
-			fmt.Print("Please enter your database port: ")
-			var dbPort string
-			_, _ = fmt.Scanln(&dbPort)
-			fmt.Print("Please enter your database user name: ")
-			var dbUser string
-			_, _ = fmt.Scanln(&dbUser)
-			fmt.Print("Please enter your database password: ")
-			var dbPass string
-			_, _ = fmt.Scanln(&dbPass)
-			fmt.Print("Please enter your database name [mindloop]: ")
-			var dbName string
-			_, _ = fmt.Scanln(&dbName)
-			if dbName == "" {
-				dbName = "mindloop" // default
-			}
+			dbHost := Prompt(reader, "Please enter your database host name: ", "")
+			dbPort := Prompt(reader, "Please enter your database port: ", "")
+			dbUser := Prompt(reader, "Please enter your database user name: ", "")
+			dbPass := Prompt(reader, "Please enter your database password: ", "")
+			dbName := Prompt(reader, "Please enter your database name [mindloop]: ", "mindloop")
+
 			dbConfig = &config.DBConfig{
 				Host:     dbHost,
 				Port:     dbPort,
@@ -66,47 +54,80 @@ var confCmd = &cobra.Command{
 
 		utils.PrintSuccessf("Configuration complete! Your username is set to: %s, using mode: %s\n", username, mode)
 
-		// NEW: AI Configuration Prompt
-		fmt.Print("\nWould you like to configure your AI provider now? [y/N]: ")
-		var configureAI string
-		_, _ = fmt.Scanln(&configureAI)
-		configureAI = strings.ToLower(strings.TrimSpace(configureAI))
+		// AI Configuration Prompt
+		configureAI := Prompt(reader, "\nWould you like to configure your AI provider now? [y/N]: ", "n")
+		configureAI = strings.ToLower(configureAI)
 
 		if configureAI == "y" || configureAI == "yes" {
-			var aiProvider, aiModel, aiToken, aiBaseURL string
-
-			for {
-				fmt.Print("Provider [gemini/openai/custom]: ")
-				_, _ = fmt.Scanln(&aiProvider)
-				if aiProvider == "gemini" || aiProvider == "openai" || aiProvider == "custom" {
-					break
-				}
-				utils.PrintWarnln("Invalid provider. Please choose from: gemini, openai, custom.")
-			}
-
-			if aiProvider == "custom" {
-				fmt.Print("Base URL (e.g. http://localhost:11434/v1): ")
-				_, _ = fmt.Scanln(&aiBaseURL)
-			}
-
-			fmt.Print("Model (e.g. gpt-4o-mini or llama3): ")
-			_, _ = fmt.Scanln(&aiModel)
-
-			fmt.Print("API Token (Type 'none' if using local without auth): ")
-			_, _ = fmt.Scanln(&aiToken)
-			if aiToken == "none" {
-				aiToken = "sk-placeholder" // Dummy token if user inputs none for local
-			}
-
 			aiSvc := ai.NewService(gdb)
-			err := aiSvc.SaveSettings(aiProvider, aiModel, aiToken, aiBaseURL)
-			if err != nil {
-				utils.PrintErrorln("Failed to save AI configuration: " + err.Error())
-			} else {
-				utils.PrintSuccessln("AI Configuration saved successfully!")
+			if err := SetupAIConfig(reader, os.Stdout, aiSvc); err != nil {
+				utils.PrintErrorln("Failed to configure AI: " + err.Error())
 			}
 		}
 	},
+}
+
+// Prompt displays a message and reads a line of input from the reader
+func Prompt(reader *bufio.Reader, message, defaultValue string) string {
+	fmt.Print(message)
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(input)
+	if input == "" {
+		return defaultValue
+	}
+	return input
+}
+
+// SetupAIConfig extracts the AI setup logic for testability
+func SetupAIConfig(reader io.Reader, writer io.Writer, aiSvc *ai.Service) error {
+	bufReader := bufio.NewReader(reader)
+	var aiProvider, aiModel, aiToken, aiBaseURL string
+
+	for {
+		fmt.Fprint(writer, "Provider [gemini/openai/custom]: ")
+		input, _ := bufReader.ReadString('\n')
+		aiProvider = strings.TrimSpace(input)
+		if aiProvider == "gemini" || aiProvider == "openai" || aiProvider == "custom" {
+			break
+		}
+		fmt.Fprintln(writer, "Invalid provider. Please choose from: gemini, openai, custom.")
+	}
+
+	if aiProvider == "custom" {
+		for {
+			fmt.Fprint(writer, "Base URL (e.g. http://localhost:11434/v1): ")
+			input, _ := bufReader.ReadString('\n')
+			aiBaseURL = strings.TrimSpace(input)
+			if strings.HasPrefix(aiBaseURL, "http://") || strings.HasPrefix(aiBaseURL, "https://") {
+				break
+			}
+			fmt.Fprintln(writer, "Invalid Base URL. Must start with http:// or https://")
+		}
+	}
+
+	for {
+		fmt.Fprint(writer, "Model (e.g. gpt-4o-mini or llama3): ")
+		input, _ := bufReader.ReadString('\n')
+		aiModel = strings.TrimSpace(input)
+		if aiModel != "" {
+			break
+		}
+		fmt.Fprintln(writer, "Model name cannot be empty.")
+	}
+
+	fmt.Fprint(writer, "API Token (Type 'none' or leave blank if using local without auth): ")
+	input, _ := bufReader.ReadString('\n')
+	aiToken = strings.TrimSpace(input)
+	if aiToken == "none" {
+		aiToken = ""
+	}
+
+	err := aiSvc.SaveSettings(aiProvider, aiModel, aiToken, aiBaseURL)
+	if err != nil {
+		return err
+	}
+	fmt.Fprintln(writer, "AI Configuration saved successfully!")
+	return nil
 }
 
 func init() {
