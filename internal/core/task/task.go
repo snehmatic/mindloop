@@ -36,12 +36,12 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 
 // CompleteTask marks a task as completed in the database
 func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
-	task, err := s.taskRepository.CompleteTask(id)
+	completedTask, err := s.taskRepository.CompleteTask(id)
 	if err != nil {
 		return false, ErrorTaskNotFound
 	}
 
-	for _, st := range task.SubTasks {
+	for _, st := range completedTask.SubTasks {
 		if st.Status != models.TaskStatusCompleted {
 			if _, err := s.CompleteSubTask(st.ID, s.uc.PointsConfig.SubTask); err != nil {
 				s.logger.Error().Err(err).Uint("subtask_id", st.ID).Msg("Failed to complete subtask while completing task")
@@ -49,7 +49,7 @@ func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 		}
 	}
 
-	milestoneReached, err := points.AwardPoints(s.taskRepository.GetDB(), models.CategoryTask, task.ID, pointsVal)
+	milestoneReached, err := points.AwardPoints(s.taskRepository.GetDB(), models.CategoryTask, completedTask.ID, pointsVal)
 	if err != nil {
 		s.logger.Error().Err(err).Msg("Error awarding points for task")
 	}
