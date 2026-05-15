@@ -74,10 +74,12 @@ func (mlh *MindloopHandler) HandleTestAIConnection(w http.ResponseWriter, r *htt
 
 	aiService := ai.NewService(mlh.journal.DB)
 
-	// If token is empty in the request, fallback to the saved token
-	if req.Token == "" {
+	// Fallback to saved settings if empty in request
+	if req.Token == "" || req.BaseURL == "" {
 		_, _, savedToken, savedBaseURL, _ := aiService.GetSettings()
-		req.Token = savedToken
+		if req.Token == "" {
+			req.Token = savedToken
+		}
 		if req.BaseURL == "" {
 			req.BaseURL = savedBaseURL
 		}
