@@ -31,23 +31,6 @@ type Habit struct {
 	Interval    IntervalType `gorm:"type:varchar(100)" json:"interval"`
 	TargetCount int          `gorm:"type:int" json:"target_count"`
 	EndDate     *time.Time   `json:"end_date,omitempty"`
-	RoutineID   *uint        `json:"routine_id,omitempty"`
-}
-
-// Routine groups multiple habits into a specific time of day
-type Routine struct {
-	gorm.Model
-	Title     string  `gorm:"type:varchar(100)" json:"title"`
-	TimeOfDay string  `gorm:"type:varchar(50)" json:"time_of_day"`
-	Habits    []Habit `gorm:"foreignKey:RoutineID" json:"habits"`
-}
-
-// RoutineView is a simplified representation of a Routine for the UI
-type RoutineView struct {
-	ID        uint        `json:"id"`
-	Title     string      `json:"title"`
-	TimeOfDay string      `json:"time_of_day"`
-	Habits    []HabitView `json:"habits"`
 }
 
 // Defaults for Habit

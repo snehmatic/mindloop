@@ -20,7 +20,7 @@ The project follows a clean architecture pattern:
 *   `cmd/`: Application entry points.
     *   `cmd/cli/`: CLI command definitions (Cobra).
     *   `cmd/server/`: Web server entry point.
-*   `internal/core/`: Business logic domain (Focus, Habit, Intent, Journal, Summary, Quest, Note, Routine).
+*   `internal/core/`: Business logic domain (Focus, Habit, Intent, Journal, Summary, Quest, Note).
 *   `api/v1/`: HTTP handlers for the web server.
 *   `db/`: Database connection and schema management.
 *   `web/`: Static assets and HTML templates.
@@ -37,6 +37,7 @@ The project uses a `Makefile` for build automation.
     *   Run the binary directly: `./mindloop <command>` (e.g., `./mindloop help`)
 *   **Server:**
     *   Run via subcommand: `./mindloop server`
+    *   Run locally with live update (with go air): `make dev` (Default port:8765)
     *   Run locally (foreground): `make run-server` (Default port: 8765)
     *   Start in background: `make start-server`
     *   Stop background server: `make kill-server`

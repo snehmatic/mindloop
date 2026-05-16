@@ -22,7 +22,6 @@ func NewService(db *gorm.DB) *Service {
 type Data struct {
 	Intents           []models.Intent           `json:"intents"`
 	FocusSessions     []models.FocusSession     `json:"focus_sessions"`
-	Routines          []models.Routine          `json:"routines,omitempty"`
 	Habits            []models.Habit            `json:"habits"`
 	HabitLogs         []models.HabitLog         `json:"habit_logs"`
 	JournalEntries    []models.JournalEntry     `json:"journal_entries"`
@@ -39,7 +38,6 @@ func (s *Service) Export(filePath string) error {
 
 	s.DB.Find(&data.Intents)
 	s.DB.Find(&data.FocusSessions)
-	s.DB.Find(&data.Routines)
 	s.DB.Find(&data.Habits)
 	s.DB.Find(&data.HabitLogs)
 	s.DB.Find(&data.JournalEntries)
@@ -98,9 +96,6 @@ func (s *Service) Import(filePath string) error {
 		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.Habit{}).Error; err != nil {
 			return err
 		}
-		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.Routine{}).Error; err != nil {
-			return err
-		}
 		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Unscoped().Delete(&models.JournalEntry{}).Error; err != nil {
 			return err
 		}
@@ -115,11 +110,6 @@ func (s *Service) Import(filePath string) error {
 		}
 		if len(data.FocusSessions) > 0 {
 			if err := tx.Create(&data.FocusSessions).Error; err != nil {
-				return err
-			}
-		}
-		if len(data.Routines) > 0 {
-			if err := tx.Create(&data.Routines).Error; err != nil {
 				return err
 			}
 		}

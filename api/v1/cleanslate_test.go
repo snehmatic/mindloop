@@ -37,7 +37,6 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
-		&models.Routine{},
 		&models.Task{},
 		&models.SubTask{},
 		&models.AppSetting{},

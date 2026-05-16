@@ -12,7 +12,6 @@
 - [Write (Journal & Notes)](#write-journal--notes)
 - [The Void](#the-void)
 - [Summary](#summary)
-- [Routines & Rituals (CLI Only)](#routines--rituals-cli-only)
 - [Gamification & Points](#gamification--points)
 - [Settings & Configuration](#settings--configuration)
 
@@ -54,12 +53,6 @@ High-level metrics and a bird's-eye view of your productivity data.
 - Visualize time spent in focus.
 - Review completed intents and habit consistency.
 - Filter data by date ranges.
-
-## Routines & Rituals (CLI Only)
-Group habits into logical time-blocks (e.g., "Morning Routine").
-- Organize your day by sequences.
-- Easily review which habits belong to a specific routine.
-- *Note: Web UI support coming soon.*
 
 ## Gamification & Points
 Turn your productivity into a game with a built-in reward system.
