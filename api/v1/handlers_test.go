@@ -49,7 +49,6 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
-		&models.Routine{},
 		&models.Task{},
 		&models.SubTask{},
 		&models.AppSetting{},

@@ -34,7 +34,6 @@ func newBackupTestDB(t *testing.T) *gorm.DB {
 		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
-		&models.Routine{},
 		&models.Task{},
 		&models.SubTask{},
 	); err != nil {
