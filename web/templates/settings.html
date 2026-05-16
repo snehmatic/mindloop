@@ -342,7 +342,7 @@
             <div class="flex-col gap-md">
                 {{ $flags := .Config.FeatureFlags }}
                 <label class="settings-toggle mb-md">
-                    <span class="text-sm font-bold">Enable Points & Confetti</span>
+                    <span class="text-sm font-bold">Enable Points and Milestones</span>
                     <input type="checkbox" class="toggle-input" style="display: none;" name="gamification" id="gamification-toggle"
                         onchange="togglePointDefinitions(this.checked)" {{ if $flags.Gamification }}checked{{ end }}>
                     <div class="toggle-switch"></div>
