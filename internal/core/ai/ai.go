@@ -96,6 +96,9 @@ func (s *Service) ListModels() ([]string, error) {
 
 	switch provider {
 	case "openai", "custom":
+		if provider == "custom" && baseURL == "" {
+			return nil, fmt.Errorf("base URL is required for custom local providers")
+		}
 		return s.listOpenAIModels(token, baseURL)
 	case "anthropic":
 		return nil, fmt.Errorf("anthropic support coming soon")
@@ -114,7 +117,7 @@ func (s *Service) listGeminiModels(token string) ([]string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("gemini API error (%d): %s", resp.StatusCode, string(body))
+		return nil, formatAPIError("Gemini", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -158,7 +161,7 @@ func (s *Service) listOpenAIModels(token, baseURL string) ([]string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("openAI API error (%d): %s", resp.StatusCode, string(body))
+		return nil, formatAPIError("OpenAI", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -191,6 +194,9 @@ func (s *Service) TestConnection(provider, model, token, baseURL string) error {
 	var err error
 	switch provider {
 	case "openai", "custom":
+		if provider == "custom" && baseURL == "" {
+			return fmt.Errorf("base URL is required for custom local providers")
+		}
 		_, err = s.generateOpenAI(model, token, testData, baseURL)
 	case "anthropic":
 		_, err = s.generateAnthropic(model, token, testData)
@@ -213,6 +219,9 @@ func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) 
 
 	switch provider {
 	case "openai", "custom":
+		if provider == "custom" && baseURL == "" {
+			return "", fmt.Errorf("base URL is required for custom local providers")
+		}
 		return s.generateOpenAI(model, token, string(dataBytes), baseURL)
 	case "anthropic":
 		return s.generateAnthropic(model, token, string(dataBytes))
@@ -251,7 +260,7 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("gemini API error (%d): %s", resp.StatusCode, string(body))
+		return "", formatAPIError("Gemini", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -307,7 +316,7 @@ func (s *Service) generateOpenAI(model, token, contextData, baseURL string) (str
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("openAI API error (%d): %s", resp.StatusCode, string(body))
+		return "", formatAPIError("OpenAI", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -332,4 +341,16 @@ func (s *Service) generateOpenAI(model, token, contextData, baseURL string) (str
 func (s *Service) generateAnthropic(model, token, contextData string) (string, error) {
 	// Simple stub for v1
 	return "", fmt.Errorf("anthropic support coming soon")
+}
+
+func formatAPIError(provider string, statusCode int, body []byte) error {
+	var errResp struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(body, &errResp); err == nil && errResp.Error.Message != "" {
+		return fmt.Errorf("%s API error: %s", provider, errResp.Error.Message)
+	}
+	return fmt.Errorf("%s API error (%d)", provider, statusCode)
 }
