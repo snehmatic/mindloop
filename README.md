@@ -126,8 +126,38 @@ To use an external database (e.g., PostgreSQL), you can configure the applicatio
 
 ## Motivation
 
-Mindloop is a productivity suite, for getting started with intentions, habits, journals or focus sessions.
+**Mindloop** is a productivity suite for getting started with intentions, habits, journals, and focus sessions.
+As a developer with attention problems, Mindloop originally started as a very personal CLI tool to manage my daily work routine and reduce some of the mental clutter that comes with context switching all day.
+The initial workflow was intentionally simple:
+* Intents to define one single thing I wanted to work on or pay attention to
+* Focus sessions to break that intention down into smaller chunks of high quality, intentional deep work
 
-As a developer with attention problems, Mindloop started as a personal CLI tool to manage my daily work routine. `Intents` to set one single intention or work item to track and focus on, and `focus sessions` to break that intention down into chunks of high quality deep work frames.
+That alone worked surprisingly well.
+Instead of planning an ideal day or maintaining some giant productivity system that I'd eventually ignore, this gave me something much smaller and more immediate: decide what matters right now, work on it, and close the loop.
+Along the way, additional features like `habits` and `journal` were added almost as an afterthought. But weirdly enough, those ended up becoming part of the workflow too.
+I’d usually start my day by ticking off a few habits I cared about (daily and weekly), then work through an active intention using focus sessions, and by the end of the day, write a tiny journal entry just to mentally close work for the day, shut the laptop, and go touch some grass (or did I?).
 
-This workflow worked well for starters. Alongside, the additional `habits` and `journal` features were added just because. But weirdly enough those caught up and I incorporated them into my workflow as well. I'd start my day ticking off habits that I had set (daily and weekly) and by the end of the day, write down a mini journal to just close the loop, end work and go touch some grass.
+Over time, **Mindloop** evolved beyond just a CLI experiment.
+What started as a tool to help me focus on work gradually became a slightly more opinionated system for managing attention, reflection, and intentionality. Tasks, subtasks, notes, summaries, side quests, AI overviews, and other features naturally grew around that core.
+But the philosophy has stayed mostly the same.
+_Mindloop is not meant to be a system for planning the perfect day, optimizing every hour, or building the most aesthetic productivity dashboard known to mankind (I despise frontend).
+It is intentionally a bit more present and reflective._
+
+The core idea is simple:
+* pick something meaningful to focus on
+* work on it in deliberate chunks
+* keep track of a few recurring systems that matter
+* reflect a little
+* and finally, move on
+
+This is also why some seemingly obvious productivity features have intentionally been avoided or delayed.
+For example, routines/rituals or heavily pre-planned workflows sound useful on paper (and honestly, I still think they are), but they introduce a strange overlap with the intention-centric design of Mindloop.
+If everything is pre-planned, templated, stacked, drag-and-dropped, and optimized into perfect routines, then the question becomes: what purpose do intentions serve anymore?
+That starts pulling Mindloop in a different direction.
+
+At least for now, Mindloop is less about designing a perfect life system, and more about helping reduce mental chaos in the present.
+It exists to answer simpler questions:
+* What am I doing right now?
+* Am I actually paying attention to it?
+* Did I close the day with some amount of intention?
+That’s really where Mindloop started, and honestly, still the _soul_ of the project.
