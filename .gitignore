@@ -45,4 +45,4 @@ server.log
 
 .gemini/
 gha-creds-*.json
-.agent/
+.agent/.worktrees/
