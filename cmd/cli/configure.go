@@ -145,8 +145,8 @@ func SetupAIConfig(reader *bufio.Reader, writer io.Writer, aiSvc *ai.Service) er
 		return err
 	}
 	aiToken = strings.TrimSpace(input)
-	if aiToken == "none" {
-		aiToken = ""
+	if aiToken == "none" || aiToken == "" {
+		aiToken = "__CLEAR__"
 	}
 
 	err = aiSvc.SaveSettings(aiProvider, aiModel, aiToken, aiBaseURL)
