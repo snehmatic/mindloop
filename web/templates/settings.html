@@ -99,7 +99,7 @@
 
             <div class="form-group">
                 <label for="aiProvider">Provider</label>
-                <select id="aiProvider" class="select select-bordered w-full max-w-xs" onchange="toggleAIBaseURL(); saveAISettings()">
+                <select id="aiProvider" class="select select-bordered w-full max-w-xs" onchange="toggleAIBaseURL(); saveAISettings(true)">
                     <option value="gemini">Google Gemini</option>
                     <option value="openai">OpenAI</option>
                     <option value="custom">Local/Custom (OpenAI-Compatible)</option>
@@ -108,13 +108,13 @@
             
             <div class="form-group" id="aiBaseURLGroup" style="display: none;">
                 <label for="aiBaseURL">Base URL</label>
-                <input type="text" id="aiBaseURL" placeholder="http://localhost:11434/v1" onblur="saveAISettings()">
+                <input type="text" id="aiBaseURL" placeholder="http://localhost:11434/v1" onblur="saveAISettings(true)">
                 <p class="text-sm text-muted mt-xs mb-0">Endpoint for custom local providers (e.g. Ollama, LM Studio).</p>
             </div>
             <div class="form-group">
                 <label for="aiModel">Model</label>
                 <div class="flex-center gap-sm">
-                    <select id="aiModel" class="select select-bordered w-full max-w-xs" onchange="saveAISettings()">
+                    <select id="aiModel" class="select select-bordered w-full max-w-xs" onchange="saveAISettings(false)">
                         <option value="">Loading models...</option>
                     </select>
                     <button type="button" class="btn btn-icon btn-sm" onclick="fetchModels()" title="Refresh Models">
@@ -125,7 +125,7 @@
             </div>
             <div class="form-group">
                 <label for="aiToken">API Token</label>
-                <input type="password" id="aiToken" placeholder="Enter new token to update" onblur="saveAISettings()">
+                <input type="password" id="aiToken" placeholder="Enter new token to update" onblur="saveAISettings(true)">
                 <p class="text-sm text-muted mt-xs mb-0" id="tokenStatus"></p>
             </div>
             <div class="form-group mt-sm flex-center gap-sm" style="justify-content: flex-start;">
@@ -196,20 +196,101 @@
             }
 
             function testConnection() {
-// ... existing testConnection logic ...
+                const btn = document.getElementById('btnTestConnection');
+                const status = document.getElementById('testConnectionStatus');
+                const originalHtml = btn.innerHTML;
+                
+                btn.innerHTML = '<i data-lucide="loader" class="icon-sm" style="animation: spin 1s linear infinite;"></i> Testing...';
+                btn.disabled = true;
+                status.innerText = "";
+                status.className = "text-sm font-bold";
+
                 const payload = {
                     provider: document.getElementById('aiProvider').value,
                     model: document.getElementById('aiModel').value,
                     token: document.getElementById('aiToken').value,
                     baseURL: document.getElementById('aiBaseURL').value,
                 };
-// ...
+
+                fetch('/api/v1/ai/test', { 
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload)
+                })
+                    .then(async res => {
+                        if(!res.ok) {
+                            const errText = await res.text();
+                            throw new Error(errText);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        status.innerText = "Connection successful!";
+                        status.classList.add('text-success');
+                    })
+                    .catch(err => {
+                        status.innerText = "Error: " + err.message;
+                        status.classList.add('text-danger');
+                    })
+                    .finally(() => {
+                        btn.innerHTML = originalHtml;
+                        btn.disabled = false;
+                        lucide.createIcons();
+                    });
             }
 
-            function saveAISettings() {
+            function fetchModels() {
+                const modelSelect = document.getElementById('aiModel');
+                const originalHtml = modelSelect.innerHTML;
+                modelSelect.innerHTML = '<option value="">Loading...</option>';
+                
+                fetch('/api/v1/ai/models')
+                    .then(async res => {
+                        if(!res.ok) {
+                            const errText = await res.text();
+                            throw new Error(errText);
+                        }
+                        return res.json();
+                    })
+                    .then(data => {
+                        modelSelect.innerHTML = '';
+                        if(data.models && data.models.length > 0) {
+                            data.models.forEach(m => {
+                                const opt = document.createElement('option');
+                                opt.value = m;
+                                opt.textContent = m;
+                                if(m === currentModel) opt.selected = true;
+                                modelSelect.appendChild(opt);
+                            });
+                            document.getElementById('modelStatus').innerText = "Models loaded successfully.";
+                            document.getElementById('modelStatus').className = "text-sm text-success mt-xs mb-0";
+                        } else {
+                            modelSelect.innerHTML = '<option value="">No models found</option>';
+                            document.getElementById('modelStatus').innerText = "No models available for this configuration.";
+                            document.getElementById('modelStatus').className = "text-sm text-warning mt-xs mb-0";
+                        }
+                    })
+                    .catch(err => {
+                        modelSelect.innerHTML = '<option value="">Failed to load</option>';
+                        document.getElementById('modelStatus').innerText = "Error: " + err.message;
+                        document.getElementById('modelStatus').className = "text-sm text-danger mt-xs mb-0";
+                    });
+            }
+
+            function saveAISettings(refetchModels = false) {
+                const modelSelect = document.getElementById('aiModel');
+                const isModelLoading = modelSelect.options.length > 0 && modelSelect.options[0].text.includes("Loading");
+                
+                let modelToSave = modelSelect.value;
+                if (isModelLoading) {
+                    modelToSave = currentModel;
+                } else {
+                    currentModel = modelToSave; // update global currentModel
+                }
+
                 const payload = {
                     provider: document.getElementById('aiProvider').value,
-                    model: document.getElementById('aiModel').value,
+                    model: modelToSave,
                     token: document.getElementById('aiToken').value,
                     baseURL: document.getElementById('aiBaseURL').value,
                 };
@@ -226,7 +307,9 @@
                         document.getElementById('aiToken').value = ''; // clear field
                     }
                     updateTokenStatus();
-                    fetchModels(); 
+                    if (refetchModels || hasNewToken) {
+                        fetchModels(); 
+                    }
                 }).catch(err => console.error("Failed to save AI settings", err));
             }
         </script>
