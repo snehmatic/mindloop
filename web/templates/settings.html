@@ -125,7 +125,12 @@
             </div>
             <div class="form-group">
                 <label for="aiToken">API Token</label>
-                <input type="password" id="aiToken" placeholder="Enter new token to update" onblur="saveAISettings(true)">
+                <div class="flex-center gap-sm">
+                    <input type="password" id="aiToken" placeholder="Enter new token to update" onblur="saveAISettings(true)" style="flex: 1;">
+                    <button type="button" class="btn btn-icon btn-sm" onclick="clearAIToken()" title="Clear Token">
+                        <i data-lucide="trash-2" class="icon-sm"></i>
+                    </button>
+                </div>
                 <p class="text-sm text-muted mt-xs mb-0" id="tokenStatus"></p>
             </div>
             <div class="form-group mt-sm flex-center gap-sm" style="justify-content: flex-start;">
@@ -277,6 +282,13 @@
                     });
             }
 
+            function clearAIToken() {
+                if (confirm("Are you sure you want to remove your saved API token?")) {
+                    document.getElementById('aiToken').value = "__CLEAR__";
+                    saveAISettings(true);
+                }
+            }
+
             function saveAISettings(refetchModels = false) {
                 const modelSelect = document.getElementById('aiModel');
                 const isModelLoading = modelSelect.options.length > 0 && modelSelect.options[0].text.includes("Loading");
@@ -302,12 +314,15 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
                 }).then(() => {
-                    if (hasNewToken) {
+                    if (payload.token === "__CLEAR__") {
+                        hasSavedToken = false;
+                        document.getElementById('aiToken').value = '';
+                    } else if (hasNewToken) {
                         hasSavedToken = true;
                         document.getElementById('aiToken').value = ''; // clear field
                     }
                     updateTokenStatus();
-                    if (refetchModels || hasNewToken) {
+                    if (refetchModels || hasNewToken || payload.token === "__CLEAR__") {
                         fetchModels(); 
                     }
                 }).catch(err => console.error("Failed to save AI settings", err));
