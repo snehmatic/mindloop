@@ -80,12 +80,25 @@ Download the latest pre-compiled binary for your OS from the [Releases Page](htt
     
     Access the UI at [http://localhost:8765](http://localhost:8765)
 
+    **Live Reloading (Development):**
+    For active development, you can run the server with live reloading. This requires [Air](https://github.com/air-verse/air).
+    First, install `air` globally:
+    ```bash
+    go install github.com/air-verse/air@latest
+    ```
+    Then, start the development server:
+    ```bash
+    make dev
+    ```
+    The server will automatically rebuild and restart when you save changes to Go, HTML, CSS, or JS files.
+
 ### Build Commands
 
 The project includes a `Makefile` to simplify common tasks:
 
 *   `make build`: Build both the CLI and Server binaries.
 *   `make build-cli`: Build only the CLI binary.
+*   `make dev`: Run the server with live-reloading (requires `air`).
 *   `make start-server`: Build and run the server in the background (daemon).
 *   `make kill-server`: Stop the background server.
 *   `make test`: Run unit tests.
