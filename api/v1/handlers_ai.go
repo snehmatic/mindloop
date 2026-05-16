@@ -13,12 +13,13 @@ type AISettingsRequest struct {
 	Provider string `json:"provider"`
 	Model    string `json:"model"`
 	Token    string `json:"token"`
+	BaseURL  string `json:"baseURL"`
 }
 
 func (mlh *MindloopHandler) HandleGetAISettings(w http.ResponseWriter, r *http.Request) {
 	// Re-initialize AI service with current DB
 	aiService := ai.NewService(mlh.journal.DB) // hack: accessing DB via a service that has it
-	provider, model, token, _ := aiService.GetSettings()
+	provider, model, token, baseURL, _ := aiService.GetSettings()
 
 	hasToken := token != ""
 
@@ -27,6 +28,7 @@ func (mlh *MindloopHandler) HandleGetAISettings(w http.ResponseWriter, r *http.R
 		"provider": provider,
 		"model":    model,
 		"hasToken": hasToken,
+		"baseURL":  baseURL,
 	})
 }
 
@@ -38,7 +40,7 @@ func (mlh *MindloopHandler) HandleSaveAISettings(w http.ResponseWriter, r *http.
 	}
 
 	aiService := ai.NewService(mlh.journal.DB)
-	if err := aiService.SaveSettings(req.Provider, req.Model, req.Token); err != nil {
+	if err := aiService.SaveSettings(req.Provider, req.Model, req.Token, req.BaseURL); err != nil {
 		http.Error(w, "Failed to save settings: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -72,13 +74,18 @@ func (mlh *MindloopHandler) HandleTestAIConnection(w http.ResponseWriter, r *htt
 
 	aiService := ai.NewService(mlh.journal.DB)
 
-	// If token is empty in the request, fallback to the saved token
-	if req.Token == "" {
-		_, _, savedToken, _ := aiService.GetSettings()
-		req.Token = savedToken
+	// Fallback to saved settings if empty in request
+	if req.Token == "" || req.BaseURL == "" {
+		_, _, savedToken, savedBaseURL, _ := aiService.GetSettings()
+		if req.Token == "" {
+			req.Token = savedToken
+		}
+		if req.BaseURL == "" {
+			req.BaseURL = savedBaseURL
+		}
 	}
 
-	if err := aiService.TestConnection(req.Provider, req.Model, req.Token); err != nil {
+	if err := aiService.TestConnection(req.Provider, req.Model, req.Token, req.BaseURL); err != nil {
 		http.Error(w, "Connection test failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}

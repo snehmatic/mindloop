@@ -47,3 +47,7 @@ server.log
 gha-creds-*.json
 .agent/
 .worktrees/
+
+# Air live reload
+tmp/
+build-errors.log

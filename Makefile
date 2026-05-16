@@ -29,6 +29,12 @@ run-server:
 	@echo "  >  Running server on port $(PORT)..."
 	go run main.go server -p $(PORT)
 
+## dev: Run the server with live reloading using 'air'
+dev:
+	@echo "  >  Starting live reload server with air on port $(PORT)..."
+	$$(go env GOPATH)/bin/air -c .air.toml
+
+
 ## start-server: Build and run the server in background
 start-server: build
 	@if [ -f .mindloop-server.pid ]; then \
