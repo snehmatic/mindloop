@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -32,7 +33,9 @@ func main() {
 	logger.Info().Msgf("Logging to %s file...", logPath)
 
 	// Init global config
-	config.InitConfig(AppName, "local", "")
+	if err := config.Init(AppName, "local", ""); err != nil {
+		panic(fmt.Sprintf("Failed to initialize config: %v", err))
+	}
 
 	cli.Execute()
 }

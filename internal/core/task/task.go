@@ -12,11 +12,11 @@ import (
 type Service struct {
 	taskRepository task.TaskRepository
 	uc             *config.UserConfig
-	logger         zerolog.Logger
+	logger         *zerolog.Logger
 }
 
 // NewService creates a new task Service instance
-func NewService(repo task.TaskRepository, uc *config.UserConfig, logger zerolog.Logger) *Service {
+func NewService(repo task.TaskRepository, uc *config.UserConfig, logger *zerolog.Logger) *Service {
 	return &Service{
 		taskRepository: repo,
 		uc:             uc,

@@ -14,7 +14,7 @@ import (
 	"gorm.io/gorm/schema"
 )
 
-var logger = log.Get()
+var logger = *log.Get()
 
 // Conn establishes a connection to a PostgreSQL database
 func Conn(connString string) (*gorm.DB, error) {

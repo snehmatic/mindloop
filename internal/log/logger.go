@@ -27,6 +27,10 @@ func Init(out io.Writer, level zerolog.Level) {
 }
 
 // Get returns the global logger instance
-func Get() zerolog.Logger {
-	return instance
+func Get() *zerolog.Logger {
+	//guard against returning an uninitialized logger.
+	if instance.GetLevel() == zerolog.NoLevel {
+		panic("log: logger not initialized")
+	}
+	return &instance
 }

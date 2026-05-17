@@ -56,7 +56,7 @@ var taskAddCmd = &cobra.Command{
 		}
 
 		taskRepository := taskRepo.NewSQLTaskRepository(database)
-		svc := task.NewService(taskRepository, nil, zerolog.Nop())
+		svc := task.NewService(taskRepository, nil, new(zerolog.Nop()))
 		t, err := svc.CreateTask(title, intentID, focusID)
 		if err != nil {
 			utils.PrintErrorln(fmt.Sprintf("Failed to create task: %v", err))
@@ -89,7 +89,7 @@ var taskCompleteCmd = &cobra.Command{
 		}
 
 		repo := taskRepo.NewSQLTaskRepository(database)
-		svc := task.NewService(repo, &uc, zerolog.Nop())
+		svc := task.NewService(repo, &uc, new(zerolog.Nop()))
 		_, err = svc.CompleteTask(uint(id), uc.PointsConfig.Task)
 		if err != nil {
 			utils.PrintErrorln(fmt.Sprintf("Failed to complete task: %v", err))
@@ -112,7 +112,7 @@ var taskListCmd = &cobra.Command{
 		}
 
 		taskRepository := taskRepo.NewSQLTaskRepository(database)
-		svc := task.NewService(taskRepository, nil, zerolog.Nop())
+		svc := task.NewService(taskRepository, nil, new(zerolog.Nop()))
 		tasks, err := svc.ListTasks()
 		if err != nil {
 			utils.PrintErrorln("Failed to list tasks")
@@ -153,7 +153,7 @@ var subtaskAddCmd = &cobra.Command{
 		}
 
 		taskRepository := taskRepo.NewSQLTaskRepository(database)
-		svc := task.NewService(taskRepository, nil, zerolog.Nop())
+		svc := task.NewService(taskRepository, nil, new(zerolog.Nop()))
 		st, err := svc.AddSubTask(uint(taskID), title)
 		if err != nil {
 			utils.PrintErrorln(fmt.Sprintf("Failed to add subtask: %v", err))
@@ -186,7 +186,7 @@ var subtaskCompleteCmd = &cobra.Command{
 		}
 
 		taskRepository := taskRepo.NewSQLTaskRepository(database)
-		svc := task.NewService(taskRepository, &uc, zerolog.Nop())
+		svc := task.NewService(taskRepository, &uc, new(zerolog.Nop()))
 		_, err = svc.CompleteSubTask(uint(id), uc.PointsConfig.SubTask)
 		if err != nil {
 			utils.PrintErrorln(fmt.Sprintf("Failed to complete subtask: %v", err))

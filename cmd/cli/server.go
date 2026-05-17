@@ -1,7 +1,6 @@
 package cli
 
 import (
-	"github.com/rs/zerolog"
 	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
@@ -42,7 +41,7 @@ var serverCmd = &cobra.Command{
 		taskService := task.NewService(
 			taskRepo,
 			&uc,
-			zerolog.Nop(),
+			config.GetConfig().Logger,
 		)
 
 		mlh := v1.NewMindloopHandler(
