@@ -61,14 +61,14 @@ func PrintTable(data interface{}) {
 	v := reflect.ValueOf(data)
 	if v.Kind() != reflect.Slice {
 		fmt.Println("Input must be a slice of structs")
-		logger.Error().Msg("Input to PrintTable must be a slice of structs")
+		logger.Error("Input to PrintTable must be a slice of structs", nil)
 
 		return
 	}
 
 	if v.Len() == 0 {
 		fmt.Println("No records found.")
-		logger.Info().Msg("len 0 of the provided data slice")
+		logger.Info("len 0 of the provided data slice")
 
 		return
 	}
@@ -76,7 +76,7 @@ func PrintTable(data interface{}) {
 	first := v.Index(0)
 	if first.Kind() != reflect.Struct {
 		fmt.Println("Slice elements must be structs, type mismatch")
-		logger.Error().Msg("Slice elements must be structs, type mismatch")
+		logger.Error("Slice elements must be structs, type mismatch", nil)
 
 		return
 	}
@@ -105,7 +105,7 @@ func PrintTable(data interface{}) {
 	table.Header(headers)
 	_ = table.Bulk(rows)
 	_ = table.Render()
-	logger.Info().Msgf("Rendered table with %d records of type %s", v.Len(), first.Type())
+	logger.Info(fmt.Sprintf("Rendered table with %d records of type %s", v.Len(), first.Type()))
 }
 
 // PrintSuccessln prints a success message with a checkmark
@@ -232,7 +232,10 @@ func GetEnvOrDie(key string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
-	logger.Fatal().Str("key", key).Msg("failed to get environment variable")
+	logger.Fatal("failed to get environment variable", log.Field{
+		Key:   "key",
+		Value: key,
+	})
 	return ""
 }
 
@@ -247,10 +250,20 @@ func FileExists(filename string) bool {
 // FileWrite writes data to a file
 func FileWrite(filename string, data []byte) error {
 	if err := os.WriteFile(filename, data, 0644); err != nil {
-		logger.Error().Err(err).Str("file", filename).Msg("failed to write file")
+		logger.Error("failed to write file", err,
+			log.Field{
+				Key:   "file",
+				Value: filename,
+			},
+		)
 		return err
 	}
-	logger.Info().Str("file", filename).Msg("file written successfully")
+	logger.Info("file written successfully",
+		log.Field{
+			Key:   "file",
+			Value: filename,
+		},
+	)
 	return nil
 }
 
@@ -258,20 +271,32 @@ func FileWrite(filename string, data []byte) error {
 func FileRead(filename string) ([]byte, error) {
 	data, err := os.ReadFile(filename)
 	if err != nil {
-		logger.Error().Err(err).Str("file", filename).Msg("failed to read file")
+		logger.Error("failed to read file", err, log.Field{
+			Key:   "file",
+			Value: filename,
+		})
 		return nil, err
 	}
-	logger.Info().Str("file", filename).Msg("file read successfully")
+	logger.Info("file read successfully", log.Field{
+		Key:   "file",
+		Value: filename,
+	})
 	return data, nil
 }
 
 // FileDelete deletes a file at the given path
 func FileDelete(filename string) error {
 	if err := os.Remove(filename); err != nil {
-		logger.Error().Err(err).Str("file", filename).Msg("failed to delete file")
+		logger.Error("failed to delete file", err, log.Field{
+			Key:   "file",
+			Value: filename,
+		})
 		return err
 	}
-	logger.Info().Str("file", filename).Msg("file deleted successfully")
+	logger.Info("file deleted successfully", log.Field{
+		Key:   "file",
+		Value: filename,
+	})
 	return nil
 }
 
@@ -294,7 +319,10 @@ func CaptureWithEditor(filenamePattern, header, initialContent string) (string, 
 	}
 	defer func() {
 		if err := os.Remove(tmpFile.Name()); err != nil {
-			logger.Error().Err(err).Msg("failed to remove temp file")
+			logger.Error("failed to delete temp file", err, log.Field{
+				Key:   "file",
+				Value: tmpFile.Name(),
+			})
 		}
 	}()
 
