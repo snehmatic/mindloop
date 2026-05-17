@@ -8,7 +8,6 @@ import (
 	"sync"
 
 	"github.com/joho/godotenv"
-	"github.com/rs/zerolog"
 	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
@@ -71,7 +70,7 @@ type Config struct {
 	Name     string
 	UserName string
 	DBConfig DBConfig
-	Logger   *zerolog.Logger
+	Logger   log.Logger
 }
 
 // DBConfig holds database connection parameters
@@ -130,7 +129,7 @@ func Init(name, mode, port string) error {
 	}
 
 	instance = cfg
-	instance.Logger.Info().Msg("Mindloop global config has been set!")
+	instance.Logger.Info("Mindloop global config has been set!")
 	return nil
 }
 
@@ -206,7 +205,7 @@ func Reload() error {
 	}
 	mu.Lock()
 
-	instance.Logger.Info().Msg("Mindloop global config has been reloaded!")
+	instance.Logger.Info("Mindloop global config has been reloaded!")
 	return nil
 }
 
@@ -282,10 +281,10 @@ func ValidateUserConfig(cmd *cobra.Command) {
 	logger := log.Get()
 	configPath := GetUserConfigPath()
 	if utils.FileExists(configPath) {
-		logger.Debug().Msgf("User config exists at %s", configPath)
+		logger.Debug(fmt.Sprintf("User config exists at %s", configPath))
 	} else if cmd.Use != "configure" {
 		utils.PrintWarnln("Warn: user config does not exist, create a new one or run `mindloop configure`.")
-		logger.Warn().Msg("User config does not exist, warned user")
+		logger.Warn("User config does not exist, warned user")
 		os.Exit(0)
 	}
 }
