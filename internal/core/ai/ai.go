@@ -145,9 +145,13 @@ func (s *Service) listGeminiModels(token string) ([]string, error) {
 
 func (s *Service) listOpenAIModels(token, baseURL string) ([]string, error) {
 	url := "https://api.openai.com/v1/models"
+	isCustomProvider := false
+
 	if baseURL != "" {
 		url = strings.TrimSuffix(baseURL, "/") + "/models"
+		isCustomProvider = true
 	}
+
 	req, _ := http.NewRequest("GET", url, nil)
 	if token != "" {
 		req.Header.Set("Authorization", "Bearer "+token)
@@ -161,7 +165,7 @@ func (s *Service) listOpenAIModels(token, baseURL string) ([]string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, formatAPIError("OpenAI", resp.StatusCode, body)
+		return nil, formatAPIError("OpenAI/Custom", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -176,7 +180,9 @@ func (s *Service) listOpenAIModels(token, baseURL string) ([]string, error) {
 
 	var models []string
 	for _, m := range result.Data {
-		if strings.HasPrefix(m.ID, "gpt-") || strings.HasPrefix(m.ID, "o1-") {
+		// Custom providers (e.g. Ollama) don't use OpenAI model prefixes,
+		// so bypass the prefix filter and return all models as-is.
+		if isCustomProvider || strings.HasPrefix(m.ID, "gpt-") || strings.HasPrefix(m.ID, "o1-") {
 			models = append(models, m.ID)
 		}
 	}

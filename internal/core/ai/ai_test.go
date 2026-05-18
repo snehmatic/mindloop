@@ -165,3 +165,34 @@ func TestCustomProviderGenerateJournal(t *testing.T) {
 		t.Errorf("Expected 'Journal generated', got '%s'", journal)
 	}
 }
+
+func TestCustomProviderListModels_NonOpenAIModels(t *testing.T) {
+	db := setupTestDB(t)
+	svc := ai.NewService(db)
+
+	// Simulate an Ollama-style response with non-OpenAI model names
+	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response := map[string]interface{}{
+			"data": []map[string]interface{}{
+				{"id": "llama3.1:8b"},
+				{"id": "qwen3-coder:latest"},
+			},
+		}
+		_ = json.NewEncoder(w).Encode(response)
+	}))
+	defer mockServer.Close()
+
+	err := svc.SaveSettings("custom", "llama3.1:8b", "ollama", mockServer.URL)
+	if err != nil {
+		t.Fatalf("SaveSettings failed: %v", err)
+	}
+
+	models, err := svc.ListModels()
+	if err != nil {
+		t.Fatalf("ListModels failed: %v", err)
+	}
+
+	if len(models) != 2 {
+		t.Errorf("Expected 2 models, got %d: %v", len(models), models)
+	}
+}
