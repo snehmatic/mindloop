@@ -8,4 +8,8 @@ func ResetForTest() {
 	defer mu.Unlock()
 	instance = nil
 	onChangeFn = nil
+
+	userMu.Lock()
+	userInstance = nil
+	userMu.Unlock()
 }

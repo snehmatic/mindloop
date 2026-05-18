@@ -9,9 +9,11 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
+	"github.com/snehmatic/mindloop/internal/log"
 	taskRepo "github.com/snehmatic/mindloop/internal/repository/task"
 	"github.com/snehmatic/mindloop/internal/server"
 	"github.com/spf13/cobra"
@@ -28,23 +30,26 @@ var serverCmd = &cobra.Command{
 		uc := config.UserConfig{}
 		_ = uc.ReadFromYAML()
 		// Initialize core services
-		journalService := journal.NewService(gdb)
-		noteService := note.NewService(gdb)
-		backupService := backup.NewService(gdb)
-		focusService := focus.NewService(gdb)
-		intentService := intent.NewService(gdb)
-		questService := quest.NewService(gdb)
-		summaryService := summary.NewService(gdb)
-		habitService := habit.NewService(gdb)
+		journalService := journal.NewService(*jRepo)
+		noteService := note.NewService(*nRepo)
+		pointSvc := points.NewService(*pRepo)
+		backupService := backup.NewService(gdb, pointSvc, *fRepo, *hRepo, *hlRepo, *iRepo, *jRepo, *nRepo, *pRepo, *qRepo, *rRepo, *sRepo, *tRepo)
+		focusService := focus.NewService(*fRepo)
+		intentService := intent.NewService(*iRepo)
+		questService := quest.NewService(*qRepo, log.Get())
+		summaryService := summary.NewService(*fRepo, *hRepo, *iRepo, *pRepo, *tRepo, log.Get())
+		habitService := habit.NewService(*hRepo)
 
-		taskRepo := taskRepo.NewSQLTaskRepository(gdb) // TODO make factory with all repositories linked to proper persistence layer defined in config file e.g. SQL
+		taskRepoInst := taskRepo.NewSQLTaskRepository(gdb) // TODO make factory with all repositories linked to proper persistence layer defined in config file e.g. SQL
 		taskService := task.NewService(
-			taskRepo,
+			taskRepoInst,
 			&uc,
-			config.GetConfig().Logger,
+			pointSvc,
+			log.Get(),
 		)
 
 		mlh := v1.NewMindloopHandler(
+			gdb,
 			journalService,
 			noteService,
 			habitService,

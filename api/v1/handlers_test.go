@@ -1,3 +1,7 @@
+//go:build test
+
+//^ test tag is required here to resolve ResetForTest()
+
 package v1_test
 
 import (
@@ -8,27 +12,41 @@ import (
 	"testing"
 
 	"github.com/glebarez/sqlite"
-	"github.com/rs/zerolog"
 	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
-	"github.com/snehmatic/mindloop/internal/core/journal"
-	"github.com/snehmatic/mindloop/internal/core/note"
-	"github.com/snehmatic/mindloop/internal/core/quest"
+	coreJournal "github.com/snehmatic/mindloop/internal/core/journal"
+	coreNote "github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/points"
+	coreQuest "github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
-	task2 "github.com/snehmatic/mindloop/internal/repository/task"
+	"github.com/snehmatic/mindloop/internal/log"
+	fRepo "github.com/snehmatic/mindloop/internal/repository/focus"
+	hRepo "github.com/snehmatic/mindloop/internal/repository/habit"
+	iRepo "github.com/snehmatic/mindloop/internal/repository/intent"
+	journalRepo "github.com/snehmatic/mindloop/internal/repository/journal"
+	noteRepo "github.com/snehmatic/mindloop/internal/repository/note"
+	pRepo "github.com/snehmatic/mindloop/internal/repository/point"
+	questRepo "github.com/snehmatic/mindloop/internal/repository/quest"
+	"github.com/snehmatic/mindloop/internal/repository/routine"
+	"github.com/snehmatic/mindloop/internal/repository/subtask"
+	taskRepo "github.com/snehmatic/mindloop/internal/repository/task"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
 
 func setupTestServer(t *testing.T) *v1.MindloopHandler {
+	// Reset config for test isolation
+	config.ResetForTest()
 	// Initialize global config for tests
-	config.InitConfig("MindloopTest", "local", ":8765")
+	if err := config.Init("MindloopTest", "local", ":8765"); err != nil {
+		t.Fatalf("Failed to initialize config: %v", err)
+	}
 
 	// Use in-memory DB for testing
 	database, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
@@ -60,18 +78,25 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 		t.Fatalf("Failed to migrate test db: %v", err)
 	}
 
-	journalService := journal.NewService(database)
-	noteService := note.NewService(database)
-	focusService := focus.NewService(database)
-	intentService := intent.NewService(database)
-	questService := quest.NewService(database)
-	summaryService := summary.NewService(database)
-	habitService := habit.NewService(database)
-	backupService := backup.NewService(database)
-	taskRepo := task2.NewSQLTaskRepository(database)
-	taskService := task.NewService(taskRepo, nil, zerolog.Nop())
+	jRepo := journalRepo.NewSQLRepository(database)
+	journalService := coreJournal.NewService(jRepo)
+	nRepo := noteRepo.NewSQLRepository(database)
+	noteService := coreNote.NewService(nRepo)
+	fRepo := fRepo.NewSQLRepository(database)
+	focusService := focus.NewService(fRepo)
+	iRepo := iRepo.NewSQLRepository(database)
+	intentService := intent.NewService(iRepo)
+	qRepo := questRepo.NewSQLRepository(database, log.Get())
+	questService := coreQuest.NewService(qRepo, log.Get())
+	hRepo := hRepo.NewSQLRepository(database, nil)
+	habitService := habit.NewService(hRepo)
+	summaryService := summary.NewService(fRepo, hRepo, iRepo, pRepo.NewSQLRepository(database), taskRepo.NewSQLTaskRepository(database), log.Get())
+	backupService := backup.NewService(database, points.NewService(pRepo.NewSQLRepository(database)), fRepo, hRepo, nil, iRepo, jRepo, nRepo, pRepo.NewSQLRepository(database), qRepo, routine.NewSQLRepository(database), subtask.NewSQLRepository(database), taskRepo.NewSQLTaskRepository(database))
+	pointSvc := points.NewService(pRepo.NewSQLRepository(database))
+	taskService := task.NewService(taskRepo.NewSQLTaskRepository(database), config.GetUserConfig(), pointSvc, log.Get())
 
 	return v1.NewMindloopHandler(
+		database,
 		journalService,
 		noteService,
 		habitService,

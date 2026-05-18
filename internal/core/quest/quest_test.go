@@ -5,6 +5,8 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/quest"
+	"github.com/snehmatic/mindloop/internal/log"
+	questRepository "github.com/snehmatic/mindloop/internal/repository/quest"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -31,14 +33,15 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestQuestService(t *testing.T) {
 	db := setupTestDB(t)
-	s := quest.NewService(db)
+	repo := questRepository.NewSQLRepository(db, log.Get())
+	s := quest.NewService(repo, log.Get())
 
 	// 1. Start Quest
 	q, err := s.StartQuest("Emergency Fix")
 	if err != nil {
 		t.Fatalf("Failed to start quest: %v", err)
 	}
-	if q.Status != "active" {
+	if q.Status != models.SideQuestStatusActive {
 		t.Errorf("Expected status 'active', got '%s'", q.Status)
 	}
 
@@ -62,7 +65,7 @@ func TestQuestService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to stop quest: %v", err)
 	}
-	if completed.Status != "done" {
+	if completed.Status != models.SideQuestStatusDone {
 		t.Errorf("Expected status 'done', got '%s'", completed.Status)
 	}
 	if completed.Note != "Fixed it" {

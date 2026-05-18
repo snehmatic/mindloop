@@ -102,6 +102,13 @@ func PrintTable(data interface{}) {
 
 	// Print in table format
 	table := tablewriter.NewWriter(os.Stdout)
+	defer func(table *tablewriter.Table) {
+		err := table.Close()
+		if err != nil {
+			logger.Error("Error closing table", err)
+		}
+	}(table)
+
 	table.Header(headers)
 	_ = table.Bulk(rows)
 	_ = table.Render()
@@ -232,7 +239,7 @@ func GetEnvOrDie(key string) string {
 	if value, ok := os.LookupEnv(key); ok {
 		return value
 	}
-	logger.Fatal("failed to get environment variable", log.Field{
+	logger.Fatal("failed to get environment variable", nil, log.Field{
 		Key:   "key",
 		Value: key,
 	})

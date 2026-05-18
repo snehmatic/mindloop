@@ -1,6 +1,8 @@
 package task
 
 import (
+	"time"
+
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -159,6 +161,11 @@ func (r *taskRepository) UpdateSubTask(subTask *models.SubTask) error {
 	return r.db.Save(subTask).Error
 }
 
-func (r *taskRepository) GetDB() *gorm.DB {
-	return r.db
+// CountCompletedTasks counts the number of completed tasks within the given time range
+func (r *taskRepository) CountCompletedTasks(start, end time.Time) (int, error) {
+	var count int64
+	err := r.db.Model(&models.Task{}).
+		Where("Status = ? AND UpdatedAt >= ? AND UpdatedAt <= ? AND DeletedAt IS NULL", models.TaskStatusCompleted, start, end).
+		Count(&count).Error
+	return int(count), err
 }

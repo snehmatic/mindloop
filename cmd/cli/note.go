@@ -22,7 +22,7 @@ var noteCmd = &cobra.Command{
 	Long:    `Notes help you quickly capture ideas, snippets, and important information.`,
 	Example: `mindloop note "Meeting at 3 PM"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		noteService = note.NewService(gdb)
+		noteService = note.NewService(*nRepo)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) > 0 {

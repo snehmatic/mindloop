@@ -8,16 +8,28 @@ import (
 	"testing"
 
 	"github.com/glebarez/sqlite"
-	"github.com/rs/zerolog"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
 	"github.com/snehmatic/mindloop/internal/core/focus"
-	"github.com/snehmatic/mindloop/internal/core/habit"
+	coreHabit "github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
-	"github.com/snehmatic/mindloop/internal/core/journal"
-	"github.com/snehmatic/mindloop/internal/core/note"
-	"github.com/snehmatic/mindloop/internal/core/quest"
+	coreJournal "github.com/snehmatic/mindloop/internal/core/journal"
+	coreNote "github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/points"
+	coreQuest "github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
+	"github.com/snehmatic/mindloop/internal/log"
+	focusRepo "github.com/snehmatic/mindloop/internal/repository/focus"
+	habitRepo "github.com/snehmatic/mindloop/internal/repository/habit"
+	"github.com/snehmatic/mindloop/internal/repository/habitlog"
+	intentRepo "github.com/snehmatic/mindloop/internal/repository/intent"
+	journalRepo "github.com/snehmatic/mindloop/internal/repository/journal"
+	noteRepo "github.com/snehmatic/mindloop/internal/repository/note"
+	pointRepo "github.com/snehmatic/mindloop/internal/repository/point"
+	questRepoPkg "github.com/snehmatic/mindloop/internal/repository/quest"
+	routineRepo "github.com/snehmatic/mindloop/internal/repository/routine"
+	subtaskRepo "github.com/snehmatic/mindloop/internal/repository/subtask"
 	taskRepo "github.com/snehmatic/mindloop/internal/repository/task"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
@@ -48,18 +60,31 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 		t.Fatalf("Failed to migrate: %v", err)
 	}
 
-	hService := habit.NewService(db)
-	jService := journal.NewService(db)
-	nService := note.NewService(db)
-	fService := focus.NewService(db)
-	iService := intent.NewService(db)
-	qService := quest.NewService(db)
-	sService := summary.NewService(db)
-	bService := backup.NewService(db)
+	logger := log.Get()
+	fRepo := focusRepo.NewSQLRepository(db)
+	hRepo := habitRepo.NewSQLRepository(db, logger)
+	hlRepo := habitlog.NewSQLRepository(db)
+	iRepo := intentRepo.NewSQLRepository(db)
+	jRepo := journalRepo.NewSQLRepository(db)
+	nRepo := noteRepo.NewSQLRepository(db)
+	pRepo := pointRepo.NewSQLRepository(db)
+	qRepo := questRepoPkg.NewSQLRepository(db, logger)
+	rRepo := routineRepo.NewSQLRepository(db)
+	stRepo := subtaskRepo.NewSQLRepository(db)
 	tRepo := taskRepo.NewSQLTaskRepository(db)
-	tService := task.NewService(tRepo, nil, new(zerolog.Nop()))
+	pointSvc := points.NewService(pRepo)
+	tSvcRepo := taskRepo.NewSQLTaskRepository(db)
+	tService := task.NewService(tSvcRepo, config.GetUserConfig(), pointSvc, logger)
+	bService := backup.NewService(db, pointSvc, fRepo, hRepo, hlRepo, iRepo, jRepo, nRepo, pRepo, qRepo, rRepo, stRepo, tRepo)
+	hService := coreHabit.NewService(hRepo)
+	jService := coreJournal.NewService(jRepo)
+	nService := coreNote.NewService(nRepo)
+	fService := focus.NewService(fRepo)
+	iService := intent.NewService(iRepo)
+	qService := coreQuest.NewService(qRepo, logger)
+	sService := summary.NewService(fRepo, hRepo, iRepo, pRepo, tRepo, logger)
 
-	mlh := NewMindloopHandler(jService, nService, hService, fService, iService, qService, sService, bService, tService)
+	mlh := NewMindloopHandler(db, jService, nService, hService, fService, iService, qService, sService, bService, tService)
 	return mlh, db
 }
 

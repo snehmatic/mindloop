@@ -14,9 +14,24 @@ import (
 )
 
 var (
-	mood           *string
-	journalService *journal.Service
+	mood              *string
+	journalService    *journal.Service
+	journalSummarySvc *summary.Service
 )
+
+func getJournalSvc() *journal.Service {
+	if journalService == nil {
+		journalService = journal.NewService(*jRepo)
+	}
+	return journalService
+}
+
+func getJournalSummarySvc() *summary.Service {
+	if journalSummarySvc == nil {
+		journalSummarySvc = summary.NewService(*fRepo, *hRepo, *iRepo, *pRepo, *tRepo, logger)
+	}
+	return journalSummarySvc
+}
 
 func getJournalTimeRange(period string) (time.Time, time.Time) {
 	now := time.Now()
@@ -52,8 +67,7 @@ var generateCmd = &cobra.Command{
 
 		start, end := getJournalTimeRange(period)
 
-		summarySvc := summary.NewService(gdb)
-		report, err := summarySvc.GenerateSummary(start, end)
+		report, err := getJournalSummarySvc().GenerateSummary(start, end)
 		if err != nil {
 			utils.PrintErrorln("Failed to generate summary report:", err)
 			return
@@ -75,13 +89,13 @@ var generateCmd = &cobra.Command{
 		if response == "y" || response == "Y" {
 			title := fmt.Sprintf("AI Summary: %s", report.DateRange)
 			// Assuming journal points default to 5 if config isn't read fully
-			uc := cfg.UserConfig{}
+			uc := cfg.GetUserConfig()
 			_ = uc.ReadFromYAML()
 			pts := uc.PointsConfig.Journal
 			if pts == 0 {
 				pts = 5
 			}
-			_, err = journalService.CreateEntry(title, generatedText, "reflective", pts)
+			_, err = getJournalSvc().CreateEntry(title, generatedText, "reflective", pts)
 			if err != nil {
 				utils.PrintErrorln("Failed to save journal:", err)
 			} else {
@@ -97,7 +111,7 @@ var journalCmd = &cobra.Command{
 	Long:    `Journal your thoughts, feelings, and progress to reflect on your journey.`,
 	Example: `mindloop journal new "Here goes nothing..."`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		journalService = journal.NewService(gdb)
+		getJournalSvc()
 	},
 }
 
@@ -125,15 +139,14 @@ var journalNewCmd = &cobra.Command{
 
 		utils.PrintInfoln("Saving your journal entry...")
 		// Mood handling is now done in the service if empty, but we pass the flag value
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
-		milestoneReached, err := journalService.CreateEntry(args[0], content, *mood, uc.PointsConfig.Journal)
+		uc := cfg.GetUserConfig()
+		milestoneReached, err := getJournalSvc().CreateEntry(args[0], content, *mood, uc.PointsConfig.Journal)
 		if err != nil {
 			utils.PrintErrorln("Failed to save journal:", err)
 			return
 		}
 
-		ac.Logger.Info().Msgf("Journal entry '%s' saved with mood '%s'.", args[0], *mood)
+		ac.Logger.Info(fmt.Sprintf("Journal entry '%s' saved with mood '%s'.", args[0], *mood))
 		utils.PrintInfoln("Your journal entry has been saved successfully!")
 		utils.PrintSuccessf("Journal entry saved. (+%d pts) 🎉\n", uc.PointsConfig.Journal)
 		if milestoneReached {
@@ -150,7 +163,7 @@ var journalListCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.PrintRocketln("Fetching your journal entries...")
 
-		entries, err := journalService.ListEntries()
+		entries, err := getJournalSvc().ListEntries()
 		if err != nil {
 			utils.PrintErrorln("Failed to retrieve journal entries:", err)
 			return
@@ -179,16 +192,15 @@ var journalViewCmd = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		id := args[0]
-		entry, err := journalService.GetEntry(id)
+		entry, err := getJournalSvc().GetEntry(id)
 		if err != nil {
 			utils.PrintErrorln("Journal entry not found:", err)
-			ac.Logger.Error().Msgf("Journal entry not found: %v", err)
+			ac.Logger.Error("Journal entry not found", err)
 			return
 		}
 
 		PrintJournalEntry(entry)
-
-		ac.Logger.Info().Msgf("Viewed journal entry with ID %s.", id)
+		ac.Logger.Info(fmt.Sprintf("Viewed journal entry with ID %s.", id))
 	},
 }
 
@@ -200,10 +212,10 @@ var journalDeleteCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		id := args[0]
 
-		entry, err := journalService.GetEntry(id)
+		entry, err := getJournalSvc().GetEntry(id)
 		if err != nil {
 			utils.PrintErrorln("Journal entry not found:", err)
-			ac.Logger.Error().Msgf("Journal entry not found: %v", err)
+			ac.Logger.Error("Journal entry not found", err)
 			return
 		}
 
@@ -213,20 +225,20 @@ var journalDeleteCmd = &cobra.Command{
 		_, _ = fmt.Scanln(&confirmation)
 		if confirmation != "yes" {
 			utils.PrintWarnln("Deletion cancelled.")
-			ac.Logger.Warn().Msgf("Deletion of journal entry with ID %s cancelled by user.", id)
+			ac.Logger.Warn(fmt.Sprintf("Deletion of journal entry with ID %s cancelled by user.", id))
 			return
 		}
 
 		utils.PrintRocketf("Deleting journal entry '%s'\n", entry.Title)
-		err = journalService.DeleteEntry(id)
+		err = getJournalSvc().DeleteEntry(id)
 		if err != nil {
 			utils.PrintErrorln("Failed to delete journal entry:", err)
-			ac.Logger.Error().Msgf("Failed to delete journal entry with ID %s: %v", id, err)
+			ac.Logger.Error(fmt.Sprintf("Failed to delete journal entry with ID %s", id), err)
 			return
 		}
 
 		utils.PrintSuccessln("Journal entry deleted successfully!")
-		ac.Logger.Info().Msgf("Deleted journal entry with ID %s.", id)
+		ac.Logger.Info(fmt.Sprintf("Deleted journal entry with ID %s.", id))
 	},
 }
 

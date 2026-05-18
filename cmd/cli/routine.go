@@ -7,6 +7,7 @@ import (
 	"github.com/snehmatic/mindloop/db"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/routine"
+	routinerepo "github.com/snehmatic/mindloop/internal/repository/routine"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -34,7 +35,7 @@ var routineCreateCmd = &cobra.Command{
 			return
 		}
 
-		svc := routine.NewService(database)
+		svc := routine.NewService(routinerepo.NewSQLRepository(database), logger)
 		r, err := svc.CreateRoutine(title, timeOfDay)
 		if err != nil {
 			utils.PrintErrorln(fmt.Sprintf("Failed to create routine: %v", err))
@@ -68,7 +69,7 @@ var routineAddHabitCmd = &cobra.Command{
 			return
 		}
 
-		svc := routine.NewService(database)
+		svc := routine.NewService(routinerepo.NewSQLRepository(database), logger)
 		err = svc.AddHabitToRoutine(uint(routineID), uint(habitID))
 		if err != nil {
 			utils.PrintErrorln(fmt.Sprintf("Failed to add habit to routine: %v", err))
@@ -90,7 +91,7 @@ var routineListCmd = &cobra.Command{
 			return
 		}
 
-		svc := routine.NewService(database)
+		svc := routine.NewService(routinerepo.NewSQLRepository(database), logger)
 		routines, err := svc.ListRoutines()
 		if err != nil {
 			utils.PrintErrorln("Failed to list routines")

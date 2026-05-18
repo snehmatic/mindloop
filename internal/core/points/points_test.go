@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/glebarez/sqlite"
+	pointRepo "github.com/snehmatic/mindloop/internal/repository/point"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -31,8 +32,10 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestAwardPoints(t *testing.T) {
 	db := setupTestDB(t)
+	repo := pointRepo.NewSQLRepository(db)
+	svc := NewService(repo)
 
-	milestoneReached, err := AwardPoints(db, models.CategoryHabit, 1, 5)
+	milestoneReached, err := svc.AwardPoints(models.CategoryHabit, 1, 5)
 	if err != nil {
 		t.Errorf("Expected nil error, got %v", err)
 	}
@@ -56,7 +59,7 @@ func TestAwardPoints(t *testing.T) {
 	}
 
 	// Test Milestone
-	milestoneReached, _ = AwardPoints(db, models.CategoryHabit, 1, MilestoneInterval)
+	milestoneReached, _ = svc.AwardPoints(models.CategoryHabit, 1, MilestoneInterval)
 	if !milestoneReached {
 		t.Errorf("Expected milestone to be true after exceeding interval")
 	}
@@ -64,9 +67,11 @@ func TestAwardPoints(t *testing.T) {
 
 func TestGetTotalPoints(t *testing.T) {
 	db := setupTestDB(t)
+	repo := pointRepo.NewSQLRepository(db)
+	svc := NewService(repo)
 
 	// Test empty
-	total, err := GetTotalPoints(db)
+	total, err := svc.GetTotalPoints()
 	if err != nil {
 		t.Errorf("Expected nil error, got %v", err)
 	}
@@ -75,10 +80,10 @@ func TestGetTotalPoints(t *testing.T) {
 	}
 
 	// Add some points
-	_, _ = AwardPoints(db, models.CategoryHabit, 1, 5)
-	_, _ = AwardPoints(db, models.CategoryFocus, 1, 10)
+	_, _ = svc.AwardPoints(models.CategoryHabit, 1, 5)
+	_, _ = svc.AwardPoints(models.CategoryFocus, 1, 10)
 
-	total, err = GetTotalPoints(db)
+	total, err = svc.GetTotalPoints()
 	if err != nil {
 		t.Errorf("Expected nil error, got %v", err)
 	}
@@ -89,6 +94,8 @@ func TestGetTotalPoints(t *testing.T) {
 
 func TestGetPointsInRange(t *testing.T) {
 	db := setupTestDB(t)
+	repo := pointRepo.NewSQLRepository(db)
+	svc := NewService(repo)
 
 	now := time.Now()
 
@@ -121,7 +128,7 @@ func TestGetPointsInRange(t *testing.T) {
 	startStr := now.AddDate(0, 0, -2).Format("2006-01-02 15:04:05")
 	endStr := now.Add(time.Hour).Format("2006-01-02 15:04:05")
 
-	transactions, err := GetPointsInRange(db, startStr, endStr)
+	transactions, err := svc.GetPointsInRange(startStr, endStr)
 	if err != nil {
 		t.Fatalf("Expected nil error, got %v", err)
 	}

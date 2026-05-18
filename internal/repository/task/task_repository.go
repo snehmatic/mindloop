@@ -1,8 +1,9 @@
 package task
 
 import (
+	"time"
+
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
 // TaskRepository defines the data access operations for tasks
@@ -24,5 +25,5 @@ type TaskRepository interface {
 	ReorderSubTasks(ids []uint) error
 	UpdateTask(task *models.Task) error
 	UpdateSubTask(subTask *models.SubTask) error
-	GetDB() *gorm.DB
+	CountCompletedTasks(start, end time.Time) (int, error)
 }

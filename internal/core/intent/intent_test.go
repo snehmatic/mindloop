@@ -5,6 +5,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/intent"
+	intentRepository "github.com/snehmatic/mindloop/internal/repository/intent"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -31,14 +32,15 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestIntentService(t *testing.T) {
 	db := setupTestDB(t)
-	s := intent.NewService(db)
+	repo := intentRepository.NewSQLRepository(db)
+	s := intent.NewService(repo)
 
 	// 1. Start Intent
 	i, err := s.StartIntent("Test Intent")
 	if err != nil {
 		t.Fatalf("Failed to start intent: %v", err)
 	}
-	if i.Status != "active" {
+	if i.Status != models.IntentStatusActive {
 		t.Errorf("Expected status 'active', got '%s'", i.Status)
 	}
 
@@ -57,7 +59,7 @@ func TestIntentService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to end intent: %v", err)
 	}
-	if ended.Status != "done" {
+	if ended.Status != models.IntentStatusDone {
 		t.Errorf("Expected status 'done', got '%s'", ended.Status)
 	}
 	if ended.EndedAt == nil {

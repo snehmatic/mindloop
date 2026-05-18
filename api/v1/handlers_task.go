@@ -5,7 +5,6 @@ import (
 	"strconv"
 
 	"github.com/rs/zerolog/log"
-	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/models"
 )
 
@@ -44,13 +43,13 @@ func (mlh *MindloopHandler) HandleTaskList(w http.ResponseWriter, r *http.Reques
 	// Filter active intents and sessions for the association dropdowns
 	var activeIntents []models.Intent
 	for _, i := range intents {
-		if i.Status == "active" {
+		if i.Status == models.IntentStatusActive {
 			activeIntents = append(activeIntents, i)
 		}
 	}
 	var activeSessions []models.FocusSession
 	for _, s := range sessions {
-		if s.Status == "active" {
+		if s.Status == models.FocusSessionStatusActive {
 			activeSessions = append(activeSessions, s)
 		}
 	}
@@ -136,11 +135,7 @@ func (mlh *MindloopHandler) HandleTaskComplete(w http.ResponseWriter, r *http.Re
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	source := r.FormValue("source")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
-	pointsVal := uc.PointsConfig.Task
-
-	milestoneReached, err := mlh.task.CompleteTask(uint(id), pointsVal)
+	milestoneReached, err := mlh.task.CompleteTask(uint(id))
 	if err != nil {
 		log.Error().Err(err).Msg("Error completing task")
 	}
@@ -214,11 +209,7 @@ func (mlh *MindloopHandler) HandleSubtaskComplete(w http.ResponseWriter, r *http
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	source := r.FormValue("source")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
-	pointsVal := uc.PointsConfig.SubTask
-
-	milestoneReached, err := mlh.task.CompleteSubTask(uint(id), pointsVal)
+	milestoneReached, err := mlh.task.CompleteSubTask(uint(id))
 	if err != nil {
 		log.Error().Err(err).Msg("Error completing subtask")
 	}

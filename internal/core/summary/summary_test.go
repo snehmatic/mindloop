@@ -1,11 +1,19 @@
 package summary_test
 
 import (
+	"io"
 	"testing"
 	"time"
 
 	"github.com/glebarez/sqlite"
+	"github.com/rs/zerolog"
 	"github.com/snehmatic/mindloop/internal/core/summary"
+	"github.com/snehmatic/mindloop/internal/log"
+	"github.com/snehmatic/mindloop/internal/repository/focus"
+	"github.com/snehmatic/mindloop/internal/repository/habit"
+	"github.com/snehmatic/mindloop/internal/repository/intent"
+	"github.com/snehmatic/mindloop/internal/repository/point"
+	"github.com/snehmatic/mindloop/internal/repository/task"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -21,6 +29,12 @@ func setupTestDB(t *testing.T) *gorm.DB {
 	if err != nil {
 		t.Fatalf("Failed to connect to test db: %v", err)
 	}
+
+	// Initialize logger for tests
+	log.Init(&log.InitOptions{
+		Level: zerolog.DebugLevel,
+		Out:   io.Discard,
+	})
 
 	err = db.AutoMigrate(
 		&models.Intent{},
@@ -39,7 +53,12 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestSummaryService(t *testing.T) {
 	db := setupTestDB(t)
-	s := summary.NewService(db)
+	focusRepo := focus.NewSQLRepository(db)
+	habitRepo := habit.NewSQLRepository(db, log.Get())
+	intentRepo := intent.NewSQLRepository(db)
+	pointRepo := point.NewSQLRepository(db)
+	taskRepo := task.NewSQLTaskRepository(db)
+	s := summary.NewService(focusRepo, habitRepo, intentRepo, pointRepo, taskRepo, log.Get())
 
 	now := time.Now()
 	start := now.AddDate(0, 0, -1)
@@ -67,7 +86,7 @@ func TestSummaryService(t *testing.T) {
 	// 3. Seed Intent
 	db.Create(&models.Intent{
 		Name:   "Intent 1",
-		Status: "done",
+		Status: models.IntentStatusDone,
 		Model:  gorm.Model{CreatedAt: now},
 	})
 
@@ -96,7 +115,12 @@ func TestSummaryService(t *testing.T) {
 
 func TestGetFocusSeries(t *testing.T) {
 	db := setupTestDB(t)
-	s := summary.NewService(db)
+	focusRepo := focus.NewSQLRepository(db)
+	habitRepo := habit.NewSQLRepository(db, log.Get())
+	intentRepo := intent.NewSQLRepository(db)
+	pointRepo := point.NewSQLRepository(db)
+	taskRepo := task.NewSQLTaskRepository(db)
+	s := summary.NewService(focusRepo, habitRepo, intentRepo, pointRepo, taskRepo, log.Get())
 
 	today := time.Now().Truncate(24 * time.Hour)
 	start := today.AddDate(0, 0, -2) // 3 days total

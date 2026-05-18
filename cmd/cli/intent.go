@@ -1,6 +1,8 @@
 package cli
 
 import (
+	"fmt"
+
 	cfg "github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/utils"
@@ -18,7 +20,7 @@ var intentCmd = &cobra.Command{
 	Short:   "Manage your intents",
 	Example: `mindloop intent start "Get this work done"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		intentService = intent.NewService(gdb)
+		intentService = intent.NewService(*iRepo)
 	},
 }
 
@@ -33,12 +35,12 @@ var intentStartCmd = &cobra.Command{
 		intent, err := intentService.StartIntent(args[0])
 		if err != nil {
 			utils.PrintErrorln("Error starting intent:", err)
-			ac.Logger.Error().Msgf("Error starting intent: %v", err)
+			ac.Logger.Error("Error starting intent", err)
 			utils.PrintInfoln("Please try again or check your database connection.")
 			return
 		}
 		utils.PrintSuccessf("Intent '%s' started successfully with id %d!\n", intent.Name, intent.ID)
-		ac.Logger.Info().Msgf("Intent '%s' started successfully with id %d!", intent.Name, intent.ID)
+		ac.Logger.Info(fmt.Sprintf("Intent '%s' started successfully with id %d!", intent.Name, intent.ID))
 	},
 }
 
@@ -51,13 +53,13 @@ var intentListCmd = &cobra.Command{
 		intents, err := intentService.ListIntents()
 		if err != nil {
 			utils.PrintErrorln("Error fetching intents:", err)
-			ac.Logger.Error().Msgf("Error fetching intents: %v", err)
+			ac.Logger.Error("Error fetching intents", err)
 			utils.PrintInfoln("Please check your database connection or try again later.")
 			return
 		}
 		if len(intents) == 0 {
 			utils.PrintInfoln("No intents found... Try starting one with 'mindloop intent start <name>'")
-			ac.Logger.Info().Msg("No intents found. Prompting user to start a new intent.")
+			ac.Logger.Info("No intents found. Prompting user to start a new intent.")
 			return
 		}
 
@@ -66,7 +68,7 @@ var intentListCmd = &cobra.Command{
 			views = append(views, models.ToIntentView(i))
 		}
 		utils.PrintTable(views)
-		ac.Logger.Info().Msgf("Listed %d intents successfully.", len(intents))
+		ac.Logger.Info(fmt.Sprintf("Listed %d intents successfully.", len(intents)))
 	},
 }
 
@@ -79,13 +81,13 @@ var intentCurrentCmd = &cobra.Command{
 		intents, err := intentService.ListActiveIntents()
 		if err != nil {
 			utils.PrintErrorln("Error fetching active intents:", err)
-			ac.Logger.Error().Msgf("Error fetching active intents: %v", err)
+			ac.Logger.Error("Error fetching active intents", err)
 			utils.PrintInfoln("Please check your database connection or try again later.")
 			return
 		}
 		if len(intents) == 0 {
 			utils.PrintInfoln("No active intents found. To get all intents, use 'mindloop intent list'")
-			ac.Logger.Info().Msg("No active intents found. Prompting user to list all intents.")
+			ac.Logger.Info("No active intents found. Prompting user to list all intents.")
 			return
 		}
 
@@ -94,7 +96,7 @@ var intentCurrentCmd = &cobra.Command{
 			views = append(views, models.ToIntentView(i))
 		}
 		utils.PrintTable(views)
-		ac.Logger.Info().Msgf("Listed %d active intents successfully.", len(intents))
+		ac.Logger.Info(fmt.Sprintf("Listed %d active intents successfully.", len(intents)))
 	},
 }
 
@@ -106,17 +108,16 @@ var intentEndCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
 			utils.PrintWarnln("Please provide the intent ID to end.")
-			ac.Logger.Warn().Msg("No intent ID provided for ending intent.")
+			ac.Logger.Warn("No intent ID provided for ending intent.")
 			return
 		}
 
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := cfg.GetUserConfig()
 
 		intent, milestoneReached, err := intentService.EndIntent(args[0], uc.PointsConfig.Intent)
 		if err != nil {
 			utils.PrintErrorln("Error ending intent:", err)
-			ac.Logger.Error().Msgf("Error ending intent with ID %s: %v", args[0], err)
+			ac.Logger.Error(fmt.Sprintf("Error ending intent with ID %s", args[0]), err)
 			return
 		}
 
@@ -124,7 +125,7 @@ var intentEndCmd = &cobra.Command{
 		if milestoneReached {
 			utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
 		}
-		ac.Logger.Info().Msgf("Intent '%s' ended successfully!", intent.Name)
+		ac.Logger.Info(fmt.Sprintf("Intent '%s' ended successfully!", intent.Name))
 		intentView := models.ToIntentView(*intent)
 		utils.PrintTable([]models.IntentView{intentView})
 	},

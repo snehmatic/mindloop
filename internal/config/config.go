@@ -15,6 +15,32 @@ import (
 )
 
 var (
+	userInstance *UserConfig
+	userMu       sync.RWMutex
+)
+
+// GetUserConfig returns the (cached) UserConfig singleton.
+// If not yet cached it reads from YAML (with defaults).
+func GetUserConfig() *UserConfig {
+	userMu.RLock()
+	if userInstance != nil {
+		inst := userInstance
+		userMu.RUnlock()
+		return inst
+	}
+	userMu.RUnlock()
+
+	userMu.Lock()
+	defer userMu.Unlock()
+	if userInstance == nil {
+		uc := &UserConfig{}
+		_ = uc.ReadFromYAML() // leaves defaults on error
+		userInstance = uc
+	}
+	return userInstance
+}
+
+var (
 	mu         sync.RWMutex
 	instance   *Config
 	onChangeFn []func(*Config)
@@ -99,18 +125,16 @@ func Init(name, mode, port string) error {
 		Logger: log.Get(),
 	}
 
-	// Try to load user config
-	uc := UserConfig{}
-	if err := uc.ReadFromYAML(); err == nil {
-		if uc.Name != "" {
-			cfg.UserName = uc.Name
-		}
-		// Override mode if set in user config and not explicitly overridden by flag (which passed here)
-		// For simplicity, we are not overriding mode here as it might conflict with flags
-		// But we can check if DBConfig is needed
-		if uc.Mode == "byodb" {
-			cfg.DBConfig = uc.DbConfig
-		}
+	// Try to load user config via cached singleton (reads YAML on first access)
+	uc := GetUserConfig()
+	if uc.Name != "" {
+		cfg.UserName = uc.Name
+	}
+	// Override mode if set in user config and not explicitly overridden by flag (which passed here)
+	// For simplicity, we are not overriding mode here as it might conflict with flags
+	// But we can check if DBConfig is needed
+	if uc.Mode == "byodb" {
+		cfg.DBConfig = uc.DbConfig
 	}
 
 	if mode == "api" {
@@ -196,6 +220,11 @@ func Reload() error {
 	}
 
 	instance = cfg
+
+	// Invalidate UserConfig cache so next access re-reads from YAML
+	userMu.Lock()
+	userInstance = nil
+	userMu.Unlock()
 
 	// Invoke change callbacks outside the lock to avoid deadlocks
 	cbs := onChangeFn

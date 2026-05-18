@@ -3,6 +3,7 @@ package log
 
 import (
 	"io"
+	"os"
 	"sync"
 
 	"github.com/rs/zerolog"
@@ -27,13 +28,30 @@ type Logger interface {
 	Info(msg string, fields ...Field)
 	Warn(msg string, fields ...Field)
 	Error(msg string, err error, fields ...Field)
-	Fatal(msg string, fields ...Field)
+	Fatal(msg string, err error, fields ...Field)
 	With(fields ...Field) Logger
 }
 
+type InitOptions struct {
+	Out   io.Writer
+	Level zerolog.Level
+}
+
 // Init initializes the global logger with the specified output and level
-func Init(out io.Writer, level zerolog.Level) {
+func Init(opts *InitOptions) {
 	once.Do(func() {
+		out := io.Writer(os.Stdout)
+		level := zerolog.DebugLevel
+
+		if opts != nil {
+			if opts.Out != nil {
+				out = opts.Out
+			}
+			if opts.Level != 0 {
+				level = opts.Level
+			}
+		}
+
 		zerolog.TimeFieldFormat = zerolog.TimeFormatUnix
 		l := zerolog.New(out).
 			With().
@@ -48,7 +66,11 @@ func Init(out io.Writer, level zerolog.Level) {
 // Get returns the global logger instance as a Logger interface
 func Get() Logger {
 	if instance == nil {
-		panic("log: logger not initialized")
+		// Auto-initialize with default values for ease of use in tests
+		Init(&InitOptions{
+			Level: zerolog.DebugLevel,
+			Out:   io.Discard,
+		})
 	}
 	return instance
 }
@@ -70,8 +92,8 @@ func (l *logger) Error(msg string, err error, fields ...Field) {
 	l.applyFields(e, fields...).Msg(msg)
 }
 
-func (l *logger) Fatal(msg string, fields ...Field) {
-	l.applyFields(l.log.Fatal(), fields...).Msg(msg)
+func (l *logger) Fatal(msg string, err error, fields ...Field) {
+	l.applyFields(l.log.Fatal(), fields...).Err(err).Msg(msg)
 }
 
 func (l *logger) With(fields ...Field) Logger {

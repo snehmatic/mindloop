@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"github.com/rs/zerolog/log"
 	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/snehmatic/mindloop/db"
 	"github.com/snehmatic/mindloop/internal/config"
@@ -21,9 +20,21 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
+	"github.com/snehmatic/mindloop/internal/log"
+	focusRepo "github.com/snehmatic/mindloop/internal/repository/focus"
+	habitRepo "github.com/snehmatic/mindloop/internal/repository/habit"
+	"github.com/snehmatic/mindloop/internal/repository/habitlog"
+	habitIntRepo "github.com/snehmatic/mindloop/internal/repository/intent"
+	journalRepo "github.com/snehmatic/mindloop/internal/repository/journal"
+	noteRepo "github.com/snehmatic/mindloop/internal/repository/note"
+	pointRepo "github.com/snehmatic/mindloop/internal/repository/point"
+	questRepo "github.com/snehmatic/mindloop/internal/repository/quest"
+	routineRepo "github.com/snehmatic/mindloop/internal/repository/routine"
+	subtaskRepo "github.com/snehmatic/mindloop/internal/repository/subtask"
 	taskRepo "github.com/snehmatic/mindloop/internal/repository/task"
 	"github.com/snehmatic/mindloop/web"
 )
@@ -141,20 +152,21 @@ func ServeMindloop(mlh *v1.MindloopHandler) {
 	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		log.Info().Msgf("Starting Mindloop server on %s", appConfig.Port)
+		log.Get().Info(fmt.Sprintf("Starting Mindloop server on %s", appConfig.Port))
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-			log.Fatal().Msgf("ListenAndServe(): %v", err)
+			log.Get().Error("ListenAndServe() error", err)
+			os.Exit(1)
 		}
 	}()
 
 	<-stop
-	log.Info().Msg("Shutting down server...")
+	log.Get().Info("Shutting down server...")
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Error().Msgf("Server Shutdown Failed:%+v", err)
+		log.Get().Error("Server Shutdown Failed", err)
 	}
-	log.Info().Msg("Server exited properly")
+	log.Get().Info("Server exited properly")
 }
 
 func main() {
@@ -164,27 +176,46 @@ func main() {
 	flag.Parse()
 
 	// Init global config
-	config.InitConfig(AppName, *mode, fmt.Sprintf(":%s", *port))
+	if err := config.Init(AppName, *mode, fmt.Sprintf(":%s", *port)); err != nil {
+		log.Get().Error("Failed to initialize config", err)
+		os.Exit(1)
+	}
 	appConfig := config.GetConfig()
 
 	database, err := db.ConnectToDb(*appConfig)
 	if err != nil {
-		log.Fatal().Err(err).Msg("Error connecting to DB")
+		log.Get().Fatal("Error connecting to DB", err)
 	}
 
-	// Initialize core services
-	journalService := journal.NewService(database)
-	noteService := note.NewService(database)
-	backupService := backup.NewService(database)
-	focusService := focus.NewService(database)
-	intentService := intent.NewService(database)
-	questService := quest.NewService(database)
-	summaryService := summary.NewService(database)
-	habitService := habit.NewService(database)
-	taskRepository := taskRepo.NewSQLTaskRepository(database)
-	taskService := task.NewService(taskRepository, nil, log.Logger)
+	logger := log.Get()
+
+	// Initialize repository instances
+	fRepo := focusRepo.NewSQLRepository(database)
+	hRepo := habitRepo.NewSQLRepository(database, logger)
+	hlRepo := habitlog.NewSQLRepository(database)
+	iRepo := habitIntRepo.NewSQLRepository(database)
+	jRepo := journalRepo.NewSQLRepository(database)
+	nRepo := noteRepo.NewSQLRepository(database)
+	pRepo := pointRepo.NewSQLRepository(database)
+	qRepo := questRepo.NewSQLRepository(database, logger)
+	rRepo := routineRepo.NewSQLRepository(database)
+	sRepo := subtaskRepo.NewSQLRepository(database)
+	tRepo := taskRepo.NewSQLTaskRepository(database)
+
+	// Initialize core services with repository injection
+	pointSvc := points.NewService(pRepo)
+	journalService := journal.NewService(jRepo)
+	noteService := note.NewService(nRepo)
+	backupService := backup.NewService(database, pointSvc, fRepo, hRepo, hlRepo, iRepo, jRepo, nRepo, pRepo, qRepo, rRepo, sRepo, tRepo)
+	focusService := focus.NewService(fRepo)
+	intentService := intent.NewService(iRepo)
+	questService := quest.NewService(qRepo, logger)
+	summaryService := summary.NewService(fRepo, hRepo, iRepo, pRepo, tRepo, logger)
+	habitService := habit.NewService(hRepo)
+	taskService := task.NewService(tRepo, config.GetUserConfig(), pointSvc, logger)
 
 	mlh := v1.NewMindloopHandler(
+		database,
 		journalService,
 		noteService,
 		habitService,

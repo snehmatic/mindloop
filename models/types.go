@@ -162,16 +162,16 @@ func IsValidIntervalType(interval string) bool {
 // Intent represents a high-level goal for the user
 type Intent struct {
 	gorm.Model
-	Name    string     `gorm:"not null" json:"name"`
-	Status  string     `gorm:"default:active" json:"status"`
-	EndedAt *time.Time `json:"ended_at,omitempty"`
+	Name    string       `gorm:"not null" json:"name"`
+	Status  IntentStatus `gorm:"default:active" json:"status"`
+	EndedAt *time.Time   `json:"ended_at,omitempty"`
 }
 
 // IntentView is a simplified representation of an Intent for the UI
 type IntentView struct {
 	ID      uint
 	Name    string
-	Status  string
+	Status  IntentStatus
 	EndedAt string
 }
 
@@ -193,22 +193,22 @@ func ToIntentView(i Intent) IntentView {
 // FocusSession records a period of deep work
 type FocusSession struct {
 	gorm.Model
-	Title    string    `gorm:"not null" json:"title"`        // e.g., "Work on project"
-	Status   string    `gorm:"default:active" json:"status"` // active, paused
-	EndTime  time.Time `json:"end_time"`
-	Duration float64   `json:"duration"`                 // in mins
-	Rating   int       `gorm:"default:-1" json:"rating"` // 0 to 10, optional
+	Title    string             `gorm:"not null" json:"title"`        // e.g., "Work on project"
+	Status   FocusSessionStatus `gorm:"default:active" json:"status"` // active, paused
+	EndTime  time.Time          `json:"end_time"`
+	Duration float64            `json:"duration"`                 // in mins
+	Rating   int                `gorm:"default:-1" json:"rating"` // 0 to 10, optional
 }
 
 // FocusSessionView is a simplified representation of a FocusSession for the UI
 type FocusSessionView struct {
-	ID        uint    `json:"id"`
-	Title     string  `json:"title"`
-	Status    string  `json:"status"`
-	EndTime   string  `json:"end_time"`   // formatted as "2006-01-02 15:04:05"
-	Duration  float64 `json:"duration"`   // in mins
-	Rating    int     `json:"rating"`     // 0 to 10, -1 if not rated
-	CreatedAt string  `json:"created_at"` // formatted as "2006-01-02 15:04:05"
+	ID        uint               `json:"id"`
+	Title     string             `json:"title"`
+	Status    FocusSessionStatus `json:"status"`
+	EndTime   string             `json:"end_time"`   // formatted as "2006-01-02 15:04:05"
+	Duration  float64            `json:"duration"`   // in mins
+	Rating    int                `json:"rating"`     // 0 to 10, -1 if not rated
+	CreatedAt string             `json:"created_at"` // formatted as "2006-01-02 15:04:05"
 }
 
 func ToFocusSessionView(fs FocusSession) FocusSessionView {
@@ -311,7 +311,7 @@ type HabitStats struct {
 
 type IntentStats struct {
 	IntentName string
-	Status     string
+	Status     IntentStatus
 }
 
 type SummaryReport struct {
@@ -326,10 +326,10 @@ type SummaryReport struct {
 // SideQuest represents an ad-hoc task during a focus session
 type SideQuest struct {
 	gorm.Model
-	Title   string     `gorm:"not null" json:"title"`
-	Status  string     `gorm:"default:active" json:"status"` // active, done
-	Note    string     `gorm:"type:text" json:"note"`
-	EndedAt *time.Time `json:"ended_at,omitempty"`
+	Title   string          `gorm:"not null" json:"title"`
+	Status  SideQuestStatus `gorm:"default:active" json:"status"` // active, done
+	Note    string          `gorm:"type:text" json:"note"`
+	EndedAt *time.Time      `json:"ended_at,omitempty"`
 }
 
 // Task represents a to-do item linked to an intent or focus session
@@ -405,11 +405,11 @@ func ToTaskView(t Task) TaskView {
 
 // SideQuestView is a simplified representation of a SideQuest for the UI
 type SideQuestView struct {
-	ID      uint   `json:"id"`
-	Title   string `json:"title"`
-	Status  string `json:"status"`
-	Note    string `json:"note"`
-	EndedAt string `json:"ended_at"`
+	ID      uint            `json:"id"`
+	Title   string          `json:"title"`
+	Status  SideQuestStatus `json:"status"`
+	Note    string          `json:"note"`
+	EndedAt string          `json:"ended_at"`
 }
 
 func ToSideQuestView(sq SideQuest) SideQuestView {

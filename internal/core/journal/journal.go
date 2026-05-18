@@ -1,67 +1,40 @@
 package journal
 
 import (
-	"errors"
-
-	"github.com/snehmatic/mindloop/internal/core/points"
+	"github.com/snehmatic/mindloop/internal/repository/journal"
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
+// Service handles business logic for journal entries
 type Service struct {
-	DB *gorm.DB
+	repository journal.Repository
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+// NewService creates a new journal Service instance
+func NewService(repo journal.Repository) *Service {
+	return &Service{repository: repo}
 }
 
 func (s *Service) CreateEntry(title, content, mood string, pointsToAward int) (bool, error) {
-	if title == "" {
-		return false, errors.New("title cannot be empty")
-	}
-	if content == "" {
-		return false, errors.New("content cannot be empty")
-	}
-	if mood == "" {
-		mood = "neutral"
-	}
-
-	entry := models.JournalEntry{
-		Title:   title,
-		Content: content,
-		Mood:    mood,
-	}
-
-	err := s.DB.Create(&entry).Error
-	milestoneReached := false
-	if err == nil {
-		milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryJournal, entry.ID, pointsToAward)
-	}
-	return milestoneReached, err
+	return s.repository.CreateEntry(title, content, mood, pointsToAward)
 }
 
 func (s *Service) ListEntries() ([]models.JournalEntry, error) {
-	var entries []models.JournalEntry
-	result := s.DB.Order("CreatedAt DESC").Find(&entries)
-	return entries, result.Error
+	return s.repository.ListEntries()
 }
 
 func (s *Service) GetEntry(id string) (models.JournalEntry, error) {
-	var entry models.JournalEntry
-	result := s.DB.First(&entry, id)
-	return entry, result.Error
+	return s.repository.GetEntry(id)
 }
 
 func (s *Service) UpdateEntry(entry *models.JournalEntry) error {
-	return s.DB.Save(entry).Error
+	return s.repository.UpdateEntry(entry)
 }
 
 func (s *Service) DeleteEntry(id string) error {
-	result := s.DB.Delete(&models.JournalEntry{}, id)
-	return result.Error
+	return s.repository.DeleteEntry(id)
 }
 
 func (s *Service) DeleteAll() error {
-	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.JournalEntry{}).Error
+	return s.repository.DeleteAll()
 }
