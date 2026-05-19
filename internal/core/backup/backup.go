@@ -285,7 +285,7 @@ func (s *Service) Import(filePath string) error {
 func (d *Data) stripIDs() {
 	strip := func(slicePtr interface{}) {
 		v := reflect.ValueOf(slicePtr)
-		if v.Kind() != reflect.Ptr || v.Elem().Kind() != reflect.Slice {
+		if v.Kind() != reflect.Pointer || v.Elem().Kind() != reflect.Slice {
 			return
 		}
 		sl := v.Elem()
