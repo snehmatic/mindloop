@@ -46,3 +46,10 @@ server.log
 .gemini/
 gha-creds-*.json
 .agent/
+
+# Air live reload
+tmp/
+build-errors.log
+
+// macOS
+.DS_Store
