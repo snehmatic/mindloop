@@ -51,5 +51,5 @@ gha-creds-*.json
 tmp/
 build-errors.log
 
-// macOS
+# macOS
 .DS_Store
