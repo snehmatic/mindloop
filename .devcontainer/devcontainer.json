@@ -20,8 +20,7 @@
     },
     "vscode": {
       "extensions": [
-        "golang.Go",
-        "tinygo.vscode-tinygo"
+        "golang.Go"
       ],
       "settings": {
         "terminal.integrated.shell.linux": "/bin/bash",
