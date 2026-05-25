@@ -73,9 +73,9 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 	var habitViews []HabitView
 	for _, h := range habits {
 		actual := 0
-		for _, log := range habitLogs {
+		for _, habitLog := range habitLogs {
 			// Basic match for today/current interval - simplified logic for UI
-			if log.HabitID == h.ID {
+			if habitLog.HabitID == h.ID {
 				// Check if the log is "current" (today for daily)
 				// Simplify: just taking the log count if it matches.
 				// In a real app, `ListHabitLogs` should filter by date range or we filter here.
@@ -85,12 +85,12 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 				// We'll iterate and find if there's a log for *today* (created_at)
 				isToday := false
 				if h.Interval == models.Daily {
-					if log.CreatedAt.Truncate(24 * time.Hour).Equal(time.Now().Truncate(24 * time.Hour)) {
+					if habitLog.CreatedAt.Truncate(24 * time.Hour).Equal(time.Now().Truncate(24 * time.Hour)) {
 						isToday = true
 					}
 				} else {
 					// Weekly check: match ISO week
-					y1, w1 := log.CreatedAt.ISOWeek()
+					y1, w1 := habitLog.CreatedAt.ISOWeek()
 					y2, w2 := time.Now().ISOWeek()
 					if y1 == y2 && w1 == w2 {
 						isToday = true
@@ -98,7 +98,7 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 				}
 
 				if isToday {
-					actual = log.ActualCount
+					actual = habitLog.ActualCount
 
 					break
 				}
@@ -233,18 +233,18 @@ func (mlh *MindloopHandler) HandleHabitView(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	logs, err := mlh.habit.ListLogsForHabit(h.ID)
+	habitLogs, err := mlh.habit.ListLogsForHabit(h.ID)
 	if err != nil {
 		log.Error().Err(err).Msg("Error fetching logs for habit")
 	}
 
 	// Prepare heatmap data: map[date_string]completion_ratio
 	heatmap := make(map[string]float64)
-	for _, log := range logs {
-		dateStr := log.CreatedAt.Format("2006-01-02")
+	for _, habitLog := range habitLogs {
+		dateStr := habitLog.CreatedAt.Format("2006-01-02")
 		ratio := 0.0
-		if log.TargetCount > 0 {
-			ratio = float64(log.ActualCount) / float64(log.TargetCount)
+		if habitLog.TargetCount > 0 {
+			ratio = float64(habitLog.ActualCount) / float64(habitLog.TargetCount)
 		}
 		if ratio > 1 {
 			ratio = 1
@@ -324,8 +324,7 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 
 	habitID := r.FormValue("habit_id")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	habit, logRes, milestoneReached, err := mlh.habit.LogHabit(habitID, uc.PointsConfig.Habit)
 	if err != nil {
@@ -511,8 +510,8 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 		http.Redirect(w, r, "/intent", http.StatusSeeOther)
 		return
 	}
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
+	_ = uc // force use
 
 	id := r.FormValue("id")
 	_, milestoneReached, err := mlh.intent.EndIntent(id, uc.PointsConfig.Intent)
@@ -622,12 +621,13 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 		http.Redirect(w, r, "/focus", http.StatusSeeOther)
 		return
 	}
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
+	_ = uc // force use
 
 	idStr := r.FormValue("id")
 	id, _ := strconv.Atoi(idStr)
 	_, milestoneReached, err := mlh.focus.EndSession(id, uc.PointsConfig.Focus)
+
 	if err != nil {
 		log.Error().Err(err).Msg("Error ending focus session")
 		if r.Header.Get("HX-Request") == "true" {
@@ -809,7 +809,7 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 			log.Error().Msg("Error in clean slate all")
 		} else {
 			// Also reset user config (Name and FeatureFlags), but keep DB config
-			uc := config.UserConfig{}
+			uc := config.GetUserConfig()
 			if readErr := uc.ReadFromYAML(); readErr == nil {
 				uc.Name = ""
 				uc.FeatureFlags = config.FeatureFlags{} // Reset all flags to false
@@ -1082,8 +1082,8 @@ func (mlh *MindloopHandler) HandleVoid(w http.ResponseWriter, r *http.Request) {
 // --- Settings Handlers ---
 
 func (mlh *MindloopHandler) HandleSettings(w http.ResponseWriter, r *http.Request) {
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML() // Ignore error if file doesn't exist
+	uc := config.GetUserConfig()
+	_ = uc // Ignore error if file doesn't exist
 
 	data := map[string]interface{}{
 		"Title":    "Settings",
@@ -1174,8 +1174,7 @@ func (mlh *MindloopHandler) HandleSettingsUpdateWidth(w http.ResponseWriter, r *
 
 	isWide := r.FormValue("wide") == "true"
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 	uc.EditorWideWidth = isWide
 	uc.WriteToYAML()
 

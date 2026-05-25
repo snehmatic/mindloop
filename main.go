@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/rs/zerolog"
@@ -28,13 +29,14 @@ func main() {
 			panic("Failed to close log file: " + err.Error())
 		}
 	}()
-	log.Init(logFile, zerolog.DebugLevel)
+	log.Init(&log.InitOptions{Out: logFile, Level: zerolog.DebugLevel})
 	logger := log.Get()
-	logger.Info().Msgf("Logging to %s file...", logPath)
+	logger.Info(fmt.Sprintf("Logging to %s file...", logPath))
 
 	// Init global config
-	config.InitConfig(AppName, "local", "")
-	applyMilestoneInterval()
+	if err := config.Init(AppName, "local", ""); err != nil {
+		panic(fmt.Sprintf("Failed to initialize config: %v", err))
+	}
 
 	cli.Execute()
 }

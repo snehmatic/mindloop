@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/snehmatic/mindloop/internal/core/ai"
-	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/utils"
 )
 
@@ -18,7 +17,7 @@ type AISettingsRequest struct {
 
 func (mlh *MindloopHandler) HandleGetAISettings(w http.ResponseWriter, r *http.Request) {
 	// Re-initialize AI service with current DB
-	aiService := ai.NewService(mlh.journal.DB) // hack: accessing DB via a service that has it
+	aiService := ai.NewService(mlh.appSettingsRepo)
 	provider, model, token, baseURL, _ := aiService.GetSettings()
 
 	hasToken := token != ""
@@ -39,7 +38,7 @@ func (mlh *MindloopHandler) HandleSaveAISettings(w http.ResponseWriter, r *http.
 		return
 	}
 
-	aiService := ai.NewService(mlh.journal.DB)
+	aiService := ai.NewService(mlh.appSettingsRepo)
 	if err := aiService.SaveSettings(req.Provider, req.Model, req.Token, req.BaseURL); err != nil {
 		http.Error(w, "Failed to save settings: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -51,7 +50,7 @@ func (mlh *MindloopHandler) HandleSaveAISettings(w http.ResponseWriter, r *http.
 }
 
 func (mlh *MindloopHandler) HandleListAIModels(w http.ResponseWriter, r *http.Request) {
-	aiService := ai.NewService(mlh.journal.DB)
+	aiService := ai.NewService(mlh.appSettingsRepo)
 	models, err := aiService.ListModels()
 	if err != nil {
 		http.Error(w, "Failed to list models: "+err.Error(), http.StatusInternalServerError)
@@ -72,7 +71,7 @@ func (mlh *MindloopHandler) HandleTestAIConnection(w http.ResponseWriter, r *htt
 		return
 	}
 
-	aiService := ai.NewService(mlh.journal.DB)
+	aiService := ai.NewService(mlh.appSettingsRepo)
 
 	// Fallback to saved settings if empty in request
 	if req.Token == "" || req.BaseURL == "" {
@@ -102,14 +101,13 @@ func (mlh *MindloopHandler) HandleGenerateAIJournal(w http.ResponseWriter, r *ht
 	}
 
 	start, end := utils.GetDateRange(period)
-	summaryService := summary.NewService(mlh.journal.DB)
-	report, err := summaryService.GenerateSummary(start, end)
+	report, err := mlh.summary.GenerateSummary(start, end)
 	if err != nil {
 		http.Error(w, "Failed to generate summary data", http.StatusInternalServerError)
 		return
 	}
 
-	aiService := ai.NewService(mlh.journal.DB)
+	aiService := ai.NewService(mlh.appSettingsRepo)
 	generatedText, err := aiService.GenerateJournal(report)
 	if err != nil {
 		http.Error(w, "AI Generation failed: "+err.Error(), http.StatusInternalServerError)

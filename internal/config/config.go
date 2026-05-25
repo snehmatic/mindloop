@@ -2,17 +2,55 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"sync"
 
 	"github.com/joho/godotenv"
-	"github.com/rs/zerolog"
 	"github.com/snehmatic/mindloop/internal/gamification"
 	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
 	"gopkg.in/yaml.v3"
+)
+
+var (
+	userInstance *UserConfig
+	userMu       sync.RWMutex
+)
+
+// GetUserConfig returns the (cached) UserConfig singleton.
+// If not yet cached it reads from YAML (with defaults).
+func GetUserConfig() *UserConfig {
+	userMu.RLock()
+	if userInstance != nil {
+		inst := userInstance
+		userMu.RUnlock()
+		return inst
+	}
+	userMu.RUnlock()
+
+	userMu.Lock()
+	defer userMu.Unlock()
+	if userInstance == nil {
+		uc := &UserConfig{}
+		_ = uc.ReadFromYAML() // leaves defaults on error
+		userInstance = uc
+	}
+	return userInstance
+}
+
+var (
+	mu         sync.RWMutex
+	instance   *Config
+	onChangeFn []func(*Config)
+)
+
+var (
+	ErrConfigNotInitialized = errors.New("config not initialized")
+	ErrReadUserConfig       = errors.New("failed to read user config file")
+	ErrUnmarshalUserConfig  = errors.New("failed to unmarshal user config")
 )
 
 // GetUserConfigPath returns the path to the user configuration file
@@ -59,7 +97,7 @@ type Config struct {
 	Name     string
 	UserName string
 	DBConfig DBConfig
-	Logger   zerolog.Logger
+	Logger   log.Logger
 }
 
 // DBConfig holds database connection parameters
@@ -71,55 +109,134 @@ type DBConfig struct {
 	Name     string
 }
 
-var once sync.Once
-var cfg *Config
+// Init initializes the global application configuration.
+// It must be called once at startup. Subsequent calls will return an error.
+func Init(name, mode, port string) error {
+	mu.Lock()
+	defer mu.Unlock()
 
-// InitConfig initializes the global application configuration
-func InitConfig(name, mode, port string) {
-	once.Do(func() { // singleton
-		cfg = &Config{
-			Name:     name,
-			Port:     port,
-			Mode:     MindloopMode(mode),
-			DBConfig: DBConfig{},
-			Logger:   log.Get(),
-		}
+	if instance != nil {
+		return fmt.Errorf("config already initialized")
+	}
 
-		// Try to load user config
-		uc := UserConfig{}
-		if err := uc.ReadFromYAML(); err == nil {
-			if uc.Name != "" {
-				cfg.UserName = uc.Name
-			}
-			// Override mode if set in user config and not explicitly overridden by flag (which passed here)
-			// For simplicity, we are not overriding mode here as it might conflict with flags
-			// But we can check if DBConfig is needed
-			if uc.Mode == "byodb" {
-				cfg.DBConfig = uc.DbConfig
-			}
-		}
-		if mode == "api" {
-			// init DB Config
-			err := godotenv.Load()
-			if err != nil {
-				fmt.Printf("error loading .env file: %v\n", err)
-			}
-			cfg.DBConfig = DBConfig{
-				Host:     utils.GetEnvOrDie("DB_HOST"),
-				Port:     utils.GetEnvOrDie("DB_PORT"),
-				User:     utils.GetEnvOrDie("DB_USER"),
-				Password: utils.GetEnvOrDie("DB_PASS"),
-				Name:     utils.GetEnvOrDie("DB_NAME"),
-			}
-		}
+	cfg := &Config{
+		Name:   name,
+		Port:   port,
+		Mode:   MindloopMode(mode),
+		Logger: log.Get(),
+	}
 
-		cfg.Logger.Info().Msg("Mindloop global config has been set!")
-	})
+	// Try to load user config via cached singleton (reads YAML on first access)
+	uc := GetUserConfig()
+	if uc.Name != "" {
+		cfg.UserName = uc.Name
+	}
+	// Override mode if set in user config and not explicitly overridden by flag (which passed here)
+	// For simplicity, we are not overriding mode here as it might conflict with flags
+	// But we can check if DBConfig is needed
+	if uc.Mode == "byodb" {
+		cfg.DBConfig = uc.DbConfig
+	}
+
+	if mode == "api" {
+		// init DB Config
+		err := godotenv.Load()
+		if err != nil {
+			fmt.Printf("error loading .env file: %v\n", err)
+		}
+		cfg.DBConfig = DBConfig{
+			Host:     utils.GetEnvOrDie("DB_HOST"),
+			Port:     utils.GetEnvOrDie("DB_PORT"),
+			User:     utils.GetEnvOrDie("DB_USER"),
+			Password: utils.GetEnvOrDie("DB_PASS"),
+			Name:     utils.GetEnvOrDie("DB_NAME"),
+		}
+	}
+
+	instance = cfg
+	instance.Logger.Info("Mindloop global config has been set!")
+	return nil
 }
 
-// GetConfig returns the global configuration object
+// GetConfig returns the global configuration object.
 func GetConfig() *Config {
-	return cfg
+	mu.RLock()
+	defer mu.RUnlock()
+	return instance
+}
+
+// OnChange registers a function to be called when the configuration changes.
+func OnChange(fn func(*Config)) {
+	mu.Lock()
+	defer mu.Unlock()
+	onChangeFn = append(onChangeFn, fn)
+}
+
+// Reload reloads the configuration from file and environment.
+// It preserves the original Name, Port, and Mode set during Init.
+func Reload() error {
+	mu.Lock()
+	defer mu.Unlock()
+
+	if instance == nil {
+		return ErrConfigNotInitialized
+	}
+
+	// Preserve the original Name, Port, and Mode
+	name := instance.Name
+	port := instance.Port
+	mode := string(instance.Mode)
+
+	cfg := &Config{
+		Name:   name,
+		Port:   port,
+		Mode:   MindloopMode(mode),
+		Logger: instance.Logger, // keep the same logger
+	}
+
+	// Try to load user config
+	uc := UserConfig{}
+	if err := uc.ReadFromYAML(); err == nil {
+		if uc.Name != "" {
+			cfg.UserName = uc.Name
+		}
+		if uc.Mode == "byodb" {
+			cfg.DBConfig = uc.DbConfig
+		}
+	}
+
+	if mode == "api" {
+		// init DB Config
+		err := godotenv.Load()
+		if err != nil {
+			fmt.Printf("error loading .env file: %v\n", err)
+		}
+		cfg.DBConfig = DBConfig{
+			Host:     utils.GetEnvOrDie("DB_HOST"),
+			Port:     utils.GetEnvOrDie("DB_PORT"),
+			User:     utils.GetEnvOrDie("DB_USER"),
+			Password: utils.GetEnvOrDie("DB_PASS"),
+			Name:     utils.GetEnvOrDie("DB_NAME"),
+		}
+	}
+
+	instance = cfg
+
+	// Invalidate UserConfig cache so next access re-reads from YAML
+	userMu.Lock()
+	userInstance = nil
+	userMu.Unlock()
+
+	// Invoke change callbacks outside the lock to avoid deadlocks
+	cbs := onChangeFn
+	mu.Unlock()
+	for _, fn := range cbs {
+		fn(instance)
+	}
+	mu.Lock()
+
+	instance.Logger.Info("Mindloop global config has been reloaded!")
+	return nil
 }
 
 // UserConfig represents the persistent user preferences
@@ -196,10 +313,10 @@ func ValidateUserConfig(cmd *cobra.Command) {
 	logger := log.Get()
 	configPath := GetUserConfigPath()
 	if utils.FileExists(configPath) {
-		logger.Debug().Msgf("User config exists at %s", configPath)
+		logger.Debug(fmt.Sprintf("User config exists at %s", configPath))
 	} else if cmd.Use != "configure" {
 		utils.PrintWarnln("Warn: user config does not exist, create a new one or run `mindloop configure`.")
-		logger.Warn().Msg("User config does not exist, warned user")
+		logger.Warn("User config does not exist, warned user")
 		os.Exit(0)
 	}
 }
@@ -224,11 +341,11 @@ func (uc *UserConfig) ReadFromYAML() error {
 	data, err := os.ReadFile(GetUserConfigPath())
 	if err != nil {
 		uc.SetDefaults() // Set defaults even if file doesn't exist
-		return fmt.Errorf("failed to read user config file: %w", err)
+		return fmt.Errorf("%w: %v", ErrReadUserConfig, err)
 	}
 	err = yaml.Unmarshal(data, uc)
 	if err != nil {
-		return fmt.Errorf("failed to unmarshal user config: %w", err)
+		return fmt.Errorf("%w: %v", ErrUnmarshalUserConfig, err)
 	}
 	uc.SetDefaults() // Ensure defaults for missing fields
 	return nil

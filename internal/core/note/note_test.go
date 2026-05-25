@@ -1,14 +1,26 @@
 package note_test
 
 import (
+	"io"
 	"testing"
 
 	"github.com/glebarez/sqlite"
+	zerolog "github.com/rs/zerolog"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/log"
+	repository "github.com/snehmatic/mindloop/internal/repository/note"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
 )
+
+// Initialize logger for tests
+func init() {
+	log.Init(&log.InitOptions{
+		Level: zerolog.DebugLevel,
+		Out:   io.Discard,
+	})
+}
 
 func setupTestDB(t *testing.T) *gorm.DB {
 	db, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{
@@ -31,7 +43,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestNoteService(t *testing.T) {
 	db := setupTestDB(t)
-	s := note.NewService(db)
+	repo := repository.NewSQLRepository(db)
+	s := note.NewService(repo)
 
 	// 1. Create Note
 	n, err := s.CreateNote("Test Title", "Test Content", "label1,label2")
@@ -83,7 +96,8 @@ func TestNoteService(t *testing.T) {
 
 func TestCreateNoteEmpty(t *testing.T) {
 	db := setupTestDB(t)
-	s := note.NewService(db)
+	repo := repository.NewSQLRepository(db)
+	s := note.NewService(repo)
 
 	_, err := s.CreateNote("", "", "")
 	if err == nil {

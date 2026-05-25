@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/snehmatic/mindloop/internal/core/backup"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
 )
@@ -18,7 +19,7 @@ var backupCmd = &cobra.Command{
 	Example: `mindloop backup mindloop_backup.json`,
 	Args:    cobra.ExactArgs(1),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		backupService = backup.NewService(gdb)
+		backupService = backup.NewService(gdb, points.NewService(*pRepo), *fRepo, *hRepo, *hlRepo, *iRepo, *jRepo, *nRepo, *pRepo, *qRepo, *rRepo, *sRepo, *tRepo)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]
@@ -38,7 +39,7 @@ var restoreCmd = &cobra.Command{
 	Example: `mindloop restore mindloop_backup.json`,
 	Args:    cobra.ExactArgs(1),
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		backupService = backup.NewService(gdb)
+		backupService = backup.NewService(gdb, points.NewService(*pRepo), *fRepo, *hRepo, *hlRepo, *iRepo, *jRepo, *nRepo, *pRepo, *qRepo, *rRepo, *sRepo, *tRepo)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath := args[0]

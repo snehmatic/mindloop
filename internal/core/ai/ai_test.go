@@ -8,6 +8,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/ai"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -33,7 +34,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestSaveAndGetSettingsWithBaseURL(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	err := svc.SaveSettings("custom", "test-model", "test-token", "http://localhost:11434/v1")
 	if err != nil {
@@ -60,7 +61,7 @@ func TestSaveAndGetSettingsWithBaseURL(t *testing.T) {
 }
 func TestCustomProviderListModels(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/models" {
@@ -96,7 +97,7 @@ func TestCustomProviderListModels(t *testing.T) {
 
 func TestCustomProviderTestConnection(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/chat/completions" {
@@ -129,7 +130,7 @@ func TestCustomProviderTestConnection(t *testing.T) {
 
 func TestCustomProviderGenerateJournal(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/chat/completions" {
@@ -168,7 +169,7 @@ func TestCustomProviderGenerateJournal(t *testing.T) {
 
 func TestCustomProviderListModels_NonOpenAIModels(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	// Simulate an Ollama-style response with non-OpenAI model names
 	mockServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

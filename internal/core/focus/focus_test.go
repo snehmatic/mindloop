@@ -5,6 +5,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/focus"
+	focusRepository "github.com/snehmatic/mindloop/internal/repository/focus"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -31,7 +32,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestStartSession(t *testing.T) {
 	db := setupTestDB(t)
-	s := focus.NewService(db)
+	repo := focusRepository.NewSQLRepository(db)
+	s := focus.NewService(repo)
 
 	tests := []struct {
 		name    string
@@ -73,7 +75,8 @@ func TestStartSession(t *testing.T) {
 
 func TestEndAndRestartSession(t *testing.T) {
 	db := setupTestDB(t)
-	s := focus.NewService(db)
+	repo := focusRepository.NewSQLRepository(db)
+	s := focus.NewService(repo)
 
 	// 1. Start session
 	sess, err := s.StartSession("Session 1")

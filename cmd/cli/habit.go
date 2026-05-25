@@ -8,6 +8,8 @@ import (
 
 	cfg "github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/habit"
+	"github.com/snehmatic/mindloop/internal/log"
+	h "github.com/snehmatic/mindloop/internal/repository/habit"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -26,7 +28,7 @@ var habitCmd = &cobra.Command{
 	Short:   "Manage your habits",
 	Example: `mindloop habit add "Exercise"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		habitService = habit.NewService(gdb)
+		habitService = habit.NewService(h.NewSQLRepository(gdb, logger))
 	},
 }
 
@@ -48,19 +50,14 @@ var habitAddCmd = &cobra.Command{
 			// non interactive mode
 			if len(args) < 3 {
 				utils.PrintWarnln("Please provide habit details. Ex. 'mindloop habit add <title> <description> <target_count>' --weekly or --daily(default)")
-				ac.Logger.Error().
-					Interface("habit", newHabit).
-					Msg("Failed to add habit: missing arguments")
+				ac.Logger.Error("Failed to add habit: missing arguments", nil, log.Field{Key: "habit", Value: newHabit})
 				return
 			}
 			newHabit.Title = args[0]
 			newHabit.Description = args[1]
 			targetCount, err := strconv.Atoi(args[2])
 			if err != nil {
-				ac.Logger.Error().
-					Interface("habit", newHabit).
-					Err(err).
-					Msg("Failed to convert target count to integer")
+				ac.Logger.Error("Failed to convert target count to integer", err, log.Field{Key: "habit", Value: newHabit})
 				utils.PrintErrorln("Invalid target count. Please provide a valid integer.")
 				return
 			}
@@ -71,17 +68,12 @@ var habitAddCmd = &cobra.Command{
 		// Service call replaces direct validation and creation
 		err := habitService.CreateHabit(newHabit)
 		if err != nil {
-			ac.Logger.Error().
-				Interface("habit", newHabit).
-				Err(err).
-				Msg("Failed to add habit")
+			ac.Logger.Error("Failed to add habit", err, log.Field{Key: "habit", Value: newHabit})
 			utils.PrintErrorln("Failed to add habit:", err)
 			return
 		}
 
-		ac.Logger.Info().
-			Interface("habit", newHabit).
-			Msg("Habit added successfully")
+		ac.Logger.Info("Habit added successfully", log.Field{Key: "habit", Value: newHabit})
 
 		utils.PrintSuccessf("Habit '%s' added successfully with ID: %d\n", newHabit.Title, newHabit.ID)
 	},
@@ -96,7 +88,7 @@ var habitDeleteCmd = &cobra.Command{
 	Example: `mindloop habit delete "Exercise"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			ac.Logger.Error().Msg("No habit ID provided for deletion")
+			ac.Logger.Error("No habit ID provided for deletion", nil)
 			utils.PrintWarnln("Please provide the habit ID to delete.")
 			return
 		}
@@ -108,21 +100,19 @@ var habitDeleteCmd = &cobra.Command{
 
 		habit, err := habitService.GetHabit(habitID)
 		if err != nil {
-			ac.Logger.Error().Msg("Habit not found")
+			ac.Logger.Error("Habit not found", nil)
 			utils.PrintErrorln("Habit not found:", err)
 			return
 		}
 
 		err = habitService.DeleteHabit(habitID)
 		if err != nil {
-			ac.Logger.Error().Err(err).Msg("Failed to delete habit")
+			ac.Logger.Error("Failed to delete habit", err)
 			utils.PrintErrorln("Failed to delete habit:", err)
 			return
 		}
 
-		ac.Logger.Info().
-			Interface("habit", habit).
-			Msg("Habit deleted successfully")
+		ac.Logger.Info("Habit deleted successfully", log.Field{Key: "habit", Value: habit})
 		utils.PrintSuccessf("Habit '%s' deleted successfully.\n", habit.Title)
 	},
 }
@@ -135,7 +125,7 @@ var habitUpdateCmd = &cobra.Command{
 	Example: `mindloop habit update "Exercise" --time "1:00 PM"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			ac.Logger.Error().Msg("No habit ID provided for update")
+			ac.Logger.Error("No habit ID provided for update", nil)
 			utils.PrintWarnln("Please provide the habit ID to update.")
 			return
 		}
@@ -143,7 +133,7 @@ var habitUpdateCmd = &cobra.Command{
 
 		habit, err := habitService.GetHabit(habitId)
 		if err != nil {
-			ac.Logger.Error().Msg("Habit not found")
+			ac.Logger.Error("Habit not found", nil)
 			utils.PrintErrorln("Habit not found:", err)
 			return
 		}
@@ -151,23 +141,19 @@ var habitUpdateCmd = &cobra.Command{
 		utils.PrintInfof("Updating habit '%s'...\n", habit.Title)
 		utils.PrintTable([]models.HabitView{models.ToHabitView(*habit)})
 		utils.PrintInfoln("Entering interactive mode to update Habit (Press Enter to keep current field intact)")
-		ac.Logger.Info().
-			Interface("habit", habit).
-			Msg("Entering interactive mode to update habit")
+		ac.Logger.Info("Entering interactive mode to update habit", log.Field{Key: "habit", Value: habit})
 
 		// Modifies habit in place
 		BuildHabitFromInteractiveMode(habit)
 
 		err = habitService.UpdateHabit(habit)
 		if err != nil {
-			ac.Logger.Error().Err(err).Msg("Failed to update habit")
+			ac.Logger.Error("Failed to update habit", err)
 			utils.PrintErrorln("Failed to update habit:", err)
 			return
 		}
 
-		ac.Logger.Info().
-			Interface("habit", habit).
-			Msg("Habit updated successfully")
+		ac.Logger.Info("Habit updated successfully", log.Field{Key: "habit", Value: habit})
 		utils.PrintSuccessf("Habit '%s' updated successfully.\n", habit.Title)
 	},
 }
@@ -179,19 +165,19 @@ var habitListCmd = &cobra.Command{
 	Aliases: []string{"l"},
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.PrintInfoln("Keep calm, fetching habits...")
-		ac.Logger.Info().Msg("Fetching habits...")
+		ac.Logger.Info("Fetching habits...")
 
 		intervalFilter := models.IntervalType("")
 		if !*daily && !*weekly { // nothing selected via flags
 			utils.PrintInfoln("No interval filter applied. Showing all habit logs.")
-			ac.Logger.Info().Msg("No interval filter applied. Showing all habit logs.")
+			ac.Logger.Info("No interval filter applied. Showing all habit logs.")
 		} else {
 			intervalFilter = GetIntervalFromFlag()
 		}
 
 		habits, err := habitService.ListHabits(intervalFilter)
 		if err != nil {
-			ac.Logger.Error().Err(err).Msg("Failed to retrieve habits")
+			ac.Logger.Error("Failed to retrieve habits", err)
 			utils.PrintErrorln("Failed to retrieve habits:", err)
 			return
 		}
@@ -212,33 +198,31 @@ var habitLogCmd = &cobra.Command{
 	Example: `mindloop habit log "Exercise"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			ac.Logger.Error().Msg("No habit ID provided for logging")
+			ac.Logger.Error("No habit ID provided for logging", nil)
 			utils.PrintWarnln("Please provide the habit ID to log.")
 			return
 		}
 		habitID := args[0]
 
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := cfg.GetUserConfig()
 
-		habit, log, milestoneReached, err := habitService.LogHabit(habitID, uc.PointsConfig.Habit)
+		habit, logEntry, milestoneReached, err := habitService.LogHabit(habitID, uc.PointsConfig.Habit)
 		if err != nil {
 			if err.Error() == "habit already completed for interval" {
 				utils.PrintRocketf("Habit already completed. No need to log again.\n")
 				return
 			}
-			ac.Logger.Error().Err(err).Msg("Failed to log habit")
+			ac.Logger.Error("Failed to log habit", err)
 			utils.PrintErrorln("Failed to log habit:", err)
 			return
 		}
 
-		ac.Logger.Info().
-			Interface("habit", habit).
-			Msgf("Habit %s logged %d/%d times in %s interval", habit.Title, log.ActualCount, habit.TargetCount, habit.Interval)
-		utils.PrintLoadingf("Habit %s logged %d/%d times in %s interval.\n", habit.Title, log.ActualCount, habit.TargetCount, habit.Interval)
+		msg := fmt.Sprintf("Habit %s logged %d/%d times in %s interval", habit.Title, logEntry.ActualCount, habit.TargetCount, habit.Interval)
+		ac.Logger.Info(msg, log.Field{Key: "habit", Value: habit})
+		utils.PrintLoadingf("Habit %s logged %d/%d times in %s interval.\n", habit.Title, logEntry.ActualCount, habit.TargetCount, habit.Interval)
 		utils.PrintInfof("Use 'mindloop habit unlog <id>' to mark it as undone, and reset to 0/%d.\n", habit.TargetCount)
 
-		if log.ActualCount == habit.TargetCount {
+		if logEntry.ActualCount == habit.TargetCount {
 			utils.PrintSuccessf("Habit '%s' marked done! (+%d pts) 🎉\n", habit.Title, uc.PointsConfig.Habit)
 			if milestoneReached {
 				utils.PrintRocketln("🏆 MILESTONE REACHED! You're on fire! 🏆")
@@ -258,7 +242,7 @@ var habitUnLogCmd = &cobra.Command{
 	Example: `mindloop habit unlog "Exercise"`,
 	Run: func(cmd *cobra.Command, args []string) {
 		if len(args) < 1 {
-			ac.Logger.Error().Msg("No habit ID provided for unlogging")
+			ac.Logger.Error("No habit ID provided for unlogging", nil)
 			utils.PrintWarnln("Please provide the habit ID to unlog.")
 			return
 		}
@@ -266,14 +250,12 @@ var habitUnLogCmd = &cobra.Command{
 
 		habit, err := habitService.UnlogHabit(habitID)
 		if err != nil {
-			ac.Logger.Error().Err(err).Msg("Failed to unlog habit")
+			ac.Logger.Error("Failed to unlog habit", err)
 			utils.PrintErrorln("Failed to unlog habit:", err)
 			return
 		}
 
-		ac.Logger.Info().
-			Interface("habit", habit).
-			Msg("Habit unlogged successfully")
+		ac.Logger.Info("Habit unlogged successfully", log.Field{Key: "habit", Value: habit})
 		utils.PrintSuccessf("Habit '%s' unlogged successfully. Reset to 0/%d.\n", habit.Title, habit.TargetCount)
 		utils.PrintInfoln("Use 'mindloop habit log <id>' to mark it as done again.")
 	},
@@ -290,7 +272,7 @@ var habitLogShowCmd = &cobra.Command{
 		intervalFilter := models.IntervalType("")
 		if !*daily && !*weekly { // nothing selected via flags
 			utils.PrintInfoln("No interval filter applied. Showing all habit logs.")
-			ac.Logger.Info().Msg("No interval filter applied. Showing all habit logs.")
+			ac.Logger.Info("No interval filter applied. Showing all habit logs.")
 			intervalFilter = "" // no filter
 		} else {
 			intervalFilter = GetIntervalFromFlag()
@@ -298,7 +280,7 @@ var habitLogShowCmd = &cobra.Command{
 
 		habitLogs, err := habitService.ListHabitLogs(intervalFilter)
 		if err != nil {
-			ac.Logger.Error().Err(err).Msg("Failed to retrieve habit logs")
+			ac.Logger.Error("Failed to retrieve habit logs", err)
 			utils.PrintErrorln("Failed to retrieve habit logs:", err)
 			return
 		}
@@ -381,9 +363,7 @@ func BuildHabitFromInteractiveMode(hb *models.Habit) *models.Habit {
 		_, _ = fmt.Scanln(&interval)
 		if interval != "" {
 			if !models.IsValidIntervalType(interval) {
-				ac.Logger.Error().
-					Interface("habit", hb).
-					Msg("Invalid interval type.")
+				ac.Logger.Error("Invalid interval type.", nil, log.Field{Key: "habit", Value: hb})
 				utils.PrintWarnln("Invalid interval type. Retry with 'daily' or 'weekly'.")
 
 				continue

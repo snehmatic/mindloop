@@ -24,11 +24,11 @@ var summaryCmd = &cobra.Command{
 	Example: `mindloop summary --year`,
 	Aliases: []string{"sum", "stats"},
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		summaryService = summary.NewService(gdb)
+		summaryService = summary.NewService(*fRepo, *hRepo, *iRepo, *pRepo, *tRepo, logger)
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		utils.PrettyPrintBanner()
-		ac.Logger.Info().Msg("Requested productivity summary")
+		ac.Logger.Info("Requested productivity summary")
 
 		start, end := GetTimeRangeFromFlags()
 
@@ -37,12 +37,12 @@ var summaryCmd = &cobra.Command{
 		report, err := summaryService.GenerateSummary(start, end)
 		if err != nil {
 			utils.PrintErrorln("Error generating summary:", err)
-			ac.Logger.Error().Msgf("Error generating summary: %v", err)
+			ac.Logger.Error("Error generating summary", err)
 			return
 		}
 		PrintSummary(report)
 
-		ac.Logger.Info().Msgf("Generated summary from %s to %s", start.Format("02-Jan-2006"), end.Format("02-Jan-2006"))
+		ac.Logger.Info(fmt.Sprintf("Generated summary from %s to %s", start.Format("02-Jan-2006"), end.Format("02-Jan-2006")))
 		utils.PrintSuccessln("Summary generated successfully!")
 
 		utils.PrintInfoln("\n💡 Tip: For an AI-generated overview, use `mindloop journal generate -d` (or -w, -y)")

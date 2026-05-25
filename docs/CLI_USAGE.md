@@ -11,6 +11,7 @@ This guide provides a detailed overview of the `mindloop` CLI commands and how t
 - [Journaling](#journaling)
 - [Quick Notes](#quick-notes)
 - [Tasks](#tasks)
+- [Routines](#routines)
 - [Summary](#summary)
 - [Data Management (Backup & Restore)](#data-management-backup--restore)
 - [Help](#help)
@@ -275,6 +276,29 @@ Manage independent tasks and optionally link them to intents or focus sessions.
 *   **Complete a task:**
     ```bash
     mindloop task complete <task_id>
+    ```
+
+---
+
+## Routines
+
+Group multiple habits into a specific time of day.
+
+### Commands
+
+*   **Create a routine:**
+    ```bash
+    mindloop routine create "Morning Routine" --time "Morning"
+    ```
+
+*   **Add a habit to a routine:**
+    ```bash
+    mindloop routine add-habit <routine_id> <habit_id>
+    ```
+
+*   **List routines:**
+    ```bash
+    mindloop routine list
     ```
 
 ---

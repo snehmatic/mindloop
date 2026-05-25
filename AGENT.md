@@ -20,7 +20,7 @@ The project follows a clean architecture pattern:
 *   `cmd/`: Application entry points.
     *   `cmd/cli/`: CLI command definitions (Cobra).
     *   `cmd/server/`: Web server entry point.
-*   `internal/core/`: Business logic domain (Focus, Habit, Intent, Journal, Summary, Quest, Note).
+*   `internal/core/`: Business logic domain (Focus, Habit, Intent, Journal, Summary, Quest, Note, Routine).
 *   `api/v1/`: HTTP handlers for the web server.
 *   `db/`: Database connection and schema management.
 *   `web/`: Static assets and HTML templates.

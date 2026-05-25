@@ -6,6 +6,8 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/habit"
+	"github.com/snehmatic/mindloop/internal/log"
+	hRepo "github.com/snehmatic/mindloop/internal/repository/habit"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -32,7 +34,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestHabitService(t *testing.T) {
 	db := setupTestDB(t)
-	s := habit.NewService(db)
+	s := habit.NewService(hRepo.NewSQLRepository(db, log.Get()))
 
 	// 1. Create Habit
 	h := &models.Habit{
@@ -46,12 +48,12 @@ func TestHabitService(t *testing.T) {
 	}
 
 	// 2. Log Habit
-	_, log, _, err := s.LogHabit("1", 5)
+	_, logHabbit, _, err := s.LogHabit("1", 5)
 	if err != nil {
 		t.Fatalf("Failed to log habit: %v", err)
 	}
-	if log.ActualCount != 1 {
-		t.Errorf("Expected actual count 1, got %d", log.ActualCount)
+	if logHabbit.ActualCount != 1 {
+		t.Errorf("Expected actual count 1, got %d", logHabbit.ActualCount)
 	}
 
 	// 3. Log Habit again (already completed)
@@ -84,7 +86,7 @@ func TestHabitService(t *testing.T) {
 
 func TestCalculateStreak(t *testing.T) {
 	db := setupTestDB(t)
-	s := habit.NewService(db)
+	s := habit.NewService(hRepo.NewSQLRepository(db, log.Get()))
 
 	h := &models.Habit{Title: "Run", TargetCount: 1, Interval: models.Daily}
 	if err := s.CreateHabit(h); err != nil {

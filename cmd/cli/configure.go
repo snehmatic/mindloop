@@ -11,6 +11,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/ai"
 	"github.com/snehmatic/mindloop/internal/gamification"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -72,7 +73,8 @@ var confCmd = &cobra.Command{
 		configureAI = strings.ToLower(configureAI)
 
 		if configureAI == "y" || configureAI == "yes" {
-			aiSvc := ai.NewService(gdb)
+			settingsRepo := appsettings.NewSQLRepository(gdb)
+		aiSvc := ai.NewService(settingsRepo)
 			if err := SetupAIConfig(reader, os.Stdout, aiSvc); err != nil {
 				utils.PrintErrorln("Failed to configure AI: " + err.Error())
 			}

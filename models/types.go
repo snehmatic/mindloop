@@ -31,6 +31,23 @@ type Habit struct {
 	Interval    IntervalType `gorm:"type:varchar(100)" json:"interval"`
 	TargetCount int          `gorm:"type:int" json:"target_count"`
 	EndDate     *time.Time   `json:"end_date,omitempty"`
+	RoutineID   *uint        `json:"routine_id,omitempty"`
+}
+
+// Routine groups multiple habits into a specific time of day
+type Routine struct {
+	gorm.Model
+	Title     string  `gorm:"type:varchar(100)" json:"title"`
+	TimeOfDay string  `gorm:"type:varchar(50)" json:"time_of_day"`
+	Habits    []Habit `gorm:"foreignKey:RoutineID" json:"habits"`
+}
+
+// RoutineView is a simplified representation of a Routine for the UI
+type RoutineView struct {
+	ID        uint        `json:"id"`
+	Title     string      `json:"title"`
+	TimeOfDay string      `json:"time_of_day"`
+	Habits    []HabitView `json:"habits"`
 }
 
 // Defaults for Habit
@@ -145,16 +162,16 @@ func IsValidIntervalType(interval string) bool {
 // Intent represents a high-level goal for the user
 type Intent struct {
 	gorm.Model
-	Name    string     `gorm:"not null" json:"name"`
-	Status  string     `gorm:"default:active" json:"status"`
-	EndedAt *time.Time `json:"ended_at,omitempty"`
+	Name    string       `gorm:"not null" json:"name"`
+	Status  IntentStatus `gorm:"default:active" json:"status"`
+	EndedAt *time.Time   `json:"ended_at,omitempty"`
 }
 
 // IntentView is a simplified representation of an Intent for the UI
 type IntentView struct {
 	ID      uint
 	Name    string
-	Status  string
+	Status  IntentStatus
 	EndedAt string
 }
 
@@ -176,22 +193,22 @@ func ToIntentView(i Intent) IntentView {
 // FocusSession records a period of deep work
 type FocusSession struct {
 	gorm.Model
-	Title    string    `gorm:"not null" json:"title"`        // e.g., "Work on project"
-	Status   string    `gorm:"default:active" json:"status"` // active, paused
-	EndTime  time.Time `json:"end_time"`
-	Duration float64   `json:"duration"`                 // in mins
-	Rating   int       `gorm:"default:-1" json:"rating"` // 0 to 10, optional
+	Title    string             `gorm:"not null" json:"title"`        // e.g., "Work on project"
+	Status   FocusSessionStatus `gorm:"default:active" json:"status"` // active, paused
+	EndTime  time.Time          `json:"end_time"`
+	Duration float64            `json:"duration"`                 // in mins
+	Rating   int                `gorm:"default:-1" json:"rating"` // 0 to 10, optional
 }
 
 // FocusSessionView is a simplified representation of a FocusSession for the UI
 type FocusSessionView struct {
-	ID        uint    `json:"id"`
-	Title     string  `json:"title"`
-	Status    string  `json:"status"`
-	EndTime   string  `json:"end_time"`   // formatted as "2006-01-02 15:04:05"
-	Duration  float64 `json:"duration"`   // in mins
-	Rating    int     `json:"rating"`     // 0 to 10, -1 if not rated
-	CreatedAt string  `json:"created_at"` // formatted as "2006-01-02 15:04:05"
+	ID        uint               `json:"id"`
+	Title     string             `json:"title"`
+	Status    FocusSessionStatus `json:"status"`
+	EndTime   string             `json:"end_time"`   // formatted as "2006-01-02 15:04:05"
+	Duration  float64            `json:"duration"`   // in mins
+	Rating    int                `json:"rating"`     // 0 to 10, -1 if not rated
+	CreatedAt string             `json:"created_at"` // formatted as "2006-01-02 15:04:05"
 }
 
 func ToFocusSessionView(fs FocusSession) FocusSessionView {
@@ -294,7 +311,7 @@ type HabitStats struct {
 
 type IntentStats struct {
 	IntentName string
-	Status     string
+	Status     IntentStatus
 }
 
 type SummaryReport struct {
@@ -309,39 +326,39 @@ type SummaryReport struct {
 // SideQuest represents an ad-hoc task during a focus session
 type SideQuest struct {
 	gorm.Model
-	Title   string     `gorm:"not null" json:"title"`
-	Status  string     `gorm:"default:active" json:"status"` // active, done
-	Note    string     `gorm:"type:text" json:"note"`
-	EndedAt *time.Time `json:"ended_at,omitempty"`
+	Title   string          `gorm:"not null" json:"title"`
+	Status  SideQuestStatus `gorm:"default:active" json:"status"` // active, done
+	Note    string          `gorm:"type:text" json:"note"`
+	EndedAt *time.Time      `json:"ended_at,omitempty"`
 }
 
 // Task represents a to-do item linked to an intent or focus session
 type Task struct {
 	gorm.Model
-	Title          string    `gorm:"not null" json:"title"`
-	Status         string    `gorm:"default:pending" json:"status"` // pending, completed
-	IntentID       *uint     `json:"intent_id,omitempty"`
-	FocusSessionID *uint     `json:"focus_session_id,omitempty"`
-	Position       int       `gorm:"default:0" json:"position"`
-	SubTasks       []SubTask `gorm:"foreignKey:TaskID" json:"sub_tasks"`
+	Title          string     `gorm:"not null" json:"title"`
+	Status         TaskStatus `gorm:"default:pending" json:"status"` // pending, completed
+	IntentID       *uint      `json:"intent_id,omitempty"`
+	FocusSessionID *uint      `json:"focus_session_id,omitempty"`
+	Position       int        `gorm:"default:0" json:"position"`
+	SubTasks       []SubTask  `gorm:"foreignKey:TaskID" json:"sub_tasks"`
 }
 
 // SubTask is a smaller component of a Task
 type SubTask struct {
 	gorm.Model
-	TaskID   uint   `gorm:"not null" json:"task_id"`
-	Title    string `gorm:"not null" json:"title"`
-	Status   string `gorm:"default:pending" json:"status"` // pending, completed
-	Position int    `gorm:"default:0" json:"position"`
+	TaskID   uint       `gorm:"not null" json:"task_id"`
+	Title    string     `gorm:"not null" json:"title"`
+	Status   TaskStatus `gorm:"default:pending" json:"status"` // pending, completed
+	Position int        `gorm:"default:0" json:"position"`
 }
 
 // SubTaskView is a simplified representation of a SubTask for the UI
 type SubTaskView struct {
-	ID       uint   `json:"id"`
-	TaskID   uint   `json:"task_id"`
-	Title    string `json:"title"`
-	Status   string `json:"status"`
-	Position int    `json:"position"`
+	ID       uint       `json:"id"`
+	TaskID   uint       `json:"task_id"`
+	Title    string     `json:"title"`
+	Status   TaskStatus `json:"status"`
+	Position int        `json:"position"`
 }
 
 func ToSubTaskView(st SubTask) SubTaskView {
@@ -358,7 +375,7 @@ func ToSubTaskView(st SubTask) SubTaskView {
 type TaskView struct {
 	ID                uint          `json:"id"`
 	Title             string        `json:"title"`
-	Status            string        `json:"status"`
+	Status            TaskStatus    `json:"status"`
 	IntentID          *uint         `json:"intent_id,omitempty"`
 	IntentName        string        `json:"intent_name,omitempty"`
 	FocusSessionID    *uint         `json:"focus_session_id,omitempty"`
@@ -388,11 +405,11 @@ func ToTaskView(t Task) TaskView {
 
 // SideQuestView is a simplified representation of a SideQuest for the UI
 type SideQuestView struct {
-	ID      uint   `json:"id"`
-	Title   string `json:"title"`
-	Status  string `json:"status"`
-	Note    string `json:"note"`
-	EndedAt string `json:"ended_at"`
+	ID      uint            `json:"id"`
+	Title   string          `json:"title"`
+	Status  SideQuestStatus `json:"status"`
+	Note    string          `json:"note"`
+	EndedAt string          `json:"ended_at"`
 }
 
 func ToSideQuestView(sq SideQuest) SideQuestView {

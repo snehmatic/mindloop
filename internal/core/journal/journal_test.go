@@ -5,6 +5,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/journal"
+	journalRepository "github.com/snehmatic/mindloop/internal/repository/journal"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -31,7 +32,8 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestJournalService(t *testing.T) {
 	db := setupTestDB(t)
-	s := journal.NewService(db)
+	repo := journalRepository.NewSQLRepository(db)
+	s := journal.NewService(repo)
 
 	// 1. Create Entry
 	_, err := s.CreateEntry("Test Journal", "Test Content", "happy", 5)
@@ -75,7 +77,8 @@ func TestJournalService(t *testing.T) {
 
 func TestCreateEntryValidation(t *testing.T) {
 	db := setupTestDB(t)
-	s := journal.NewService(db)
+	repo := journalRepository.NewSQLRepository(db)
+	s := journal.NewService(repo)
 
 	tests := []struct {
 		name    string

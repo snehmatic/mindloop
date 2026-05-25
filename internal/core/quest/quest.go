@@ -1,89 +1,41 @@
 package quest
 
 import (
-	"errors"
-	"time"
-
-	"github.com/snehmatic/mindloop/internal/core/points"
+	"github.com/snehmatic/mindloop/internal/log"
+	"github.com/snehmatic/mindloop/internal/repository/quest"
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
+// Service handles the logic for managing side quests
 type Service struct {
-	DB *gorm.DB
+	repository quest.Repository
+	logger     log.Logger
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+// NewService creates a new quest Service instance
+func NewService(repo quest.Repository, logger log.Logger) *Service {
+	return &Service{
+		repository: repo,
+		logger:     logger,
+	}
 }
 
 func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
-	if title == "" {
-		return nil, errors.New("title cannot be empty")
-	}
-
-	// Check if there is already an active quest
-	var quests []models.SideQuest
-	if err := s.DB.Where("status = ?", "active").Limit(1).Find(&quests).Error; err != nil {
-		return nil, err
-	}
-	if len(quests) > 0 {
-		return nil, errors.New("a side quest is already active")
-	}
-
-	quest := &models.SideQuest{
-		Title:  title,
-		Status: "active",
-	}
-
-	if err := s.DB.Create(quest).Error; err != nil {
-		return nil, err
-	}
-	return quest, nil
+	return s.repository.StartQuest(title)
 }
 
 func (s *Service) StopQuest(id uint, note string, pointsToAward int) (*models.SideQuest, bool, error) {
-	var quest models.SideQuest
-	if err := s.DB.First(&quest, id).Error; err != nil {
-		return nil, false, err
-	}
-
-	if quest.Status != "active" {
-		return nil, false, errors.New("side quest is not active")
-	}
-
-	quest.Status = "done"
-	quest.Note = note
-	now := time.Now()
-	quest.EndedAt = &now
-
-	if err := s.DB.Save(&quest).Error; err != nil {
-		return nil, false, err
-	}
-
-	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryQuest, quest.ID, pointsToAward)
-
-	return &quest, milestoneReached, nil
+	return s.repository.StopQuest(id, note, pointsToAward)
 }
 
 func (s *Service) ListQuests() ([]models.SideQuest, error) {
-	var quests []models.SideQuest
-	result := s.DB.Order("CreatedAt DESC").Find(&quests)
-	return quests, result.Error
+	return s.repository.ListQuests()
 }
 
 func (s *Service) GetActiveQuest() (*models.SideQuest, error) {
-	var quests []models.SideQuest
-	err := s.DB.Where("status = ?", "active").Limit(1).Find(&quests).Error
-	if err != nil {
-		return nil, err
-	}
-	if len(quests) == 0 {
-		return nil, nil
-	}
-	return &quests[0], nil
+	return s.repository.GetActiveQuest()
 }
 
 func (s *Service) DeleteQuest(id uint) error {
-	return s.DB.Delete(&models.SideQuest{}, id).Error
+	return s.repository.DeleteQuest(id)
 }

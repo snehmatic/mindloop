@@ -1,0 +1,34 @@
+{
+  "name": "mindloop - Dev Container",
+  "image": "mcr.microsoft.com/devcontainers/go:1.26-bookworm",
+  "workspaceFolder": "/workspaces/mindloop",
+
+  "forwardPorts": [8765],
+
+  "postCreateCommand": "curl -sSfL https://raw.githubusercontent.com/air-verse/air/refs/heads/master/install.sh | sh -s -- -b ~/.local/bin && echo 'export PATH=$PATH:~/.local/bin' >> ~/.bashrc",
+  "postStartCommand": "air",
+
+  "customizations": {
+    "jetbrains": {
+      "settings": {
+        "com.intellij:app:HttpConfigurable.use_proxy_pac": true
+      },
+      "plugins": [
+        "com.github.izhangzhihao.intellijgooglesearch",
+        "com.github.maiqingqiang.goormhelper"
+      ]
+    },
+    "vscode": {
+      "extensions": [
+        "golang.Go"
+      ],
+      "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash",
+        "telemetry.telemetryLevel": "off",
+        "telemetry.enableTelemetry": false
+      }
+    }
+  },
+
+ "remoteUser": "vscode"
+}

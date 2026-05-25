@@ -85,6 +85,54 @@
             </div>
         </div>
 
+        <!-- Cloud Sync -->
+        <div class="card">
+            <div class="flex-between mb-md">
+                <div class="flex-center gap-sm">
+                    <i data-lucide="cloud" class="icon-sm text-primary"></i>
+                    <h3 class="mb-0">Sync</h3>
+                </div>
+                <span class="badge badge-warning"
+                    style="font-size: 0.7rem; background: #fffbeb; color: #b45309; padding: 2px 6px; border-radius: 4px;">Beta</span>
+            </div>
+            <p class="text-sm text-muted mb-md">Select data to sync.</p>
+
+            <div class="flex-col">
+                {{ $flags := .Config.FeatureFlags }}
+
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Focus Sessions</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="focus_cloud" {{ if $flags.FocusCloud }}checked{{
+                        end }}>
+                    <div class="toggle-switch"></div>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Habits</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="habit_cloud" {{ if $flags.HabitCloud }}checked{{
+                        end }}>
+                    <div class="toggle-switch"></div>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Intents</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="intent_cloud" {{ if $flags.IntentCloud }}checked{{
+                        end }}>
+                    <div class="toggle-switch"></div>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Journals</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="journal_cloud" {{ if $flags.JournalCloud
+                        }}checked{{ end }}>
+                    <div class="toggle-switch"></div>
+                </label>
+                <label class="settings-toggle">
+                    <span class="text-sm font-bold">Notes</span>
+                    <input type="checkbox" class="toggle-input" style="display: none;" name="note_cloud" {{ if $flags.NoteCloud }}checked{{ end
+                        }}>
+                    <div class="toggle-switch"></div>
+                </label>
+            </div>
+        </div>
+
         <!-- AI Configuration -->
         <div class="card">
             <div class="flex-between mb-md">
@@ -99,22 +147,15 @@
 
             <div class="form-group">
                 <label for="aiProvider">Provider</label>
-                <select id="aiProvider" class="select select-bordered w-full max-w-xs" onchange="toggleAIBaseURL(); saveAISettings(true)">
+                <select id="aiProvider" class="select select-bordered w-full max-w-xs" onchange="saveAISettings()">
                     <option value="gemini">Google Gemini</option>
                     <option value="openai">OpenAI</option>
-                    <option value="custom">Local/Custom (OpenAI-Compatible)</option>
                 </select>
-            </div>
-            
-            <div class="form-group" id="aiBaseURLGroup" style="display: none;">
-                <label for="aiBaseURL">Base URL</label>
-                <input type="text" id="aiBaseURL" placeholder="http://localhost:11434/v1" onblur="saveAISettings(true)">
-                <p class="text-sm text-muted mt-xs mb-0">Endpoint for custom local providers (e.g. Ollama, LM Studio).</p>
             </div>
             <div class="form-group">
                 <label for="aiModel">Model</label>
                 <div class="flex-center gap-sm">
-                    <select id="aiModel" class="select select-bordered w-full max-w-xs" onchange="saveAISettings(false)">
+                    <select id="aiModel" class="select select-bordered w-full max-w-xs" onchange="saveAISettings()">
                         <option value="">Loading models...</option>
                     </select>
                     <button type="button" class="btn btn-icon btn-sm" onclick="fetchModels()" title="Refresh Models">
@@ -125,12 +166,7 @@
             </div>
             <div class="form-group">
                 <label for="aiToken">API Token</label>
-                <div class="flex-center gap-sm">
-                    <input type="password" id="aiToken" placeholder="Enter new token to update" onblur="saveAISettings(true)" style="flex: 1;">
-                    <button type="button" class="btn btn-icon btn-sm" onclick="clearAIToken()" title="Clear Token">
-                        <i data-lucide="trash-2" class="icon-sm"></i>
-                    </button>
-                </div>
+                <input type="password" id="aiToken" placeholder="Enter new token to update" onblur="saveAISettings()">
                 <p class="text-sm text-muted mt-xs mb-0" id="tokenStatus"></p>
             </div>
             <div class="form-group mt-sm flex-center gap-sm" style="justify-content: flex-start;">
@@ -143,62 +179,21 @@
 
         <script>
             let currentModel = "";
-            let hasSavedToken = false;
-
             document.addEventListener('DOMContentLoaded', () => {
                 fetch('/api/v1/ai/settings')
                     .then(res => res.json())
                     .then(data => {
                         if(data.provider) document.getElementById('aiProvider').value = data.provider;
-                        if(data.baseURL) document.getElementById('aiBaseURL').value = data.baseURL;
                         if(data.model) currentModel = data.model;
-                        hasSavedToken = data.hasToken;
-                        
-                        toggleAIBaseURL();
-                        updateTokenStatus();
-
-                        if(hasSavedToken) {
+                        document.getElementById('tokenStatus').innerText = data.hasToken ? "Status: Token is configured securely." : "Status: Token is not configured.";
+                        if(data.hasToken) {
+                            document.getElementById('tokenStatus').classList.add('text-success');
                             fetchModels();
                         } else {
-                            if (document.getElementById('aiProvider').value !== 'custom') {
-                                document.getElementById('aiModel').innerHTML = '<option value="">Token required</option>';
-                            } else {
-                                fetchModels(); // Local tools might work without token
-                            }
+                            document.getElementById('aiModel').innerHTML = '<option value="">No token configured</option>';
                         }
                     });
             });
-
-            function updateTokenStatus() {
-                const provider = document.getElementById('aiProvider').value;
-                const statusEl = document.getElementById('tokenStatus');
-                const newToken = document.getElementById('aiToken').value.trim();
-                
-                statusEl.className = "text-sm text-muted mt-xs mb-0";
-                
-                if (hasSavedToken || newToken !== "") {
-                    statusEl.innerText = "Status: Token is configured securely.";
-                    statusEl.classList.add('text-success');
-                } else {
-                    if (provider === 'custom') {
-                        statusEl.innerText = "Status: Optional for local tools like Ollama.";
-                    } else {
-                        statusEl.innerText = "Status: Token is required for this provider.";
-                        statusEl.classList.add('text-warning');
-                    }
-                }
-            }
-
-            function toggleAIBaseURL() {
-                const provider = document.getElementById('aiProvider').value;
-                const group = document.getElementById('aiBaseURLGroup');
-                if (provider === 'custom') {
-                    group.style.display = 'block';
-                } else {
-                    group.style.display = 'none';
-                }
-                updateTokenStatus();
-            }
 
             function testConnection() {
                 const btn = document.getElementById('btnTestConnection');
@@ -214,7 +209,6 @@
                     provider: document.getElementById('aiProvider').value,
                     model: document.getElementById('aiModel').value,
                     token: document.getElementById('aiToken').value,
-                    baseURL: document.getElementById('aiBaseURL').value,
                 };
 
                 fetch('/api/v1/ai/test', { 
@@ -268,43 +262,25 @@
                                 modelSelect.appendChild(opt);
                             });
                             document.getElementById('modelStatus').innerText = "Models loaded successfully.";
-                            document.getElementById('modelStatus').className = "text-sm text-success mt-xs mb-0";
+                            document.getElementById('modelStatus').classList.add('text-success');
                         } else {
                             modelSelect.innerHTML = '<option value="">No models found</option>';
-                            document.getElementById('modelStatus').innerText = "No models available for this configuration.";
-                            document.getElementById('modelStatus').className = "text-sm text-warning mt-xs mb-0";
+                            document.getElementById('modelStatus').innerText = "No models available for this token.";
                         }
                     })
                     .catch(err => {
                         modelSelect.innerHTML = '<option value="">Failed to load</option>';
                         document.getElementById('modelStatus').innerText = "Error: " + err.message;
-                        document.getElementById('modelStatus').className = "text-sm text-danger mt-xs mb-0";
+                        document.getElementById('modelStatus').classList.remove('text-success');
+                        document.getElementById('modelStatus').classList.add('text-danger');
                     });
             }
 
-            function clearAIToken() {
-                if (confirm("Are you sure you want to remove your saved API token?")) {
-                    document.getElementById('aiToken').value = "__CLEAR__";
-                    saveAISettings(true);
-                }
-            }
-
-            function saveAISettings(refetchModels = false) {
-                const modelSelect = document.getElementById('aiModel');
-                const isModelLoading = modelSelect.options.length > 0 && modelSelect.options[0].text.includes("Loading");
-                
-                let modelToSave = modelSelect.value;
-                if (isModelLoading) {
-                    modelToSave = currentModel;
-                } else {
-                    currentModel = modelToSave; // update global currentModel
-                }
-
+            function saveAISettings() {
                 const payload = {
                     provider: document.getElementById('aiProvider').value,
-                    model: modelToSave,
+                    model: document.getElementById('aiModel').value,
                     token: document.getElementById('aiToken').value,
-                    baseURL: document.getElementById('aiBaseURL').value,
                 };
                 
                 const hasNewToken = payload.token.trim() !== "";
@@ -314,16 +290,11 @@
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(payload)
                 }).then(() => {
-                    if (payload.token === "__CLEAR__") {
-                        hasSavedToken = false;
-                        document.getElementById('aiToken').value = '';
-                    } else if (hasNewToken) {
-                        hasSavedToken = true;
+                    if (hasNewToken) {
                         document.getElementById('aiToken').value = ''; // clear field
-                    }
-                    updateTokenStatus();
-                    if (refetchModels || hasNewToken || payload.token === "__CLEAR__") {
-                        fetchModels(); 
+                        document.getElementById('tokenStatus').innerText = "Status: Token is configured securely.";
+                        document.getElementById('tokenStatus').classList.add('text-success');
+                        fetchModels(); // Refresh models since token changed
                     }
                 }).catch(err => console.error("Failed to save AI settings", err));
             }
@@ -342,7 +313,7 @@
             <div class="flex-col gap-md">
                 {{ $flags := .Config.FeatureFlags }}
                 <label class="settings-toggle mb-md">
-                    <span class="text-sm font-bold">Enable Points and Milestones</span>
+                    <span class="text-sm font-bold">Enable Points & Confetti</span>
                     <input type="checkbox" class="toggle-input" style="display: none;" name="gamification" id="gamification-toggle"
                         onchange="togglePointDefinitions(this.checked)" {{ if $flags.Gamification }}checked{{ end }}>
                     <div class="toggle-switch"></div>
@@ -388,64 +359,9 @@
                             <input type="number" id="pts_subtask" name="pts_subtask"
                                 value="{{ .Config.PointsConfig.SubTask }}" min="0">
                         </div>
-                        <div class="form-group">
-                            <label for="pts_milestone_interval" class="text-xs">Milestone Interval</label>
-                            <input type="number" id="pts_milestone_interval" name="pts_milestone_interval"
-                                value="{{ .Config.PointsConfig.MilestoneInterval }}" min="1">
-                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <!-- Cloud Sync (Coming Soon) -->
-        <div class="card" style="opacity: 0.6; cursor: not-allowed; position: relative; overflow: hidden;">
-            <div class="flex-between mb-md">
-                <div class="flex-center gap-sm">
-                    <i data-lucide="cloud" class="icon-sm text-muted"></i>
-                    <h3 class="mb-0 text-muted">Cloud Sync</h3>
-                </div>
-                <span class="badge"
-                    style="font-size: 0.7rem; background: var(--bg-surface-alt); color: var(--text-muted); padding: 2px 8px; border-radius: 4px; border: 1px solid var(--border);">Coming Soon</span>
-            </div>
-            <p class="text-sm text-muted mb-md">Sync your data across devices securely. This feature is currently under development.</p>
-
-            <div class="flex-col" style="pointer-events: none;">
-                {{ $flags := .Config.FeatureFlags }}
-
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold text-muted">Focus Sessions</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="focus_cloud" {{ if $flags.FocusCloud }}checked{{
-                        end }} disabled>
-                    <div class="toggle-switch" style="opacity: 0.5;"></div>
-                </label>
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold text-muted">Habits</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="habit_cloud" {{ if $flags.HabitCloud }}checked{{
-                        end }} disabled>
-                    <div class="toggle-switch" style="opacity: 0.5;"></div>
-                </label>
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold text-muted">Intents</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="intent_cloud" {{ if $flags.IntentCloud }}checked{{
-                        end }} disabled>
-                    <div class="toggle-switch" style="opacity: 0.5;"></div>
-                </label>
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold text-muted">Journals</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="journal_cloud" {{ if $flags.JournalCloud
-                        }}checked{{ end }} disabled>
-                    <div class="toggle-switch" style="opacity: 0.5;"></div>
-                </label>
-                <label class="settings-toggle">
-                    <span class="text-sm font-bold text-muted">Notes</span>
-                    <input type="checkbox" class="toggle-input" style="display: none;" name="note_cloud" {{ if $flags.NoteCloud }}checked{{ end
-                        }} disabled>
-                    <div class="toggle-switch" style="opacity: 0.5;"></div>
-                </label>
-            </div>
-            <!-- Overlay to ensure non-interactivity -->
-            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;"></div>
         </div>
     </div>
 </form>

@@ -33,7 +33,7 @@ func Conn(connString string) (*gorm.DB, error) {
 		return db, err
 	}
 
-	logger.Info().Msg("Connected to DB, migrations complete!")
+	logger.Info("Connected to DB, migrations complete!")
 	return db, nil
 }
 
@@ -64,13 +64,13 @@ func LocalConn() (*gorm.DB, error) {
 		return db, err
 	}
 
-	logger.Info().Msgf("Connected to local SQLite DB at %s, migrations complete!", dbPath)
+	logger.Info(fmt.Sprintf("Connected to local SQLite DB at %s, migrations complete!", dbPath))
 	return db, nil
 }
 
 // ConnectToDb connects to the database based on the provided application configuration
 func ConnectToDb(appConfig config.Config) (*gorm.DB, error) {
-	logger.Debug().Msg("Connecting to DB...")
+	logger.Debug("Connecting to DB...")
 	switch appConfig.Mode {
 	case config.Local:
 		return LocalConn()
@@ -106,12 +106,13 @@ func MigrateDB(db *gorm.DB) error {
 		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
+		&models.Routine{},
 		&models.Task{},
 		&models.SubTask{},
 		&models.AppSetting{},
 	)
 	if err != nil {
-		logger.Error().Err(err).Msg("Failed to migrate DB")
+		logger.Error("Failed to migrate DB", err)
 		return err
 	}
 	return nil

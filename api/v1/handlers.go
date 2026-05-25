@@ -20,9 +20,11 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/snehmatic/mindloop/web"
+	"gorm.io/gorm"
 )
 
 type HabitView struct {
@@ -71,19 +73,23 @@ var templateFuncs = template.FuncMap{
 }
 
 type MindloopHandler struct {
-	config  *config.Config
-	journal *journal.Service
-	note    *note.Service
-	habit   *habit.Service
-	focus   *focus.Service
-	intent  *intent.Service
-	quest   *quest.Service
-	summary *summary.Service
-	backup  *backup.Service
-	task    *task.Service
+	config          *config.Config
+	db              *gorm.DB
+	appSettingsRepo appsettings.Repository
+	journal         *journal.Service
+	note            *note.Service
+	habit           *habit.Service
+	focus           *focus.Service
+	intent          *intent.Service
+	quest           *quest.Service
+	summary         *summary.Service
+	backup          *backup.Service
+	task            *task.Service
 }
 
 func NewMindloopHandler(
+	db *gorm.DB,
+	appSettingsRepo appsettings.Repository,
 	journal *journal.Service,
 	note *note.Service,
 	habit *habit.Service,
@@ -95,16 +101,18 @@ func NewMindloopHandler(
 	task *task.Service,
 ) *MindloopHandler {
 	return &MindloopHandler{
-		config:  config.GetConfig(),
-		journal: journal,
-		note:    note,
-		habit:   habit,
-		focus:   focus,
-		intent:  intent,
-		quest:   quest,
-		summary: summary,
-		backup:  backup,
-		task:    task,
+		config:          config.GetConfig(),
+		db:              db,
+		appSettingsRepo: appSettingsRepo,
+		journal:         journal,
+		note:            note,
+		habit:           habit,
+		focus:           focus,
+		intent:          intent,
+		quest:           quest,
+		summary:         summary,
+		backup:          backup,
+		task:            task,
 	}
 }
 
@@ -139,8 +147,7 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 			d["UserName"] = mlh.config.UserName
 		}
 		if _, exists := d["Config"]; !exists {
-			uc := config.UserConfig{}
-			_ = uc.ReadFromYAML()
+			uc := config.GetUserConfig()
 			d["Config"] = uc
 		}
 	}
@@ -265,8 +272,7 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 	content := r.FormValue("content")
 	mood := r.FormValue("mood")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	milestoneReached, err := mlh.journal.CreateEntry(title, content, mood, uc.PointsConfig.Journal)
 	if err != nil {
@@ -310,7 +316,7 @@ func (mlh *MindloopHandler) HandleQuestStart(w http.ResponseWriter, r *http.Requ
 
 	// 1. Pause Intent
 	currentIntent, _ := mlh.intent.GetOngoingIntent()
-	if currentIntent != nil && currentIntent.Status == "active" {
+	if currentIntent != nil && currentIntent.Status == models.IntentStatusActive {
 		_, _ = mlh.intent.PauseIntent(currentIntent.ID)
 	}
 
@@ -334,16 +340,15 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 
 	idStr := r.FormValue("id")
 	id, _ := strconv.ParseUint(idStr, 10, 32)
-	note := r.FormValue("note")
+	noteVal := r.FormValue("note")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
-	_, milestoneReached, _ := mlh.quest.StopQuest(uint(id), note, uc.PointsConfig.Quest)
+	_, milestoneReached, _ := mlh.quest.StopQuest(uint(id), noteVal, uc.PointsConfig.Quest)
 
 	// Auto-resume intent if one is paused
 	currentIntent, _ := mlh.intent.GetOngoingIntent()
-	if currentIntent != nil && currentIntent.Status == "paused" {
+	if currentIntent != nil && currentIntent.Status == models.IntentStatusPaused {
 		_, _ = mlh.intent.ResumeIntent(currentIntent.ID)
 	}
 
@@ -396,8 +401,7 @@ func (mlh *MindloopHandler) HandleIntentResume(w http.ResponseWriter, r *http.Re
 	// 2. Automatically complete any active side quest
 	activeQuest, _ := mlh.quest.GetActiveQuest()
 	if activeQuest != nil {
-		uc := config.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 		_, _, _ = mlh.quest.StopQuest(activeQuest.ID, "Resumed main intent", uc.PointsConfig.Quest)
 	}
 

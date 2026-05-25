@@ -9,9 +9,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
 const (
@@ -22,20 +22,31 @@ const (
 )
 
 type Service struct {
-	DB *gorm.DB
+	settingsRepo appsettings.Repository
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+func NewService(settingsRepo appsettings.Repository) *Service {
+	return &Service{settingsRepo: settingsRepo}
 }
 
 // GetSettings retrieves the AI configuration from the database
 func (s *Service) GetSettings() (provider, model, token, baseURL string, err error) {
-	var pSetting, mSetting, tSetting, bSetting models.AppSetting
-	s.DB.Where("key = ?", SettingKeyAIProvider).Limit(1).Find(&pSetting)
-	s.DB.Where("key = ?", SettingKeyAIModel).Limit(1).Find(&mSetting)
-	s.DB.Where("key = ?", SettingKeyAIToken).Limit(1).Find(&tSetting)
-	s.DB.Where("key = ?", SettingKeyAIBaseURL).Limit(1).Find(&bSetting)
+	pSetting, err := s.settingsRepo.GetSetting(SettingKeyAIProvider)
+	if err != nil {
+		return "", "", "", "", err
+	}
+	mSetting, err := s.settingsRepo.GetSetting(SettingKeyAIModel)
+	if err != nil {
+		return "", "", "", "", err
+	}
+	tSetting, err := s.settingsRepo.GetSetting(SettingKeyAIToken)
+	if err != nil {
+		return "", "", "", "", err
+	}
+	bSetting, err := s.settingsRepo.GetSetting(SettingKeyAIBaseURL)
+	if err != nil {
+		return "", "", "", "", err
+	}
 
 	provider = pSetting.Value
 	model = mSetting.Value
@@ -77,14 +88,7 @@ func (s *Service) SaveSettings(provider, model, token, baseURL string) error {
 }
 
 func (s *Service) saveOrUpdate(key, value string) {
-	var setting models.AppSetting
-	result := s.DB.Where("key = ?", key).Limit(1).Find(&setting)
-	if result.RowsAffected == 0 {
-		s.DB.Create(&models.AppSetting{Key: key, Value: value})
-	} else {
-		setting.Value = value
-		s.DB.Save(&setting)
-	}
+	s.settingsRepo.SaveSetting(&models.AppSetting{Key: key, Value: value})
 }
 
 // ListModels fetches the available models for the configured provider

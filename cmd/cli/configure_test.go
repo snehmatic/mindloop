@@ -8,6 +8,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/ai"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 	"gorm.io/gorm/schema"
@@ -33,7 +34,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestSetupAIConfig(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	input := "openai\ngpt-4\ntest-token\n"
 	reader := bufio.NewReader(strings.NewReader(input))
@@ -65,7 +66,7 @@ func TestSetupAIConfig(t *testing.T) {
 
 func TestSetupAIConfigCustom(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	input := "custom\nhttp://localhost:11434/v1\nllama3\nnone\n"
 	reader := bufio.NewReader(strings.NewReader(input))
@@ -97,7 +98,7 @@ func TestSetupAIConfigCustom(t *testing.T) {
 
 func TestSetupAIConfigInvalidProvider(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	// first input is invalid, second is valid
 	input := "invalid\ngemini\ngemini-1.5-pro\ntoken\n"
@@ -121,7 +122,7 @@ func TestSetupAIConfigInvalidProvider(t *testing.T) {
 
 func TestSetupAIConfigInvalidBaseURL(t *testing.T) {
 	db := setupTestDB(t)
-	svc := ai.NewService(db)
+	svc := ai.NewService(appsettings.NewSQLRepository(db))
 
 	// invalid url first, then valid
 	input := "custom\nlocalhost:11434\nhttp://localhost:11434/v1\nllama3\nnone\n"
