@@ -37,6 +37,7 @@ The project uses a `Makefile` for build automation.
     *   Run the binary directly: `./mindloop <command>` (e.g., `./mindloop help`)
 *   **Server:**
     *   Run via subcommand: `./mindloop server`
+    *   Run locally with live update (with go air): `make dev` (Default port:8765)
     *   Run locally (foreground): `make run-server` (Default port: 8765)
     *   Start in background: `make start-server`
     *   Stop background server: `make kill-server`
