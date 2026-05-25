@@ -12,12 +12,13 @@ type AISettingsRequest struct {
 	Provider string `json:"provider"`
 	Model    string `json:"model"`
 	Token    string `json:"token"`
+	BaseURL  string `json:"baseURL"`
 }
 
 func (mlh *MindloopHandler) HandleGetAISettings(w http.ResponseWriter, r *http.Request) {
 	// Re-initialize AI service with current DB
-	aiService := ai.NewService(mlh.db)
-	provider, model, token, _ := aiService.GetSettings()
+	aiService := ai.NewService(mlh.appSettingsRepo)
+	provider, model, token, baseURL, _ := aiService.GetSettings()
 
 	hasToken := token != ""
 
@@ -26,6 +27,7 @@ func (mlh *MindloopHandler) HandleGetAISettings(w http.ResponseWriter, r *http.R
 		"provider": provider,
 		"model":    model,
 		"hasToken": hasToken,
+		"baseURL":  baseURL,
 	})
 }
 
@@ -36,8 +38,8 @@ func (mlh *MindloopHandler) HandleSaveAISettings(w http.ResponseWriter, r *http.
 		return
 	}
 
-	aiService := ai.NewService(mlh.db)
-	if err := aiService.SaveSettings(req.Provider, req.Model, req.Token); err != nil {
+	aiService := ai.NewService(mlh.appSettingsRepo)
+	if err := aiService.SaveSettings(req.Provider, req.Model, req.Token, req.BaseURL); err != nil {
 		http.Error(w, "Failed to save settings: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -48,7 +50,7 @@ func (mlh *MindloopHandler) HandleSaveAISettings(w http.ResponseWriter, r *http.
 }
 
 func (mlh *MindloopHandler) HandleListAIModels(w http.ResponseWriter, r *http.Request) {
-	aiService := ai.NewService(mlh.db)
+	aiService := ai.NewService(mlh.appSettingsRepo)
 	models, err := aiService.ListModels()
 	if err != nil {
 		http.Error(w, "Failed to list models: "+err.Error(), http.StatusInternalServerError)
@@ -69,15 +71,20 @@ func (mlh *MindloopHandler) HandleTestAIConnection(w http.ResponseWriter, r *htt
 		return
 	}
 
-	aiService := ai.NewService(mlh.db)
+	aiService := ai.NewService(mlh.appSettingsRepo)
 
-	// If token is empty in the request, fallback to the saved token
-	if req.Token == "" {
-		_, _, savedToken, _ := aiService.GetSettings()
-		req.Token = savedToken
+	// Fallback to saved settings if empty in request
+	if req.Token == "" || req.BaseURL == "" {
+		_, _, savedToken, savedBaseURL, _ := aiService.GetSettings()
+		if req.Token == "" {
+			req.Token = savedToken
+		}
+		if req.BaseURL == "" {
+			req.BaseURL = savedBaseURL
+		}
 	}
 
-	if err := aiService.TestConnection(req.Provider, req.Model, req.Token); err != nil {
+	if err := aiService.TestConnection(req.Provider, req.Model, req.Token, req.BaseURL); err != nil {
 		http.Error(w, "Connection test failed: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -100,7 +107,7 @@ func (mlh *MindloopHandler) HandleGenerateAIJournal(w http.ResponseWriter, r *ht
 		return
 	}
 
-	aiService := ai.NewService(mlh.db)
+	aiService := ai.NewService(mlh.appSettingsRepo)
 	generatedText, err := aiService.GenerateJournal(report)
 	if err != nil {
 		http.Error(w, "AI Generation failed: "+err.Error(), http.StatusInternalServerError)

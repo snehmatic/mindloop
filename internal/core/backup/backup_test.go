@@ -49,13 +49,13 @@ func newBackupTestDB(t *testing.T) *gorm.DB {
 	if err := db.AutoMigrate(
 		&models.Intent{},
 		&models.FocusSession{},
+		&models.Routine{},
 		&models.Habit{},
 		&models.HabitLog{},
 		&models.JournalEntry{},
 		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
-		&models.Routine{},
 		&models.Task{},
 		&models.SubTask{},
 	); err != nil {

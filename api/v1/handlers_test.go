@@ -25,6 +25,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
 	"github.com/snehmatic/mindloop/internal/log"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	fRepo "github.com/snehmatic/mindloop/internal/repository/focus"
 	hRepo "github.com/snehmatic/mindloop/internal/repository/habit"
 	iRepo "github.com/snehmatic/mindloop/internal/repository/intent"
@@ -82,6 +83,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 	journalService := coreJournal.NewService(jRepo)
 	nRepo := noteRepo.NewSQLRepository(database)
 	noteService := coreNote.NewService(nRepo)
+	appSettingsRepo := appsettings.NewSQLRepository(database)
 	fRepo := fRepo.NewSQLRepository(database)
 	focusService := focus.NewService(fRepo)
 	iRepo := iRepo.NewSQLRepository(database)
@@ -97,6 +99,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 
 	return v1.NewMindloopHandler(
 		database,
+		appSettingsRepo,
 		journalService,
 		noteService,
 		habitService,

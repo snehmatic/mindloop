@@ -7,6 +7,7 @@ import (
 	"github.com/rs/zerolog"
 	cli "github.com/snehmatic/mindloop/cmd/cli"
 	"github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/log"
 )
 
@@ -38,4 +39,10 @@ func main() {
 	}
 
 	cli.Execute()
+}
+
+func applyMilestoneInterval() {
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+	points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 }

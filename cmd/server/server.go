@@ -25,6 +25,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
 	"github.com/snehmatic/mindloop/internal/log"
+	appsettings "github.com/snehmatic/mindloop/internal/repository/appsettings"
 	focusRepo "github.com/snehmatic/mindloop/internal/repository/focus"
 	habitRepo "github.com/snehmatic/mindloop/internal/repository/habit"
 	"github.com/snehmatic/mindloop/internal/repository/habitlog"
@@ -213,9 +214,11 @@ func main() {
 	summaryService := summary.NewService(fRepo, hRepo, iRepo, pRepo, tRepo, logger)
 	habitService := habit.NewService(hRepo)
 	taskService := task.NewService(tRepo, config.GetUserConfig(), pointSvc, logger)
+	appSettingsRepo := appsettings.NewSQLRepository(database)
 
 	mlh := v1.NewMindloopHandler(
 		database,
+		appSettingsRepo,
 		journalService,
 		noteService,
 		habitService,
@@ -228,4 +231,10 @@ func main() {
 	)
 
 	ServeMindloop(mlh)
+}
+
+func applyMilestoneInterval() {
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+	points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 }

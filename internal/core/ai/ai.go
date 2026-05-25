@@ -9,34 +9,48 @@ import (
 	"os"
 	"strings"
 
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
 const (
 	SettingKeyAIProvider = "ai_provider"
 	SettingKeyAIModel    = "ai_model"
 	SettingKeyAIToken    = "ai_token"
+	SettingKeyAIBaseURL  = "ai_base_url"
 )
 
 type Service struct {
-	DB *gorm.DB
+	settingsRepo appsettings.Repository
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+func NewService(settingsRepo appsettings.Repository) *Service {
+	return &Service{settingsRepo: settingsRepo}
 }
 
 // GetSettings retrieves the AI configuration from the database
-func (s *Service) GetSettings() (provider, model, token string, err error) {
-	var pSetting, mSetting, tSetting models.AppSetting
-	s.DB.Where("key = ?", SettingKeyAIProvider).Limit(1).Find(&pSetting)
-	s.DB.Where("key = ?", SettingKeyAIModel).Limit(1).Find(&mSetting)
-	s.DB.Where("key = ?", SettingKeyAIToken).Limit(1).Find(&tSetting)
+func (s *Service) GetSettings() (provider, model, token, baseURL string, err error) {
+	pSetting, err := s.settingsRepo.GetSetting(SettingKeyAIProvider)
+	if err != nil {
+		return "", "", "", "", err
+	}
+	mSetting, err := s.settingsRepo.GetSetting(SettingKeyAIModel)
+	if err != nil {
+		return "", "", "", "", err
+	}
+	tSetting, err := s.settingsRepo.GetSetting(SettingKeyAIToken)
+	if err != nil {
+		return "", "", "", "", err
+	}
+	bSetting, err := s.settingsRepo.GetSetting(SettingKeyAIBaseURL)
+	if err != nil {
+		return "", "", "", "", err
+	}
 
 	provider = pSetting.Value
 	model = mSetting.Value
+	baseURL = bSetting.Value
 
 	// Token from DB overrides env var, if exists
 	envToken := os.Getenv("MINDLOOP_AI_TOKEN")
@@ -52,15 +66,18 @@ func (s *Service) GetSettings() (provider, model, token string, err error) {
 	if provider == "" {
 		provider = "gemini" // default
 	}
-	return provider, model, token, nil
+	return provider, model, token, baseURL, nil
 }
 
 // SaveSettings encrypts the token and saves the configuration
-func (s *Service) SaveSettings(provider, model, token string) error {
+func (s *Service) SaveSettings(provider, model, token, baseURL string) error {
 	s.saveOrUpdate(SettingKeyAIProvider, provider)
 	s.saveOrUpdate(SettingKeyAIModel, model)
+	s.saveOrUpdate(SettingKeyAIBaseURL, baseURL)
 
-	if token != "" {
+	if token == "__CLEAR__" {
+		s.saveOrUpdate(SettingKeyAIToken, "")
+	} else if token != "" {
 		encrypted, err := utils.Encrypt(token)
 		if err != nil {
 			return err
@@ -71,26 +88,22 @@ func (s *Service) SaveSettings(provider, model, token string) error {
 }
 
 func (s *Service) saveOrUpdate(key, value string) {
-	var setting models.AppSetting
-	result := s.DB.Where("key = ?", key).Limit(1).Find(&setting)
-	if result.RowsAffected == 0 {
-		s.DB.Create(&models.AppSetting{Key: key, Value: value})
-	} else {
-		setting.Value = value
-		s.DB.Save(&setting)
-	}
+	s.settingsRepo.SaveSetting(&models.AppSetting{Key: key, Value: value})
 }
 
 // ListModels fetches the available models for the configured provider
 func (s *Service) ListModels() ([]string, error) {
-	provider, _, token, _ := s.GetSettings()
-	if token == "" {
+	provider, _, token, baseURL, _ := s.GetSettings()
+	if token == "" && provider != "custom" {
 		return nil, fmt.Errorf("AI token not configured")
 	}
 
 	switch provider {
-	case "openai":
-		return s.listOpenAIModels(token)
+	case "openai", "custom":
+		if provider == "custom" && baseURL == "" {
+			return nil, fmt.Errorf("base URL is required for custom local providers")
+		}
+		return s.listOpenAIModels(token, baseURL)
 	case "anthropic":
 		return nil, fmt.Errorf("anthropic support coming soon")
 	default:
@@ -108,7 +121,7 @@ func (s *Service) listGeminiModels(token string) ([]string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("gemini API error (%d): %s", resp.StatusCode, string(body))
+		return nil, formatAPIError("Gemini", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -134,10 +147,19 @@ func (s *Service) listGeminiModels(token string) ([]string, error) {
 	return models, nil
 }
 
-func (s *Service) listOpenAIModels(token string) ([]string, error) {
+func (s *Service) listOpenAIModels(token, baseURL string) ([]string, error) {
 	url := "https://api.openai.com/v1/models"
+	isCustomProvider := false
+
+	if baseURL != "" {
+		url = strings.TrimSuffix(baseURL, "/") + "/models"
+		isCustomProvider = true
+	}
+
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Authorization", "Bearer "+token)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -147,7 +169,7 @@ func (s *Service) listOpenAIModels(token string) ([]string, error) {
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return nil, fmt.Errorf("openAI API error (%d): %s", resp.StatusCode, string(body))
+		return nil, formatAPIError("OpenAI/Custom", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -162,7 +184,9 @@ func (s *Service) listOpenAIModels(token string) ([]string, error) {
 
 	var models []string
 	for _, m := range result.Data {
-		if strings.HasPrefix(m.ID, "gpt-") || strings.HasPrefix(m.ID, "o1-") {
+		// Custom providers (e.g. Ollama) don't use OpenAI model prefixes,
+		// so bypass the prefix filter and return all models as-is.
+		if isCustomProvider || strings.HasPrefix(m.ID, "gpt-") || strings.HasPrefix(m.ID, "o1-") {
 			models = append(models, m.ID)
 		}
 	}
@@ -170,8 +194,8 @@ func (s *Service) listOpenAIModels(token string) ([]string, error) {
 }
 
 // TestConnection sends a minimal prompt to verify the configuration works
-func (s *Service) TestConnection(provider, model, token string) error {
-	if token == "" {
+func (s *Service) TestConnection(provider, model, token, baseURL string) error {
+	if token == "" && provider != "custom" {
 		return fmt.Errorf("AI token not configured")
 	}
 
@@ -179,8 +203,11 @@ func (s *Service) TestConnection(provider, model, token string) error {
 
 	var err error
 	switch provider {
-	case "openai":
-		_, err = s.generateOpenAI(model, token, testData)
+	case "openai", "custom":
+		if provider == "custom" && baseURL == "" {
+			return fmt.Errorf("base URL is required for custom local providers")
+		}
+		_, err = s.generateOpenAI(model, token, testData, baseURL)
 	case "anthropic":
 		_, err = s.generateAnthropic(model, token, testData)
 	default:
@@ -190,8 +217,8 @@ func (s *Service) TestConnection(provider, model, token string) error {
 }
 
 func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) {
-	provider, model, token, _ := s.GetSettings()
-	if token == "" {
+	provider, model, token, baseURL, _ := s.GetSettings()
+	if token == "" && provider != "custom" {
 		return "", fmt.Errorf("AI token not configured. Set MINDLOOP_AI_TOKEN or configure via UI settings")
 	}
 
@@ -201,8 +228,11 @@ func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) 
 	}
 
 	switch provider {
-	case "openai":
-		return s.generateOpenAI(model, token, string(dataBytes))
+	case "openai", "custom":
+		if provider == "custom" && baseURL == "" {
+			return "", fmt.Errorf("base URL is required for custom local providers")
+		}
+		return s.generateOpenAI(model, token, string(dataBytes), baseURL)
 	case "anthropic":
 		return s.generateAnthropic(model, token, string(dataBytes))
 	default:
@@ -240,7 +270,7 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("gemini API error (%d): %s", resp.StatusCode, string(body))
+		return "", formatAPIError("Gemini", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -264,11 +294,14 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 	return "", fmt.Errorf("no content generated")
 }
 
-func (s *Service) generateOpenAI(model, token, contextData string) (string, error) {
+func (s *Service) generateOpenAI(model, token, contextData, baseURL string) (string, error) {
 	if model == "" {
 		model = "gpt-4o-mini"
 	}
 	url := "https://api.openai.com/v1/chat/completions"
+	if baseURL != "" {
+		url = strings.TrimSuffix(baseURL, "/") + "/chat/completions"
+	}
 
 	reqBody := map[string]interface{}{
 		"model": model,
@@ -281,7 +314,9 @@ func (s *Service) generateOpenAI(model, token, contextData string) (string, erro
 	bodyBytes, _ := json.Marshal(reqBody)
 	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(bodyBytes))
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", "Bearer "+token)
+	if token != "" {
+		req.Header.Set("Authorization", "Bearer "+token)
+	}
 
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
@@ -291,7 +326,7 @@ func (s *Service) generateOpenAI(model, token, contextData string) (string, erro
 
 	if resp.StatusCode != http.StatusOK {
 		body, _ := io.ReadAll(resp.Body)
-		return "", fmt.Errorf("openAI API error (%d): %s", resp.StatusCode, string(body))
+		return "", formatAPIError("OpenAI", resp.StatusCode, body)
 	}
 
 	var result struct {
@@ -316,4 +351,16 @@ func (s *Service) generateOpenAI(model, token, contextData string) (string, erro
 func (s *Service) generateAnthropic(model, token, contextData string) (string, error) {
 	// Simple stub for v1
 	return "", fmt.Errorf("anthropic support coming soon")
+}
+
+func formatAPIError(provider string, statusCode int, body []byte) error {
+	var errResp struct {
+		Error struct {
+			Message string `json:"message"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(body, &errResp); err == nil && errResp.Error.Message != "" {
+		return fmt.Errorf("%s API error: %s", provider, errResp.Error.Message)
+	}
+	return fmt.Errorf("%s API error (%d)", provider, statusCode)
 }

@@ -16,6 +16,7 @@
   - [Prerequisites](#prerequisites)
   - [Installation](#installation)
   - [Build Commands](#build-commands)
+- [Devcontainers](#devcontainers)
 - [Documentation](#documentation)
 - [Configuration](#configuration)
 - [Motivation](#motivation)
@@ -86,10 +87,23 @@ The project includes a `Makefile` to simplify common tasks:
 
 *   `make build`: Build both the CLI and Server binaries.
 *   `make build-cli`: Build only the CLI binary.
+*   `make dev`: Run the server with live-reloading (requires `air`).
 *   `make start-server`: Build and run the server in the background (daemon).
 *   `make kill-server`: Stop the background server.
 *   `make test`: Run unit tests.
 *   `make clean`: Remove build artifacts.
+
+## Devcontainers
+
+This project includes a [Devcontainer](https://containers.dev/) configuration for a seamless development experience using [GitHub Codespaces](https://github.com/features/codespaces), [Visual Studio Code Dev Containers](https://code.visualstudio.com/docs/devcontainers/containers), or any other compatible devcontainer tool.
+
+**Development with Air:**
+
+Development uses [Air](https://github.com/air-verse/air) for live-reloading. Air is automatically installed in the devcontainer on setup and runs as the `postStartCommand`. When you make changes to Go, HTML, CSS, or JS files, the server automatically rebuilds and restarts — no manual rebuild step required.
+
+**Configuration Gotcha:**
+
+> After the first devcontainer run, the Mindloop configuration file (and the Air binary) lives in the devcontainer environment's user home folder (e.g., `/home/vscode`), which is **not synced** with your local machine. You will need to manually run the build and any configuration commands each time you open the devcontainer **fresh**.
 
 ## Documentation
 

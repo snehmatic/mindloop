@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"time"
 
-	cfg "github.com/snehmatic/mindloop/internal/config"
+	cfg 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/ai"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/summary"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -74,7 +75,8 @@ var generateCmd = &cobra.Command{
 		}
 
 		utils.PrintLoadingln("✨ Generating AI journal entry...")
-		aiService := ai.NewService(gdb)
+		settingsRepo := appsettings.NewSQLRepository(gdb)
+		aiService := ai.NewService(settingsRepo)
 		generatedText, err := aiService.GenerateJournal(report)
 		if err != nil {
 			utils.PrintErrorln("Failed to generate journal:", err)

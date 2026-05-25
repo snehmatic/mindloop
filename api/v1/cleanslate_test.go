@@ -20,6 +20,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
 	"github.com/snehmatic/mindloop/internal/log"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	focusRepo "github.com/snehmatic/mindloop/internal/repository/focus"
 	habitRepo "github.com/snehmatic/mindloop/internal/repository/habit"
 	"github.com/snehmatic/mindloop/internal/repository/habitlog"
@@ -72,6 +73,7 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 	rRepo := routineRepo.NewSQLRepository(db)
 	stRepo := subtaskRepo.NewSQLRepository(db)
 	tRepo := taskRepo.NewSQLTaskRepository(db)
+	appSettingsRepo := appsettings.NewSQLRepository(db)
 	pointSvc := points.NewService(pRepo)
 	tSvcRepo := taskRepo.NewSQLTaskRepository(db)
 	tService := task.NewService(tSvcRepo, config.GetUserConfig(), pointSvc, logger)
@@ -84,7 +86,7 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 	qService := coreQuest.NewService(qRepo, logger)
 	sService := summary.NewService(fRepo, hRepo, iRepo, pRepo, tRepo, logger)
 
-	mlh := NewMindloopHandler(db, jService, nService, hService, fService, iService, qService, sService, bService, tService)
+	mlh := NewMindloopHandler(db, appSettingsRepo, jService, nService, hService, fService, iService, qService, sService, bService, tService)
 	return mlh, db
 }
 

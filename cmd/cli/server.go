@@ -14,6 +14,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
 	"github.com/snehmatic/mindloop/internal/log"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	taskRepo "github.com/snehmatic/mindloop/internal/repository/task"
 	"github.com/snehmatic/mindloop/internal/server"
 	"github.com/spf13/cobra"
@@ -48,8 +49,11 @@ var serverCmd = &cobra.Command{
 			log.Get(),
 		)
 
+		appSettingsRepo := appsettings.NewSQLRepository(gdb)
+
 		mlh := v1.NewMindloopHandler(
 			gdb,
+			appSettingsRepo,
 			journalService,
 			noteService,
 			habitService,

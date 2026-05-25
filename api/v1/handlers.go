@@ -20,6 +20,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
+	"github.com/snehmatic/mindloop/internal/repository/appsettings"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/snehmatic/mindloop/web"
@@ -72,21 +73,23 @@ var templateFuncs = template.FuncMap{
 }
 
 type MindloopHandler struct {
-	config  *config.Config
-	db      *gorm.DB
-	journal *journal.Service
-	note    *note.Service
-	habit   *habit.Service
-	focus   *focus.Service
-	intent  *intent.Service
-	quest   *quest.Service
-	summary *summary.Service
-	backup  *backup.Service
-	task    *task.Service
+	config          *config.Config
+	db              *gorm.DB
+	appSettingsRepo appsettings.Repository
+	journal         *journal.Service
+	note            *note.Service
+	habit           *habit.Service
+	focus           *focus.Service
+	intent          *intent.Service
+	quest           *quest.Service
+	summary         *summary.Service
+	backup          *backup.Service
+	task            *task.Service
 }
 
 func NewMindloopHandler(
 	db *gorm.DB,
+	appSettingsRepo appsettings.Repository,
 	journal *journal.Service,
 	note *note.Service,
 	habit *habit.Service,
@@ -98,17 +101,18 @@ func NewMindloopHandler(
 	task *task.Service,
 ) *MindloopHandler {
 	return &MindloopHandler{
-		config:  config.GetConfig(),
-		db:      db,
-		journal: journal,
-		note:    note,
-		habit:   habit,
-		focus:   focus,
-		intent:  intent,
-		quest:   quest,
-		summary: summary,
-		backup:  backup,
-		task:    task,
+		config:          config.GetConfig(),
+		db:              db,
+		appSettingsRepo: appSettingsRepo,
+		journal:         journal,
+		note:            note,
+		habit:           habit,
+		focus:           focus,
+		intent:          intent,
+		quest:           quest,
+		summary:         summary,
+		backup:          backup,
+		task:            task,
 	}
 }
 

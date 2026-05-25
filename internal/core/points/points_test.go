@@ -65,6 +65,45 @@ func TestAwardPoints(t *testing.T) {
 	}
 }
 
+func TestAwardPointsUsesCustomMilestoneInterval(t *testing.T) {
+	db := setupTestDB(t)
+
+	originalInterval := MilestoneInterval
+	SetMilestoneInterval(20)
+	t.Cleanup(func() {
+		MilestoneInterval = originalInterval
+	})
+
+	milestoneReached, err := AwardPoints(db, models.CategoryHabit, 1, 15)
+	if err != nil {
+		t.Fatalf("Expected nil error, got %v", err)
+	}
+	if milestoneReached {
+		t.Errorf("Expected milestone false before custom interval")
+	}
+
+	milestoneReached, err = AwardPoints(db, models.CategoryHabit, 1, 5)
+	if err != nil {
+		t.Fatalf("Expected nil error, got %v", err)
+	}
+	if !milestoneReached {
+		t.Errorf("Expected milestone true after reaching custom interval")
+	}
+}
+
+func TestSetMilestoneIntervalFallsBackToDefault(t *testing.T) {
+	originalInterval := MilestoneInterval
+	t.Cleanup(func() {
+		MilestoneInterval = originalInterval
+	})
+
+	SetMilestoneInterval(0)
+
+	if MilestoneInterval != DefaultMilestoneInterval {
+		t.Errorf("Expected default interval %d, got %d", DefaultMilestoneInterval, MilestoneInterval)
+	}
+}
+
 func TestGetTotalPoints(t *testing.T) {
 	db := setupTestDB(t)
 	repo := pointRepo.NewSQLRepository(db)
