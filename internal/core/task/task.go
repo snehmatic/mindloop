@@ -6,6 +6,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/log"
+	"github.com/snehmatic/mindloop/internal/nlp"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -31,10 +32,13 @@ func NewService(db *gorm.DB) *Service {
 
 // CreateTask persists a new task to the database
 func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Task, error) {
+	cleanedTitle, dueDate := nlp.ExtractDate(title)
+
 	t := &models.Task{
-		Title:          title,
+		Title:          cleanedTitle,
 		IntentID:       intentID,
 		FocusSessionID: focusID,
+		DueDate:        dueDate,
 	}
 	if err := s.db.Create(t).Error; err != nil {
 		logger.Error().Err(err).Msg("Failed to create task")
