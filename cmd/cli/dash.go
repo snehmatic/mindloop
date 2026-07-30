@@ -2,11 +2,14 @@ package cli
 
 import (
 	"fmt"
+	"math"
 	"os"
+	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	cfg "github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/models"
@@ -16,13 +19,17 @@ import (
 var (
 	titleStyle         = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FAFAFA")).Background(lipgloss.Color("#7D56F4")).Padding(0, 2).MarginBottom(1)
 	intentStyle        = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#FF79C6")).MarginBottom(1)
+	focusStyle         = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#F1FA8C")).MarginBottom(1)
 	habitStyle         = lipgloss.NewStyle().Foreground(lipgloss.Color("#8BE9FD"))
 	selectedHabitStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("#50FA7B")).Bold(true)
 	doneStyle          = lipgloss.NewStyle().Foreground(lipgloss.Color("#6272A4")).Strikethrough(true)
 )
 
+type tickMsg time.Time
+
 type dashboardModel struct {
 	activeIntent string
+	activeFocus  *models.FocusSession
 	habits       []models.Habit
 	habitLogs    map[uint]bool // habitID -> completed today
 	cursor       int
@@ -32,6 +39,7 @@ type dashboardModel struct {
 func initialModel() dashboardModel {
 	hService := habit.NewService(gdb)
 	iService := intent.NewService(gdb)
+	fService := focus.NewService(gdb)
 
 	var activeIntent string
 	intents, _ := iService.ListActiveIntents()
@@ -40,6 +48,8 @@ func initialModel() dashboardModel {
 	} else {
 		activeIntent = "No active intent. Use 'mindloop intent start' to set one."
 	}
+
+	activeFocus, _ := fService.GetActiveSession()
 
 	habits, _ := hService.ListHabits(models.Daily)
 	logs, _ := hService.ListHabitLogs(models.Daily)
@@ -56,18 +66,27 @@ func initialModel() dashboardModel {
 
 	return dashboardModel{
 		activeIntent: activeIntent,
+		activeFocus:  activeFocus,
 		habits:       habits,
 		habitLogs:    habitLogs,
 		uc:           userCfg,
 	}
 }
 
+func tickCmd() tea.Cmd {
+	return tea.Tick(time.Second, func(t time.Time) tea.Msg {
+		return tickMsg(t)
+	})
+}
+
 func (m dashboardModel) Init() tea.Cmd {
-	return nil
+	return tickCmd()
 }
 
 func (m dashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case tickMsg:
+		return m, tickCmd()
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
@@ -103,6 +122,15 @@ func (m dashboardModel) View() string {
 
 	s += "Active Intent:\n"
 	s += intentStyle.Render(m.activeIntent) + "\n\n"
+
+	if m.activeFocus != nil {
+		duration := time.Since(m.activeFocus.CreatedAt)
+		mins := int(math.Floor(duration.Minutes()))
+		secs := int(duration.Seconds()) % 60
+		timer := fmt.Sprintf("[%02d:%02d] %s", mins, secs, m.activeFocus.Title)
+		s += "Active Focus Session:\n"
+		s += focusStyle.Render(timer) + "\n\n"
+	}
 
 	s += "Daily Habits (Space to toggle):\n"
 	for i, h := range m.habits {

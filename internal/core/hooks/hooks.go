@@ -19,7 +19,7 @@ func getHooksDir() (string, error) {
 }
 
 // ExecuteHook asynchronously executes the hook for the given event name if it exists and is executable.
-func ExecuteHook(eventName string) {
+func ExecuteHook(eventName string, envContext map[string]string) {
 	hooksDir, err := getHooksDir()
 	if err != nil {
 		log.Error().Err(err).Msg("failed to get hooks directory")
@@ -48,7 +48,14 @@ func ExecuteHook(eventName string) {
 	go func() {
 		log.Debug().Str("hook", hookPath).Msg("executing hook")
 		cmd := exec.Command(hookPath)
-		cmd.Env = append(os.Environ(), fmt.Sprintf("MINDLOOP_EVENT=%s", eventName))
+
+		env := os.Environ()
+		env = append(env, fmt.Sprintf("MINDLOOP_EVENT=%s", eventName))
+		for k, v := range envContext {
+			env = append(env, fmt.Sprintf("%s=%s", k, v))
+		}
+		cmd.Env = env
+
 		output, err := cmd.CombinedOutput()
 		if err != nil {
 			log.Error().Err(err).Str("hook", hookPath).Bytes("output", output).Msg("hook execution failed")
