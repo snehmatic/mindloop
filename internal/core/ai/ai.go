@@ -203,11 +203,11 @@ func (s *Service) TestConnection(provider, model, token, baseURL string) error {
 		if provider == "custom" && baseURL == "" {
 			return fmt.Errorf("base URL is required for custom local providers")
 		}
-		_, err = s.generateOpenAI(model, token, testData, baseURL)
+		_, err = s.generateOpenAI(model, token, "System prompt", testData, baseURL)
 	case "anthropic":
-		_, err = s.generateAnthropic(model, token, testData)
+		_, err = s.generateAnthropic(model, token, "System prompt", testData)
 	default:
-		_, err = s.generateGemini(model, token, testData)
+		_, err = s.generateGemini(model, token, "System prompt", testData)
 	}
 	return err
 }
@@ -228,16 +228,16 @@ func (s *Service) GenerateJournal(summary models.SummaryReport) (string, error) 
 		if provider == "custom" && baseURL == "" {
 			return "", fmt.Errorf("base URL is required for custom local providers")
 		}
-		return s.generateOpenAI(model, token, string(dataBytes), baseURL)
+		return s.generateOpenAI(model, token, JournalSystemPrompt, string(dataBytes), baseURL)
 	case "anthropic":
-		return s.generateAnthropic(model, token, string(dataBytes))
+		return s.generateAnthropic(model, token, JournalSystemPrompt, string(dataBytes))
 	default:
 		// Default to gemini format
-		return s.generateGemini(model, token, string(dataBytes))
+		return s.generateGemini(model, token, JournalSystemPrompt, string(dataBytes))
 	}
 }
 
-func (s *Service) generateGemini(model, token, contextData string) (string, error) {
+func (s *Service) generateGemini(model, token, systemPrompt, contextData string) (string, error) {
 	if model == "" {
 		model = "gemini-1.5-flash-latest"
 	}
@@ -246,7 +246,7 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 
 	reqBody := map[string]interface{}{
 		"system_instruction": map[string]interface{}{
-			"parts": map[string]interface{}{"text": JournalSystemPrompt},
+			"parts": map[string]interface{}{"text": systemPrompt},
 		},
 		"contents": []map[string]interface{}{
 			{
@@ -290,7 +290,7 @@ func (s *Service) generateGemini(model, token, contextData string) (string, erro
 	return "", fmt.Errorf("no content generated")
 }
 
-func (s *Service) generateOpenAI(model, token, contextData, baseURL string) (string, error) {
+func (s *Service) generateOpenAI(model, token, systemPrompt, contextData, baseURL string) (string, error) {
 	if model == "" {
 		model = "gpt-4o-mini"
 	}
@@ -302,7 +302,7 @@ func (s *Service) generateOpenAI(model, token, contextData, baseURL string) (str
 	reqBody := map[string]interface{}{
 		"model": model,
 		"messages": []map[string]interface{}{
-			{"role": "system", "content": JournalSystemPrompt},
+			{"role": "system", "content": systemPrompt},
 			{"role": "user", "content": "Here is my activity summary data:\n" + contextData},
 		},
 	}
@@ -344,7 +344,7 @@ func (s *Service) generateOpenAI(model, token, contextData, baseURL string) (str
 }
 
 // Stub for Anthropic to prevent compile errors, implemented simply
-func (s *Service) generateAnthropic(model, token, contextData string) (string, error) {
+func (s *Service) generateAnthropic(model, token, systemPrompt, contextData string) (string, error) {
 	// Simple stub for v1
 	return "", fmt.Errorf("anthropic support coming soon")
 }
@@ -359,4 +359,24 @@ func formatAPIError(provider string, statusCode int, body []byte) error {
 		return fmt.Errorf("%s API error: %s", provider, errResp.Error.Message)
 	}
 	return fmt.Errorf("%s API error (%d)", provider, statusCode)
+}
+
+func (s *Service) GenerateChunker(taskData string) (string, error) {
+	provider, model, token, baseURL, _ := s.GetSettings()
+	if token == "" && provider != "custom" {
+		return "", fmt.Errorf("AI token not configured. Set MINDLOOP_AI_TOKEN or configure via UI settings")
+	}
+
+	switch provider {
+	case "openai", "custom":
+		if provider == "custom" && baseURL == "" {
+			return "", fmt.Errorf("base URL is required for custom local providers")
+		}
+		return s.generateOpenAI(model, token, ChunkerSystemPrompt, taskData, baseURL)
+	case "anthropic":
+		return s.generateAnthropic(model, token, ChunkerSystemPrompt, taskData)
+	default:
+		// Default to gemini format
+		return s.generateGemini(model, token, ChunkerSystemPrompt, taskData)
+	}
 }

@@ -139,6 +139,7 @@
                         <input type="hidden" name="id" value="{{ .ID }}">
                         <button type="submit" class="btn btn-sm btn-success-outline" style="padding: 0.35rem 1.25rem; min-width: 110px;" title="Mark Complete"><i data-lucide="check" style="width:14px;height:14px; margin-right: 2px;"></i> Complete</button>
                     </form>
+                    <button type="button" class="btn btn-sm btn-secondary chunker-btn" title="Auto-chunk via AI" style="padding: 0.35rem 0.75rem; color: var(--primary);" hx-post="/api/v1/chunk" hx-vals='{"type":"task", "id":"{{ .ID }}"}' hx-target="#subtasks-list-{{ .ID }}" hx-swap="afterbegin" hx-indicator="#chunk-spinner-task-{{ .ID }}" onhtmx:afterOnLoad="lucide.createIcons();"><i data-lucide="wand-2" style="width:14px;height:14px; margin-right: 2px;"></i> AI Chunk</button>
                     {{ end }}
                     <form action="/tasks/delete" method="POST" style="display: inline; margin: 0;">
                         <input type="hidden" name="id" value="{{ .ID }}">
@@ -152,7 +153,8 @@
                 <h4 style="margin: 0; font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary);">Subtasks</h4>
             </div>
 
-            <ul class="subtasks-list" style="list-style: none; padding: 0; margin-bottom: 1rem; min-height: 5px;">
+            <div id="chunk-spinner-task-{{ .ID }}" class="htmx-indicator p-sm text-center" style="font-size: 0.85em; color: var(--text-muted);"><i data-lucide="loader-2" class="spin icon-sm text-primary"></i> Breaking down task...</div>
+            <ul class="subtasks-list" id="subtasks-list-{{ .ID }}" style="list-style: none; padding: 0; margin-bottom: 1rem; min-height: 5px;">
                 {{ range .SubTasks }}
                 <li class="subtask-item" data-id="{{ .ID }}" style="display: flex; justify-content: space-between; align-items: center; padding: 0.4rem 0.5rem; border-radius: var(--radius-sm); margin-bottom: 0.4rem; border: 1px solid var(--border-color); {{ if eq .Status "completed" }}opacity: 0.75; background-color: rgba(40, 167, 69, 0.03);{{ else }}background: var(--bg-primary);{{ end }}">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">

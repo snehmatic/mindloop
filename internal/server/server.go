@@ -90,6 +90,7 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/settings/update-width", mlh.HandleSettingsUpdateWidth).Methods("POST")
 
 	// AI Routes
+	r.HandleFunc("/api/v1/chunk", mlh.HandleChunk).Methods("POST")
 	r.HandleFunc("/api/v1/ai/settings", mlh.HandleGetAISettings).Methods("GET")
 	r.HandleFunc("/api/v1/ai/settings", mlh.HandleSaveAISettings).Methods("POST")
 	r.HandleFunc("/api/v1/ai/models", mlh.HandleListAIModels).Methods("GET")

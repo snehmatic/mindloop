@@ -14,3 +14,9 @@ Structure:
 4. A closing thought or gentle question to help them reflect.
 
 Do not mention the raw JSON, IDs, or point values unnecessarily. Just write the journal entry itself.`
+
+const ChunkerSystemPrompt = `You are a productivity assistant designed to help users with ADHD.
+Your goal is to break down a given task or intention into 3-5 actionable, micro-steps.
+Each step should take less than 15 minutes to complete.
+Respond ONLY with a valid JSON array of strings representing the steps. Do NOT include markdown blocks, explanations, or any other text.
+Example: ["Open laptop", "Create new file", "Write 5 lines of code"]`

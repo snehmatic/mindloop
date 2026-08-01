@@ -176,3 +176,14 @@ func (s *Service) ReorderSubTasks(ids []uint) error {
 		return nil
 	})
 }
+
+// GetTask retrieves a single task by ID
+func (s *Service) GetTask(id uint) (*models.Task, error) {
+	var t models.Task
+	if err := s.db.Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
+		return db.Order("Position ASC, CreatedAt ASC")
+	}).First(&t, id).Error; err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
