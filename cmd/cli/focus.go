@@ -1,7 +1,9 @@
 package cli
 
 import (
+	"fmt"
 	"strconv"
+	"time"
 
 	cfg "github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/focus"
@@ -11,7 +13,8 @@ import (
 )
 
 var (
-	focusService *focus.Service
+	focusService      *focus.Service
+	focusStatusFormat string
 )
 
 var focusCmd = &cobra.Command{
@@ -136,11 +139,47 @@ var focusRateCmd = &cobra.Command{Use: "rate",
 	},
 }
 
+var focusStatusCmd = &cobra.Command{
+	Use:     "status",
+	Short:   "Get the active focus session status",
+	Long:    `Show the currently active focus session, if any.`,
+	Example: `mindloop focus status --format=compact`,
+	Run: func(cmd *cobra.Command, args []string) {
+		session, err := focusService.GetActiveSession()
+		if err != nil {
+			if focusStatusFormat == "compact" {
+				return
+			}
+			utils.PrintErrorln("Error getting focus status:", err)
+			return
+		}
+		if session == nil {
+			if focusStatusFormat == "compact" {
+				return
+			}
+			utils.PrintInfoln("No active focus session.")
+			return
+		}
+
+		duration := time.Since(session.CreatedAt)
+		mins := int(duration.Minutes())
+
+		if focusStatusFormat == "compact" {
+			fmt.Printf("⚡ %dm - %s\n", mins, session.Title)
+		} else {
+			utils.PrintSuccessf("Active Focus: '%s' (%d minutes)\n", session.Title, mins)
+		}
+	},
+}
+
 func init() {
 	focusCmd.AddCommand(focusStartCmd)
 	focusCmd.AddCommand(focusListCmd)
 	focusCmd.AddCommand(focusEndCmd)
 	focusCmd.AddCommand(focusRateCmd)
+
+	focusStatusCmd.Flags().StringVar(&focusStatusFormat, "format", "", "Output format (e.g., compact)")
+	focusCmd.AddCommand(focusStatusCmd)
 
 	rootCmd.AddCommand(focusCmd)
 }

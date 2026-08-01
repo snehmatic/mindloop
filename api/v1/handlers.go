@@ -143,6 +143,10 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 			_ = uc.ReadFromYAML()
 			d["Config"] = uc
 		}
+		if _, exists := d["ActiveFocus"]; !exists && mlh.focus != nil {
+			activeFocus, _ := mlh.focus.GetActiveSession()
+			d["ActiveFocus"] = activeFocus
+		}
 	}
 
 	err = ts.Execute(&buf, data)

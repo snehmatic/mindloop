@@ -29,6 +29,38 @@
 </head>
 
 <body>
+    {{ if .ActiveFocus }}
+    <style>
+        @keyframes focus-rail-move {
+            0% { background-position: 0 0; }
+            100% { background-position: 100vw 0; }
+        }
+        @keyframes focus-breathe {
+            from { opacity: 0.02; }
+            to { opacity: 0.06; }
+        }
+        .focus-rail {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary) 0%, transparent 50%, var(--primary) 100%);
+            background-size: 50vw 100%;
+            z-index: 10000;
+            animation: focus-rail-move 4s linear infinite;
+            box-shadow: 0 0 8px var(--primary);
+        }
+        .focus-ambient {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 0%, var(--primary) 0%, transparent 70%);
+            animation: focus-breathe 6s ease-in-out infinite alternate;
+        }
+    </style>
+    <div class="focus-ambient"></div>
+    <div class="focus-rail"></div>
+    {{ end }}
         <header>
         <nav>
             <a href="/" class="logo">
