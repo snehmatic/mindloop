@@ -148,6 +148,7 @@ type Intent struct {
 	Name    string     `gorm:"not null" json:"name"`
 	Status  string     `gorm:"default:active" json:"status"`
 	EndedAt *time.Time `json:"ended_at,omitempty"`
+	DueDate *time.Time `json:"due_date,omitempty"`
 }
 
 // IntentView is a simplified representation of an Intent for the UI
@@ -156,21 +157,24 @@ type IntentView struct {
 	Name    string
 	Status  string
 	EndedAt string
+	DueDate string
 }
 
 func ToIntentView(i Intent) IntentView {
-	var ended string
+	iv := IntentView{
+		ID:     i.ID,
+		Name:   i.Name,
+		Status: i.Status,
+	}
 	if i.EndedAt != nil {
-		ended = i.EndedAt.Format("2006-01-02 15:04")
+		iv.EndedAt = i.EndedAt.Format("2006-01-02 15:04")
 	} else {
-		ended = "-"
+		iv.EndedAt = "-"
 	}
-	return IntentView{
-		ID:      i.ID,
-		Name:    i.Name,
-		Status:  i.Status,
-		EndedAt: ended,
+	if i.DueDate != nil {
+		iv.DueDate = i.DueDate.Format("2006-01-02")
 	}
+	return iv
 }
 
 // FocusSession records a period of deep work
@@ -318,12 +322,13 @@ type SideQuest struct {
 // Task represents a to-do item linked to an intent or focus session
 type Task struct {
 	gorm.Model
-	Title          string    `gorm:"not null" json:"title"`
-	Status         string    `gorm:"default:pending" json:"status"` // pending, completed
-	IntentID       *uint     `json:"intent_id,omitempty"`
-	FocusSessionID *uint     `json:"focus_session_id,omitempty"`
-	Position       int       `gorm:"default:0" json:"position"`
-	SubTasks       []SubTask `gorm:"foreignKey:TaskID" json:"sub_tasks"`
+	Title          string     `gorm:"not null" json:"title"`
+	Status         string     `gorm:"default:pending" json:"status"` // pending, completed
+	IntentID       *uint      `json:"intent_id,omitempty"`
+	FocusSessionID *uint      `json:"focus_session_id,omitempty"`
+	Position       int        `gorm:"default:0" json:"position"`
+	DueDate        *time.Time `json:"due_date,omitempty"`
+	SubTasks       []SubTask  `gorm:"foreignKey:TaskID" json:"sub_tasks"`
 }
 
 // SubTask is a smaller component of a Task
@@ -364,6 +369,7 @@ type TaskView struct {
 	FocusSessionID    *uint         `json:"focus_session_id,omitempty"`
 	FocusSessionTitle string        `json:"focus_session_title,omitempty"`
 	Position          int           `json:"position"`
+	DueDate           string        `json:"due_date,omitempty"`
 	SubTasks          []SubTaskView `json:"sub_tasks"`
 	CreatedAt         string        `json:"created_at"`
 }
@@ -374,7 +380,7 @@ func ToTaskView(t Task) TaskView {
 		subTasks[i] = ToSubTaskView(st)
 	}
 
-	return TaskView{
+	tv := TaskView{
 		ID:             t.ID,
 		Title:          t.Title,
 		Status:         t.Status,
@@ -384,6 +390,10 @@ func ToTaskView(t Task) TaskView {
 		SubTasks:       subTasks,
 		CreatedAt:      t.CreatedAt.Format("2006-01-02 15:04:05"),
 	}
+	if t.DueDate != nil {
+		tv.DueDate = t.DueDate.Format("2006-01-02")
+	}
+	return tv
 }
 
 // SideQuestView is a simplified representation of a SideQuest for the UI

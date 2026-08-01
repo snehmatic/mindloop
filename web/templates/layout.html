@@ -121,6 +121,18 @@
         {{ template "content" . }}
     </main>
 
+    <!-- Command Palette -->
+    <div id="command-palette">
+        <div class="cmd-modal">
+            <div class="cmd-input-container">
+                <i data-lucide="search"></i>
+                <input type="text" id="cmd-input" placeholder="Type a command or search... (Cmd+K)" autocomplete="off" spellcheck="false">
+            </div>
+            <div id="cmd-results"></div>
+        </div>
+    </div>
+    <script src="/static/js/command_palette.js"></script>
+
     <script>
         function closeMilestone() {
             document.getElementById('milestone-overlay').style.display = 'none';

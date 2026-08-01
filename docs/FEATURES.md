@@ -74,6 +74,16 @@ Turn your productivity into a game with a built-in reward system.
 - **Visual Progress**: Track your points over time with a dedicated chart in the Summary report.
 - **Celebrations**: Enjoy confetti animations when you finish tasks and reach new heights.
 
+
+## Lifecycle Event Hooks (Extensibility)
+Extend Mindloop by running custom scripts when specific events occur.
+- **Hook Scripts**: Place executable scripts in `~/.mindloop/hooks/`.
+- **Supported Events**:
+  - `focus_start`: Triggered when a new focus session starts.
+  - `focus_stop`: Triggered when a focus session ends.
+- **Environment**: Scripts are passed `MINDLOOP_EVENT` in their environment.
+- **Async Execution**: Hooks run asynchronously so they do not block the app.
+
 ## Settings & Configuration
 - **Stacked Layout**: Clean, organized settings page with vertical stacking for better focus. Includes segmented controls and toggle switches.
 - **Data Management**: Easy backup, restore, and reset options.
