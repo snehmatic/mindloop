@@ -53,6 +53,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 		&models.Task{},
 		&models.SubTask{},
 		&models.AppSetting{},
+		&models.BrainDump{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate test db: %v", err)
@@ -179,4 +180,47 @@ func TestSummaryGeneration(t *testing.T) {
 	if !strings.Contains(w.Body.String(), "Summary Report") {
 		t.Errorf("Summary page content missing expected title")
 	}
+}
+
+func TestQuickDump(t *testing.T) {
+	mlh := setupTestServer(t)
+
+	t.Run("successful request", func(t *testing.T) {
+		val := url.Values{}
+		val.Add("content", "test dump")
+		req := httptest.NewRequest("POST", "/api/dump", strings.NewReader(val.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		w := httptest.NewRecorder()
+
+		mlh.HandleQuickDump(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected status 200, got %d", w.Code)
+		}
+	})
+
+	t.Run("empty content", func(t *testing.T) {
+		val := url.Values{}
+		val.Add("content", "")
+		req := httptest.NewRequest("POST", "/api/dump", strings.NewReader(val.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		w := httptest.NewRecorder()
+
+		mlh.HandleQuickDump(w, req)
+
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("Expected status 400 for empty content, got %d", w.Code)
+		}
+	})
+
+	t.Run("invalid method", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/dump", nil)
+		w := httptest.NewRecorder()
+
+		mlh.HandleQuickDump(w, req)
+
+		if w.Code != http.StatusMethodNotAllowed {
+			t.Errorf("Expected status 405 for GET method, got %d", w.Code)
+		}
+	})
 }
