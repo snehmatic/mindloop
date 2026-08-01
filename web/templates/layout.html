@@ -57,6 +57,11 @@
             background: radial-gradient(circle at 50% 0%, var(--primary) 0%, transparent 70%);
             animation: focus-breathe 6s ease-in-out infinite alternate;
         }
+        @media (prefers-reduced-motion: reduce) {
+            .focus-rail, .focus-ambient {
+                animation: none;
+            }
+        }
     </style>
     <div class="focus-ambient"></div>
     <div class="focus-rail"></div>
