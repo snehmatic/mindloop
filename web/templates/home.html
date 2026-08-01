@@ -1,5 +1,18 @@
 {{ define "content" }}
 <div class="mb-lg animate-slide-up">
+    
+{{ if .Dashboard.ActiveFocus }}
+<div class="card mb-lg animate-slide-up" style="border-left: 4px solid var(--primary); background: var(--bg-surface-alt);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="zap" class="icon-sm text-primary"></i> Active Focus Session</h3>
+            <p class="text-sm text-muted" style="margin-bottom: 0;">{{ .Dashboard.ActiveFocus.Title }}</p>
+        </div>
+        <a href="/focus" class="btn btn-primary btn-sm">Resume</a>
+    </div>
+</div>
+{{ end }}
+
     <div class="page-header" style="margin-bottom: 2.5rem;">
         <div>
             <h1 style="font-weight: 800; font-size: 2.5rem; margin-bottom: 0.2rem;">
@@ -92,65 +105,59 @@
                 <div class="text-xs text-muted mt-md">Start tracking by <a href="/habits">adding a habit</a>.</div>
                 {{ end }}
             </div>
+
+
+        <!-- Pending Tasks Widget -->
+        <div class="card" style="height: 100%; display: flex; flex-direction: column;">
+            <div class="flex-between mb-md">
+                <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Pending Tasks</span>
+                <i data-lucide="list-todo" class="icon-sm"></i>
+            </div>
+            <div style="flex: 1; overflow-y: auto;">
+                {{ if .Dashboard.PendingTasks }}
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    {{ range .Dashboard.PendingTasks }}
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                        <form action="/tasks/complete" method="POST" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="hidden" name="id" value="{{ .ID }}">
+                            <input type="checkbox" onchange="this.form.submit()" style="accent-color: var(--primary);">
+                            <span class="text-sm font-medium">{{ .Title }}</span>
+                        </form>
+                    </li>
+                    {{ end }}
+                </ul>
+                {{ else }}
+                <div class="text-sm text-muted">No pending tasks!</div>
+                {{ end }}
+            </div>
         </div>
+
+        <!-- Daily Habits Widget -->
+        <div class="card" style="height: 100%; display: flex; flex-direction: column;">
+            <div class="flex-between mb-md">
+                <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Daily Habits</span>
+                <i data-lucide="sprout" class="icon-sm"></i>
+            </div>
+            <div style="flex: 1; overflow-y: auto;">
+                {{ if .Dashboard.ActiveHabits }}
+                <ul style="list-style: none; padding: 0; margin: 0;">
+                    {{ range .Dashboard.ActiveHabits }}
+                    <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                        <form action="/habits/log" method="POST" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="hidden" name="id" value="{{ .ID }}">
+                            <input type="checkbox" onchange="this.form.submit()" {{ if ge .ActualCount .TargetCount }}checked disabled{{ end }} style="accent-color: var(--success);">
+                            <span class="text-sm font-medium {{ if ge .ActualCount .TargetCount }}text-muted{{ end }}" {{ if ge .ActualCount .TargetCount }}style="text-decoration: line-through;"{{ end }}>{{ .Title }} ({{ .ActualCount }}/{{ .TargetCount }})</span>
+                        </form>
+                    </li>
+                    {{ end }}
+                </ul>
+                {{ else }}
+                <div class="text-sm text-muted">No active habits!</div>
+                {{ end }}
+            </div>
+        </div>
+
     </div>
 </div>
 
-<!-- Quick Access -->
-<div class="page-header" style="margin-top: 3rem; margin-bottom: 1.5rem;"><h3 style="margin-bottom: 0;">Quick Access</h3></div>
-<div class="quick-access-grid">
-    <a href="/intent" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--primary-light); color: var(--primary-dark);">
-            <i data-lucide="crosshair"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Intent</h4>
-        <p class="text-sm text-muted mb-0">Manage daily focus.</p>
-    </a>
-
-    <a href="/habits" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--success-bg); color: var(--success);">
-            <i data-lucide="check-square"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Habits</h4>
-        <p class="text-sm text-muted mb-0">Build consistency.</p>
-    </a>
-
-    <a href="/focus" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--warning-bg); color: var(--warning);">
-            <i data-lucide="zap"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Focus</h4>
-        <p class="text-sm text-muted mb-0">Deep work timer.</p>
-    </a>
-
-    <a href="/tasks" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--primary-light); color: var(--primary-dark);">
-            <i data-lucide="list-todo"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Tasks</h4>
-        <p class="text-sm text-muted mb-0">Manage to-dos.</p>
-    </a>
-
-    <a href="/notes" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--success-bg); color: var(--success);">
-            <i data-lucide="file-text"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Notes</h4>
-        <p class="text-sm text-muted mb-0">Capture ideas.</p>
-    </a>
-
-    <a href="/void" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--bg-surface-alt); color: var(--text-muted);">
-            <i data-lucide="ghost"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Void</h4>
-        <p class="text-sm text-muted mb-0">Scream into it.</p>
-    </a>
-</div>
 {{ end }}

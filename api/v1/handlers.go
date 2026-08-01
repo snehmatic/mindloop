@@ -216,6 +216,43 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Build Active Habits for Dashboard
+	var activeHabits []HabitView
+	for _, h := range habits {
+		actual := 0
+		for _, log := range habitLogs {
+			if log.HabitID == h.ID && log.CreatedAt.After(todayStart) {
+				actual = log.ActualCount
+				break
+			}
+		}
+		pct := 0
+		if h.TargetCount > 0 {
+			pct = (actual * 100) / h.TargetCount
+		}
+		if pct > 100 {
+			pct = 100
+		}
+		streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+		activeHabits = append(activeHabits, HabitView{
+			Habit:       h,
+			ActualCount: actual,
+			ProgressPct: pct,
+			Streak:      streak,
+		})
+	}
+
+	// 4. Pending Tasks
+	allTasks, _ := mlh.task.ListTasks()
+	var pendingTasks []models.TaskView
+	for _, t := range allTasks {
+		if t.Status == "pending" {
+			pendingTasks = append(pendingTasks, models.ToTaskView(t))
+		}
+	}
+
+	// 5. Active Focus
+	activeFocus, _ := mlh.focus.GetActiveSession()
 	mlh.renderTemplate(w, "home.html", map[string]interface{}{
 		"Title": "Home",
 		"Dashboard": map[string]interface{}{
@@ -224,6 +261,9 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 			"FocusMinutes":    focusMinutes,
 			"CompletedHabits": completedHabits,
 			"TotalHabits":     totalHabits,
+			"ActiveHabits":    activeHabits,
+			"PendingTasks":    pendingTasks,
+			"ActiveFocus":     activeFocus,
 		},
 	})
 }
