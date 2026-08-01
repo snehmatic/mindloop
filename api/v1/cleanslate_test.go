@@ -9,6 +9,7 @@ import (
 
 	"github.com/glebarez/sqlite"
 	"github.com/snehmatic/mindloop/internal/core/backup"
+	"github.com/snehmatic/mindloop/internal/core/dump"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
@@ -54,8 +55,9 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 	sService := summary.NewService(db)
 	bService := backup.NewService(db)
 	tService := task.NewService(db)
+	dService := dump.NewService(db)
 
-	mlh := NewMindloopHandler(jService, nService, hService, fService, iService, qService, sService, bService, tService)
+	mlh := NewMindloopHandler(jService, nService, hService, fService, iService, qService, sService, bService, tService, dService)
 	return mlh, db
 }
 

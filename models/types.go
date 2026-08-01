@@ -461,3 +461,24 @@ type AppSetting struct {
 	Key   string `gorm:"type:varchar(100);uniqueIndex;not null" json:"key"`
 	Value string `gorm:"type:text" json:"value"` // encrypted if sensitive
 }
+
+// BrainDump represents a quick capture thought
+type BrainDump struct {
+	gorm.Model
+	Content string `gorm:"type:text;not null" json:"content"`
+}
+
+// BrainDumpView is a simplified representation of a BrainDump for the UI
+type BrainDumpView struct {
+	ID        uint   `json:"id"`
+	Content   string `json:"content"`
+	CreatedAt string `json:"created_at"`
+}
+
+func ToBrainDumpView(bd BrainDump) BrainDumpView {
+	return BrainDumpView{
+		ID:        bd.ID,
+		Content:   bd.Content,
+		CreatedAt: bd.CreatedAt.Format("2006-01-02 15:04:05"),
+	}
+}

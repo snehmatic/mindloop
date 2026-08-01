@@ -16,6 +16,7 @@ import (
 	"github.com/snehmatic/mindloop/db"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
+	"github.com/snehmatic/mindloop/internal/core/dump"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
@@ -183,6 +184,7 @@ func main() {
 	summaryService := summary.NewService(database)
 	habitService := habit.NewService(database)
 	taskService := task.NewService(database)
+	dumpService := dump.NewService(database)
 
 	mlh := v1.NewMindloopHandler(
 		journalService,
@@ -194,6 +196,7 @@ func main() {
 		summaryService,
 		backupService,
 		taskService,
+		dumpService,
 	)
 
 	ServeMindloop(mlh)

@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
+	"github.com/snehmatic/mindloop/internal/core/dump"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
@@ -81,6 +82,7 @@ type MindloopHandler struct {
 	summary *summary.Service
 	backup  *backup.Service
 	task    *task.Service
+	dump    *dump.Service
 }
 
 func NewMindloopHandler(
@@ -93,6 +95,7 @@ func NewMindloopHandler(
 	summary *summary.Service,
 	backup *backup.Service,
 	task *task.Service,
+	dump *dump.Service,
 ) *MindloopHandler {
 	return &MindloopHandler{
 		config:  config.GetConfig(),
@@ -105,6 +108,7 @@ func NewMindloopHandler(
 		summary: summary,
 		backup:  backup,
 		task:    task,
+		dump:    dump,
 	}
 }
 
@@ -449,4 +453,27 @@ func (mlh *MindloopHandler) HandleIntentResume(w http.ResponseWriter, r *http.Re
 	}
 
 	http.Redirect(w, r, "/intent", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleQuickDump(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	content := r.FormValue("content")
+	if content == "" {
+		http.Error(w, "Content cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	_, err := mlh.dump.CreateDump(content)
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating brain dump")
+		http.Error(w, "Error saving dump", http.StatusInternalServerError)
+		return
+	}
+
+	// Just return 200 OK
+	w.WriteHeader(http.StatusOK)
 }

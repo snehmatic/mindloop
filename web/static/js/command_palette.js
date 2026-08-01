@@ -39,12 +39,46 @@ document.addEventListener('DOMContentLoaded', () => {
         } else if (cmd.action === 'toggleTheme') {
             const toggle = document.getElementById('theme-toggle');
             if (toggle) toggle.click();
+        } else if (cmd.action === 'quickDump') {
+            submitDump(cmd.text);
+        }
+    }
+
+    async function submitDump(text) {
+        try {
+            const formData = new URLSearchParams();
+            formData.append("content", text);
+            await fetch('/api/dump', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            });
+            // Show toast or trigger confetti
+            document.dispatchEvent(new Event('confetti'));
+            // Optionally, create a toast element dynamically
+            const toastContainer = document.getElementById('toast-container');
+            if (toastContainer) {
+                const toast = document.createElement('div');
+                toast.className = 'card mb-md animate-fade-in';
+                toast.style = 'background-color: var(--success-bg); border-color: var(--success); color: var(--success); font-weight: 500; margin-top: 10px;';
+                toast.innerText = 'Captured quick dump!';
+                toastContainer.appendChild(toast);
+                setTimeout(() => toast.remove(), 3000);
+            }
+        } catch (e) {
+            console.error('Failed to dump', e);
         }
     }
 
     function renderResults(query) {
+        const rawQuery = query;
         query = query.toLowerCase();
-        const filtered = commands.filter(c => c.name.toLowerCase().includes(query));
+        let filtered = commands.filter(c => c.name.toLowerCase().includes(query));
+        
+        if (rawQuery.trim() !== '' && filtered.length === 0) {
+            filtered = [{ name: `Capture: "${rawQuery}"`, action: 'quickDump', text: rawQuery, icon: 'brain' }];
+        }
+
         results.innerHTML = '';
         
         if (filtered.length === 0) {
@@ -96,8 +130,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     input.addEventListener('keydown', (e) => {
-        const query = input.value.toLowerCase();
-        const filtered = commands.filter(c => c.name.toLowerCase().includes(query));
+        const rawQuery = input.value;
+        const query = rawQuery.toLowerCase();
+        let filtered = commands.filter(c => c.name.toLowerCase().includes(query));
+        
+        if (rawQuery.trim() !== '' && filtered.length === 0) {
+            filtered = [{ name: `Capture: "${rawQuery}"`, action: 'quickDump', text: rawQuery, icon: 'brain' }];
+        }
         
         if (e.key === 'ArrowDown') {
             e.preventDefault();

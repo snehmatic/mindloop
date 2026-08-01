@@ -108,6 +108,9 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/about", mlh.HandleAbout).Methods("GET")
 	r.HandleFunc("/void", mlh.HandleVoid).Methods("GET")
 
+	// Quick Dump Route
+	r.HandleFunc("/api/dump", mlh.HandleQuickDump).Methods("POST")
+
 	return r
 }
 
