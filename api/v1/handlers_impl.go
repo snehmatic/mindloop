@@ -982,10 +982,28 @@ func (mlh *MindloopHandler) HandleNoteCreate(w http.ResponseWriter, r *http.Requ
 	_, err := mlh.note.CreateNote(title, content, labels)
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating note")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/notes?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/notes?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
 
+	source := r.FormValue("source")
+	if source != "" {
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", source)
+			return
+		}
+		http.Redirect(w, r, source, http.StatusSeeOther)
+		return
+	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Redirect", "/notes?success=true")
+		return
+	}
 	http.Redirect(w, r, "/notes?success=true", http.StatusSeeOther)
 }
 

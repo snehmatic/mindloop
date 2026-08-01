@@ -143,6 +143,35 @@
         </div>
 
     </div>
+
+    <!-- Quick Capture Row -->
+    <div class="grid mt-lg" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <!-- Quick Note -->
+        <div class="card" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div class="flex-between mb-sm">
+                <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Quick Note</span>
+                <i data-lucide="file-text" class="icon-sm"></i>
+            </div>
+            <form action="/notes/new" method="POST" style="margin: 0; display: flex; gap: 0.5rem;">
+                <input type="hidden" name="source" value="/">
+                <input type="hidden" name="title" value="Quick Note">
+                <input type="text" name="content" class="form-control" placeholder="Jot something down..." required style="flex: 1;">
+                <button type="submit" class="btn btn-secondary btn-sm"><i data-lucide="send" class="icon-sm"></i></button>
+            </form>
+        </div>
+
+        <!-- The Void Entry -->
+        <div class="card" style="background: var(--bg-surface-alt); border-style: dashed;">
+            <div class="flex-between mb-sm">
+                <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">The Void</span>
+                <i data-lucide="ghost" class="icon-sm text-muted"></i>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" class="form-control" placeholder="Scream into the void..." onkeypress="if(event.key==='Enter') { this.value=''; this.placeholder='It is gone...'; setTimeout(()=>this.placeholder='Scream into the void...', 2000); }" style="flex: 1; border-color: transparent; background: rgba(0,0,0,0.1);">
+                <a href="/void" class="btn btn-secondary btn-sm" title="Enter The Void"><i data-lucide="arrow-right" class="icon-sm"></i></a>
+            </div>
+        </div>
+    </div>
 </div>
 
 {{ end }}

@@ -11,7 +11,7 @@
 
 **Mindloop** is a comprehensive productivity suite designed for local-first workflow management. It operates as a **CLI tool**, a **local API**, and a **UI**, utilizing a local SQLite database with BYODB (Bring Your Own Database) support.
 
-Recent highlights include AI-assisted journal generation, a CLI breathing mode called **The Void**, configurable gamification milestones, and improved task/sub-task completion behavior.
+Recent highlights include an **Interactive Command Center**, an integrated **Cmd+K Command Palette**, a built-in **TUI Dashboard** (`mindloop dash`), natural language date parsing, and AI-assisted journal generation.
 
 ## Table of Contents
 - [Getting Started](#getting-started)

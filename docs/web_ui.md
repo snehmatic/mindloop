@@ -22,7 +22,11 @@ Mindloop now includes a comprehensive Web UI to manage your productivity workflo
 - [Technical Architecture](#technical-architecture)
 
 ## Home Dashboard
-The home page provides an at-a-glance view of your current status, including today's intent, active side quests, and quick access to other features.
+The home page acts as an Interactive Command Center. It provides an at-a-glance view of your current status, including today's intent and active side quests. Directly from the dashboard, you can:
+- Check off pending tasks
+- Log daily habits
+- Capture quick notes
+- Jump into The Void
 
 ![Home Dashboard](img/home_final.png)
 
@@ -90,6 +94,9 @@ Every major listing view in Mindloop (Tasks, Habits, Notes, Journal, Focus Sessi
 - **Dynamic Filtering**: Filter lists contextually (e.g., Habits by *Interval*, Tasks by *To-Do/Completed*, Focus Sessions by *Duration*).
 - **Sorting**: Keep lists organized with specialized sorts (e.g., Newest First, Longest Duration, Highest Streak).
 - **Drag & Drop**: Use the *Custom (Drag & Drop)* sort option in the Tasks view to manually reorder tasks.
+
+## Command Palette (Cmd+K)
+Mindloop features a global spotlight-style Command Palette. Hit `Cmd+K` anywhere in the Web UI to instantly open a search bar to jump to specific pages, tasks, habits, intents, or features without taking your hands off the keyboard.
 
 ## Technical Architecture
 For details on the underlying UI architecture, HTMX integration, and styling system, please refer to [ARCHITECTURE_UI.md](ARCHITECTURE_UI.md).

@@ -5,19 +5,27 @@
 </p>
 
 ## Table of Contents
+- [Web & TUI Dashboard](#web--tui-dashboard)
 - [Intents](#intents)
 - [Focus Sessions](#focus-sessions)
 - [Tasks & Sub-tasks](#tasks--sub-tasks)
 - [Habits](#habits)
 - [Write (Journal & Notes)](#write-journal--notes)
+- [Command Palette & Navigation](#command-palette--navigation)
 - [AI-Assisted Journal Generation](#ai-assisted-journal-generation)
 - [The Void](#the-void)
 - [Summary](#summary)
 - [Gamification & Points](#gamification--points)
 - [Settings & Configuration](#settings--configuration)
 
+## Web & TUI Dashboard
+The "Anti-Dashboard" vision puts friction-less capture first.
+- **Interactive Web UI Dashboard**: A true command center. Start focus sessions, tick off pending tasks, complete daily habits, and quick capture notes directly from the home grid without navigating away.
+- **TUI Dashboard (`mindloop dash`)**: A beautiful terminal interface powered by Bubbletea that features a live-updating focus session timer and interactive habit toggling.
+
 ## Intents
 Set a single-threaded goal to maintain absolute focus. **One thing at a time.**
+- **Natural Language Dates**: Type "Finish report by next Friday" to automatically set a due date.
 - Track lifecycle of your intents (Active, Completed, Failed).
 - **Side Quest Modal**: Manage ad-hoc tasks that interrupt your flow without losing context.
 
@@ -28,6 +36,7 @@ Break your intents into deep work chunks with a built-in timer.
 
 ## Tasks & Sub-tasks
 Manage independent to-do items and link them to your bigger goals.
+- **Natural Language Dates**: Just like Intents, tasks support natural language date parsing (e.g., "Review PR tomorrow").
 - **Full Web UI**: Create, complete, and delete tasks directly from the Tasks page.
 - **Sub-tasks**: Break tasks into smaller, actionable sub-tasks with independent completion tracking.
 - **Link to Intents & Focus Sessions**: Optionally attach tasks to an active Intent or Focus Session when creating them.
@@ -44,7 +53,11 @@ Track daily and weekly habits to build consistency.
 ## Write (Journal & Notes)
 A dedicated space for your thoughts.
 - **Journal**: A space for reflections, end-of-day closure, or gratitude logging. Features mood tracking and rich markdown support. "Close the loop" at the end of your workday.
-- **Notes**: Quickly capture thoughts, ideas, or longer-form reference material that doesn't fit into a daily journal entry.
+- **Notes**: Quickly capture thoughts, ideas, or longer-form reference material that doesn't fit into a daily journal entry. Use the "Quick Note" widget on the Dashboard to capture instantly.
+
+## Command Palette & Navigation
+Frictionless navigation across the entire Web UI.
+- **Omnibar (`Cmd+K`)**: Hit `Cmd+K` anywhere in the Web UI to instantly open a spotlight-style command palette to jump between intents, tasks, habits, or the void.
 
 ## AI-Assisted Journal Generation
 Generate a reflective journal entry from your activity data.
@@ -79,9 +92,9 @@ Turn your productivity into a game with a built-in reward system.
 Extend Mindloop by running custom scripts when specific events occur.
 - **Hook Scripts**: Place executable scripts in `~/.mindloop/hooks/`.
 - **Supported Events**:
-  - `focus_start`: Triggered when a new focus session starts.
-  - `focus_stop`: Triggered when a focus session ends.
-- **Environment**: Scripts are passed `MINDLOOP_EVENT` in their environment.
+  - `focus_start`: Triggered when a new focus session starts. Passes `MINDLOOP_FOCUS_TITLE`.
+  - `focus_stop`: Triggered when a focus session ends. Passes `MINDLOOP_FOCUS_TITLE` and `MINDLOOP_FOCUS_DURATION`.
+- **Environment**: Scripts are passed context variables in their environment.
 - **Async Execution**: Hooks run asynchronously so they do not block the app.
 
 ## Settings & Configuration

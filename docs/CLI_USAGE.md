@@ -4,6 +4,7 @@ This guide provides a detailed overview of the `mindloop` CLI commands and how t
 
 ## Table of Contents
 - [Getting Started](#getting-started)
+- [Dashboard (TUI)](#dashboard-tui)
 - [Intent Management](#intent-management)
 - [Side Quests](#side-quests)
 - [Focus Sessions](#focus-sessions)
@@ -28,6 +29,20 @@ This interactive command will guide you through setting up:
 *   **Username**: Your display name.
 *   **Mode**: Choose between `local` (SQLite) or `byodb` (Bring Your Own Database, e.g., PostgreSQL).
 *   **Milestone interval**: How many points are needed between milestone celebrations. The default is `200`.
+
+---
+
+## Dashboard (TUI)
+
+Mindloop includes a beautiful Terminal User Interface (TUI) dashboard to act as your daily command center directly in the terminal.
+
+### Commands
+
+*   **Open the dashboard:**
+    ```bash
+    mindloop dash
+    ```
+    This opens an interactive interface where you can view your active Intent, monitor a live Focus Session timer, and interactively toggle your daily habits using your keyboard. Press `q` to quit.
 
 ---
 
