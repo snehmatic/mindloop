@@ -3,6 +3,8 @@ package cli
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/exec"
 	"strconv"
 	"strings"
 
@@ -22,12 +24,26 @@ var chunkCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		itemType := args[0]
 		idStr := args[1]
-		id, err := strconv.ParseUint(idStr, 10, 32)
+		_, err := strconv.ParseUint(idStr, 10, 32)
 		if err != nil {
 			utils.PrintErrorln("Invalid ID")
 			return
 		}
 
+		if os.Getenv("MINDLOOP_CHUNK_BG") != "true" {
+			// Spawn background process for sub-100ms CLI execution
+			cmdArgs := append([]string{"chunk", itemType, idStr}, os.Args[3:]...)
+			cmd := exec.Command(os.Args[0], cmdArgs...)
+			cmd.Env = append(os.Environ(), "MINDLOOP_CHUNK_BG=true")
+			if err := cmd.Start(); err != nil {
+				utils.PrintErrorln("Failed to start background chunker")
+				return
+			}
+			utils.PrintSuccessln(fmt.Sprintf("AI chunking enqueued for %s ID %s. Check tasks in a few seconds.", itemType, idStr))
+			return
+		}
+
+		id, _ := strconv.ParseUint(idStr, 10, 32)
 		appConfig := config.GetConfig()
 		dbConn, err := db.ConnectToDb(*appConfig)
 		if err != nil {

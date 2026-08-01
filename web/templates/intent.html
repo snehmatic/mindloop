@@ -94,7 +94,7 @@
         <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-sm">
             <h3 class="mb-0">Tasks for this Intent</h3>
             <div style="display: flex; gap: 0.5rem;">
-                <button type="button" class="btn btn-sm btn-secondary chunker-btn" title="Break down intent via AI" style="padding: 0.25rem 0.75rem; color: var(--primary);" hx-post="/api/v1/chunk" hx-vals='{"type":"intent", "id":"{{ .CurrentIntent.ID }}"}' hx-target="#intent-tasks-list" hx-swap="afterbegin" hx-indicator="#chunk-spinner-intent-{{ .CurrentIntent.ID }}" onhtmx:afterSwap="lucide.createIcons();"><i data-lucide="wand-2" style="width:14px;height:14px; margin-right: 2px;"></i> AI Chunk</button>
+                <button type="button" class="btn btn-sm btn-secondary chunker-btn" title="Break down intent via AI" style="padding: 0.25rem 0.75rem; color: var(--primary);" hx-post="/api/v1/chunk" hx-vals='{"type":"intent", "id":"{{ .CurrentIntent.ID }}"}' hx-target="#intent-tasks-list" hx-swap="afterbegin" hx-indicator="#chunk-spinner-intent-{{ .CurrentIntent.ID }}"><i data-lucide="wand-2" style="width:14px;height:14px; margin-right: 2px;"></i> AI Chunk</button>
                 <button type="button" onclick="document.getElementById('intent-add-task-form').style.display = document.getElementById('intent-add-task-form').style.display === 'none' ? 'flex' : 'none'" class="btn btn-sm btn-primary-outline" style="padding: 0.25rem 0.75rem; background: transparent; color: var(--primary); border: 1px solid var(--primary);"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Task</button>
             </div>
         </div>
@@ -106,8 +106,8 @@
             <button type="submit" class="btn btn-primary btn-sm">Save</button>
         </form>
 
-        <div id="chunk-spinner-intent-{{ .CurrentIntent.ID }}" class="htmx-indicator p-sm text-center" style="font-size: 0.85em; color: var(--text-muted);"><i data-lucide="loader-2" class="spin icon-sm text-primary"></i> Generating tasks...</div>
-        <div class="flex-col gap-sm" id="intent-tasks-list">
+        <div id="chunk-spinner-intent-{{ .CurrentIntent.ID }}" class="htmx-indicator p-sm text-center" style="font-size: 0.85em; color: var(--text-muted); position: absolute; left: 0; right: 0; top: -10px;"><i data-lucide="loader-2" class="spin icon-sm text-primary"></i> Generating tasks...</div>
+        <div class="flex-col gap-sm" id="intent-tasks-list" style="position: relative; transition: all 0.3s ease;">
         {{ if .Tasks }}
             {{ range .Tasks }}
             <div class="card p-sm" style="display: flex; justify-content: space-between; align-items: center; {{ if eq .Status "completed" }}opacity: 0.7;{{ end }}">

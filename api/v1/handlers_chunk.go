@@ -3,9 +3,10 @@ package v1
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"net/http"
+	"regexp"
 	"strconv"
-	"strings"
 
 	"github.com/snehmatic/mindloop/internal/core/ai"
 )
@@ -40,31 +41,31 @@ func (mlh *MindloopHandler) HandleChunk(w http.ResponseWriter, r *http.Request) 
 			http.Error(w, "Task not found", http.StatusNotFound)
 			return
 		}
-		itemName = t.Title
+		itemName = html.EscapeString(t.Title)
 	default:
 		http.Error(w, "Invalid type", http.StatusBadRequest)
 		return
 	}
 
-	aiSvc := ai.NewService(mlh.journal.DB) // Using DB from existing service
+	aiSvc := ai.NewService(mlh.DB) // Using DB from existing service
 
 	res, err := aiSvc.GenerateChunker(itemName)
 	if err != nil {
-		http.Error(w, "AI error: "+err.Error(), http.StatusInternalServerError)
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("HX-Trigger", `{"showToast": {"message": "AI error: failed to generate chunk", "type": "error"}}`)
 		return
 	}
 
 	var steps []string
-	cleanRes := strings.TrimSpace(res)
-	if strings.HasPrefix(cleanRes, "```json") {
-		cleanRes = strings.TrimPrefix(cleanRes, "```json")
-		cleanRes = strings.TrimSuffix(cleanRes, "```")
-	} else if strings.HasPrefix(cleanRes, "```") {
-		cleanRes = strings.TrimPrefix(cleanRes, "```")
-		cleanRes = strings.TrimSuffix(cleanRes, "```")
+	reExtract := regexp.MustCompile(`\[\s*(?s:.*)\s*\]`)
+	match := reExtract.FindString(res)
+	if match == "" {
+		w.Header().Set("Content-Type", "text/html")
+		w.Header().Set("HX-Trigger", `{"showToast": {"message": "Failed to extract JSON from AI response", "type": "error"}}`)
+		return
 	}
 
-	err = json.Unmarshal([]byte(cleanRes), &steps)
+	err = json.Unmarshal([]byte(match), &steps)
 	if err != nil {
 		http.Error(w, "Failed to parse AI response", http.StatusInternalServerError)
 		return
@@ -89,7 +90,7 @@ func (mlh *MindloopHandler) HandleChunk(w http.ResponseWriter, r *http.Request) 
 						<input type="hidden" name="source" value="/intent">
 						<button type="submit" class="btn btn-sm btn-success-outline" style="padding: 0.25rem 0.5rem;">Done</button>
 					</form>
-				</div>`, t.Title, t.ID)
+				</div>`, html.EscapeString(t.Title), t.ID)
 				_, _ = w.Write([]byte(html))
 			}
 		case "task":
@@ -104,7 +105,7 @@ func (mlh *MindloopHandler) HandleChunk(w http.ResponseWriter, r *http.Request) 
 						<input type="hidden" name="id" value="%d">
 						<button type="submit" class="btn btn-sm btn-secondary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;"><i data-lucide="check" style="width:12px;height:12px; margin-right: 2px;"></i> Done</button>
 					</form>
-				</div>`, st.Title, st.ID)
+				</div>`, html.EscapeString(st.Title), st.ID)
 				_, _ = w.Write([]byte(html))
 			}
 		}

@@ -71,6 +71,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 	dumpService := dump.NewService(database)
 
 	return v1.NewMindloopHandler(
+		database,
 		journalService,
 		noteService,
 		habitService,

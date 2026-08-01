@@ -196,3 +196,14 @@ func TestCustomProviderListModels_NonOpenAIModels(t *testing.T) {
 		t.Errorf("Expected 2 models, got %d: %v", len(models), models)
 	}
 }
+
+func TestGenerateChunker_NoToken(t *testing.T) {
+	db := setupTestDB(t)
+
+	svc := ai.NewService(db)
+
+	_, err := svc.GenerateChunker("do my homework")
+	if err == nil {
+		t.Error("Expected error for unconfigured token, got nil")
+	}
+}

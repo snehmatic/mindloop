@@ -24,6 +24,7 @@ import (
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/snehmatic/mindloop/web"
+	"gorm.io/gorm"
 )
 
 type HabitView struct {
@@ -73,6 +74,7 @@ var templateFuncs = template.FuncMap{
 
 type MindloopHandler struct {
 	config  *config.Config
+	DB      *gorm.DB
 	journal *journal.Service
 	note    *note.Service
 	habit   *habit.Service
@@ -86,6 +88,7 @@ type MindloopHandler struct {
 }
 
 func NewMindloopHandler(
+	db *gorm.DB,
 	journal *journal.Service,
 	note *note.Service,
 	habit *habit.Service,
@@ -99,6 +102,7 @@ func NewMindloopHandler(
 ) *MindloopHandler {
 	return &MindloopHandler{
 		config:  config.GetConfig(),
+		DB:      db,
 		journal: journal,
 		note:    note,
 		habit:   habit,

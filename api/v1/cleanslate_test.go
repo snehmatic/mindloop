@@ -57,7 +57,7 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 	tService := task.NewService(db)
 	dService := dump.NewService(db)
 
-	mlh := NewMindloopHandler(jService, nService, hService, fService, iService, qService, sService, bService, tService, dService)
+	mlh := NewMindloopHandler(db, jService, nService, hService, fService, iService, qService, sService, bService, tService, dService)
 	return mlh, db
 }
 

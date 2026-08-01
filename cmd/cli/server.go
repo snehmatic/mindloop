@@ -37,6 +37,7 @@ var serverCmd = &cobra.Command{
 		dumpService := dump.NewService(gdb)
 
 		mlh := v1.NewMindloopHandler(
+			gdb,
 			journalService,
 			noteService,
 			habitService,

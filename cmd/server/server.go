@@ -187,6 +187,7 @@ func main() {
 	dumpService := dump.NewService(database)
 
 	mlh := v1.NewMindloopHandler(
+		database,
 		journalService,
 		noteService,
 		habitService,
