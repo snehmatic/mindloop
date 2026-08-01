@@ -84,6 +84,8 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/tasks/subtask/delete", mlh.HandleSubtaskDelete).Methods("POST")
 	r.HandleFunc("/tasks/subtask/reorder", mlh.HandleSubTaskReorder).Methods("POST")
 
+	r.HandleFunc("/recalibrate", mlh.HandleRecalibrate).Methods("POST")
+
 	// Settings Route
 	r.HandleFunc("/settings", mlh.HandleSettings).Methods("GET")
 	r.HandleFunc("/settings/update", mlh.HandleSettingsUpdate).Methods("POST")

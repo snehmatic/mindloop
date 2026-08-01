@@ -31,7 +31,7 @@ type HabitView struct {
 	models.Habit
 	ActualCount int
 	ProgressPct int
-	Streak      int
+	Momentum    int
 }
 
 var templateFuncs = template.FuncMap{
@@ -232,6 +232,7 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Build Active Habits for Dashboard
+	momentums, _ := mlh.habit.CalculateMomentums(habits)
 	var activeHabits []HabitView
 	for _, h := range habits {
 		actual := 0
@@ -248,12 +249,12 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		if pct > 100 {
 			pct = 100
 		}
-		streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+		momentum := momentums[h.ID]
 		activeHabits = append(activeHabits, HabitView{
 			Habit:       h,
 			ActualCount: actual,
 			ProgressPct: pct,
-			Streak:      streak,
+			Momentum:    momentum,
 		})
 	}
 

@@ -70,6 +70,7 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Calculate completion for UI
+	momentums, _ := mlh.habit.CalculateMomentums(habits)
 	var habitViews []HabitView
 	for _, h := range habits {
 		actual := 0
@@ -112,13 +113,13 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 			pct = 100
 		}
 
-		streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+		momentum := momentums[h.ID]
 
 		habitViews = append(habitViews, HabitView{
 			Habit:       h,
 			ActualCount: actual,
 			ProgressPct: pct,
-			Streak:      streak,
+			Momentum:    momentum,
 		})
 	}
 
@@ -252,13 +253,13 @@ func (mlh *MindloopHandler) HandleHabitView(w http.ResponseWriter, r *http.Reque
 		heatmap[dateStr] = ratio
 	}
 
-	streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+	momentum, _ := mlh.habit.CalculateMomentum(h)
 
 	mlh.renderTemplate(w, "habit_view.html", map[string]interface{}{
 		"Title":   "Habit: " + h.Title,
 		"Habit":   h,
 		"Heatmap": heatmap,
-		"Streak":  streak,
+		"Momentum": momentum,
 	})
 }
 
@@ -306,13 +307,13 @@ func (mlh *MindloopHandler) getHabitView(id string) (*HabitView, error) {
 		pct = 100
 	}
 
-	streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+	momentum, _ := mlh.habit.CalculateMomentum(h)
 
 	return &HabitView{
 		Habit:       *h,
 		ActualCount: actual,
 		ProgressPct: pct,
-		Streak:      streak,
+		Momentum:    momentum,
 	}, nil
 }
 
@@ -1280,4 +1281,16 @@ func (mlh *MindloopHandler) HandleBackupImport(w http.ResponseWriter, r *http.Re
 	}
 
 	http.Redirect(w, r, "/settings?success=true", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleRecalibrate(w http.ResponseWriter, r *http.Request) {
+	if err := mlh.habit.RecalibrateAll(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := mlh.task.RecalibrateTasks(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

@@ -224,48 +224,87 @@ func (s *Service) DeleteAll() error {
 	})
 }
 
-func (s *Service) CalculateStreak(habitID uint, interval models.IntervalType) (int, error) {
-	if interval != models.Daily {
-		return 0, nil // fast track for non-daily for now
+func (s *Service) RecalibrateAll() error {
+	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(&models.Habit{}).Update("recalibrated_at", time.Now()).Error
+}
+
+func (s *Service) CalculateMomentumFromLogs(habit *models.Habit, logs []models.HabitLog) int {
+	if habit.Interval != models.Daily {
+		return 0
 	}
 
-	var logs []models.HabitLog
-	// Fetch all logs for this habit ordered by date descending
-	if err := s.DB.Where("HabitID = ?", habitID).Order("CreatedAt desc").Find(&logs).Error; err != nil {
-		return 0, err
+	momentum := float64(0)
+	startDate := habit.CreatedAt.Truncate(24 * time.Hour)
+	if len(logs) > 0 {
+		firstLogDate := logs[0].CreatedAt.Truncate(24 * time.Hour)
+		if firstLogDate.Before(startDate) {
+			startDate = firstLogDate
+		}
 	}
-
-	if len(logs) == 0 {
-		return 0, nil
-	}
-
-	streak := 0
 	today := time.Now().Truncate(24 * time.Hour)
 
-	lastLogDate := logs[0].CreatedAt.Truncate(24 * time.Hour)
-	daysDiff := today.Sub(lastLogDate).Hours() / 24
-
-	if daysDiff > 1 {
-		return 0, nil
-	}
-
-	expectedDate := lastLogDate
-loop:
-	for _, log := range logs {
-		logDate := log.CreatedAt.Truncate(24 * time.Hour)
-
-		switch {
-		case logDate.Equal(expectedDate):
-			if log.ActualCount >= log.TargetCount {
-				streak++
-				expectedDate = expectedDate.AddDate(0, 0, -1)
-			}
-		case logDate.After(expectedDate):
-			continue
-		default:
-			break loop
+	logMap := make(map[string]bool)
+	for _, l := range logs {
+		if l.ActualCount >= l.TargetCount {
+			logDate := l.CreatedAt.Format("2006-01-02")
+			logMap[logDate] = true
 		}
 	}
 
-	return streak, nil
+	for d := startDate; !d.After(today); d = d.AddDate(0, 0, 1) {
+		dateStr := d.Format("2006-01-02")
+		isForgiven := false
+		if habit.RecalibratedAt != nil {
+			if d.Format("2006-01-02") < habit.RecalibratedAt.Format("2006-01-02") {
+				isForgiven = true
+			}
+		}
+		
+		if logMap[dateStr] {
+			momentum += 10
+		} else if !isForgiven {
+			momentum *= 0.9
+		}
+	}
+
+	if momentum > 100 {
+		momentum = 100
+	}
+	return int(momentum)
+}
+
+func (s *Service) CalculateMomentums(habits []models.Habit) (map[uint]int, error) {
+	momentums := make(map[uint]int)
+	if len(habits) == 0 {
+		return momentums, nil
+	}
+	
+	var habitIDs []uint
+	for _, h := range habits {
+		habitIDs = append(habitIDs, h.ID)
+	}
+
+	var allLogs []models.HabitLog
+	if err := s.DB.Where("HabitID IN ?", habitIDs).Order("CreatedAt asc").Find(&allLogs).Error; err != nil {
+		return nil, err
+	}
+
+	logsByHabit := make(map[uint][]models.HabitLog)
+	for _, log := range allLogs {
+		logsByHabit[log.HabitID] = append(logsByHabit[log.HabitID], log)
+	}
+
+	for _, h := range habits {
+		momentums[h.ID] = s.CalculateMomentumFromLogs(&h, logsByHabit[h.ID])
+	}
+	
+	return momentums, nil
+}
+
+func (s *Service) CalculateMomentum(habit *models.Habit) (int, error) {
+	var logs []models.HabitLog
+	if err := s.DB.Where("HabitID = ?", habit.ID).Order("CreatedAt asc").Find(&logs).Error; err != nil {
+		return 0, err
+	}
+	return s.CalculateMomentumFromLogs(habit, logs), nil
 }

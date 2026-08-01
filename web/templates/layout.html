@@ -99,6 +99,10 @@
                 <li><a href="/void" class="nav-link" title="The Void"><i data-lucide="ghost"></i> <span class="nav-text">Void</span></a></li>
                 <li><a href="/summary" class="nav-link" title="Summary"><i data-lucide="bar-chart-2"></i> <span class="nav-text">Summary</span></a></li>
 
+                
+                <!-- Fresh Start -->
+                <li><a href="javascript:void(0);" class="nav-link" title="Fresh Start" onclick="document.getElementById('recalibrate-modal').style.display='flex'"><i data-lucide="refresh-cw" style="color: var(--warning);"></i> <span class="nav-text">Fresh Start</span></a></li>
+
                 <!-- Icon-only items -->
                 <li><a href="/about" class="nav-link" title="About"><i data-lucide="info"></i></a></li>
                 <li><a href="/settings" class="nav-link" title="Settings"><i data-lucide="settings"></i></a></li>
@@ -142,6 +146,22 @@
 
         <!-- Placeholder for HTMX OOB Toasts -->
         <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;"></div>
+
+        
+        <!-- Fresh Start Modal -->
+        <div id="recalibrate-modal" class="flex-center" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(4px);">
+            <div class="card animate-pop-in" style="max-width: 400px; width: 100%;">
+                <div class="flex-between mb-md">
+                    <h2 class="mb-0 text-warning flex-center gap-sm"><i data-lucide="refresh-cw"></i> Emergency Recalibrate</h2>
+                    <button class="btn btn-sm" style="background: none; border: none; font-size: 1.5rem;" onclick="document.getElementById('recalibrate-modal').style.display='none'">&times;</button>
+                </div>
+                <p class="text-muted mb-md">Are you feeling overwhelmed? This will clear your task backlog (moving overdue tasks to Someday) and preserve your habit momentum so you can start fresh without shame.</p>
+                <form action="/recalibrate" method="POST" class="flex-end gap-sm mt-lg mb-0">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('recalibrate-modal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background: var(--warning); border-color: var(--warning); color: #000;">Start Fresh</button>
+                </form>
+            </div>
+        </div>
 
         <!-- Milestone Celebration Overlay -->
         <div id="milestone-overlay" class="flex-center"

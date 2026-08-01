@@ -28,9 +28,10 @@ type Habit struct {
 	gorm.Model
 	Title       string       `gorm:"type:varchar(100)" json:"title"`
 	Description string       `gorm:"type:text" json:"description"`
-	Interval    IntervalType `gorm:"type:varchar(100)" json:"interval"`
-	TargetCount int          `gorm:"type:int" json:"target_count"`
-	EndDate     *time.Time   `json:"end_date,omitempty"`
+	Interval       IntervalType `gorm:"type:varchar(100)" json:"interval"`
+	TargetCount    int          `gorm:"type:int" json:"target_count"`
+	EndDate        *time.Time   `json:"end_date,omitempty"`
+	RecalibratedAt *time.Time   `json:"recalibrated_at,omitempty"`
 }
 
 // Defaults for Habit
