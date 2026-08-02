@@ -259,7 +259,7 @@ func (s *Service) CalculateMomentumFromLogs(habit *models.Habit, logs []models.H
 				isForgiven = true
 			}
 		}
-		
+
 		if logMap[dateStr] {
 			momentum += 10
 		} else if !isForgiven {
@@ -278,7 +278,7 @@ func (s *Service) CalculateMomentums(habits []models.Habit) (map[uint]int, error
 	if len(habits) == 0 {
 		return momentums, nil
 	}
-	
+
 	var habitIDs []uint
 	for _, h := range habits {
 		habitIDs = append(habitIDs, h.ID)
@@ -297,7 +297,7 @@ func (s *Service) CalculateMomentums(habits []models.Habit) (map[uint]int, error
 	for _, h := range habits {
 		momentums[h.ID] = s.CalculateMomentumFromLogs(&h, logsByHabit[h.ID])
 	}
-	
+
 	return momentums, nil
 }
 

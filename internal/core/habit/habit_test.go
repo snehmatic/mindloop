@@ -65,9 +65,9 @@ func TestHabitService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to calculate streak: %v", err)
 	}
-	
-	// Test output is not strictly asserted here because LogHabit creates logs 
-	// using time.Now() via GORM, making the exact momentum value dependent on 
+
+	// Test output is not strictly asserted here because LogHabit creates logs
+	// using time.Now() via GORM, making the exact momentum value dependent on
 	// timezone differences between SQLite and the system. We test math explicitly below.
 	if momentum < 0 {
 		t.Errorf("Expected momentum to be >= 0")
@@ -130,4 +130,3 @@ func TestCalculateMomentum(t *testing.T) {
 		t.Errorf("Expected momentum 39 after gap, got %d", momentum)
 	}
 }
-

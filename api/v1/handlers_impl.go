@@ -256,9 +256,9 @@ func (mlh *MindloopHandler) HandleHabitView(w http.ResponseWriter, r *http.Reque
 	momentum, _ := mlh.habit.CalculateMomentum(h)
 
 	mlh.renderTemplate(w, "habit_view.html", map[string]interface{}{
-		"Title":   "Habit: " + h.Title,
-		"Habit":   h,
-		"Heatmap": heatmap,
+		"Title":    "Habit: " + h.Title,
+		"Habit":    h,
+		"Heatmap":  heatmap,
 		"Momentum": momentum,
 	})
 }

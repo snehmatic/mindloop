@@ -1,8 +1,8 @@
 package task
 
 import (
-	"time"
 	"errors"
+	"time"
 
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/points"
