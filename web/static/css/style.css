@@ -1536,3 +1536,39 @@ html.dark-mode .settings-toggle:hover {
     text-align: center;
     color: var(--text-muted);
 }
+<<<<<<< Updated upstream
+=======
+
+/* Vim navigation focus */
+.vim-focused {
+    outline: 2px solid var(--primary);
+    outline-offset: -2px;
+    background-color: var(--primary-light) !important;
+    transition: all 0.2s ease;
+}
+
+/* Zen Mode (Hyper-Focus UI) */
+html.zen-mode .zen-hide {
+    display: none !important;
+}
+
+html.zen-mode .home-grid,
+html.zen-mode .grid.mt-lg {
+    grid-template-columns: 1fr !important;
+    max-width: 800px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+html.zen-mode main.container {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 2rem;
+    min-height: calc(100vh - 100px);
+}
+
+.home-grid, .grid.mt-lg, main.container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+>>>>>>> Stashed changes
