@@ -17,6 +17,11 @@
     <script src="/static/js/purify.min.js"></script>
     <script src="/static/js/easymde.min.js"></script>
     <script src='{{ asset "/static/js/filter_sort.js" }}'></script>
+    <script src='{{ asset "/static/js/vim_nav.js" }}'></script>
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#1e293b" media="(prefers-color-scheme: dark)">
+    <link rel="apple-touch-icon" href="/static/favicon_io/android-chrome-192x192.png">
     <script>
         // Check for saved user preference early to prevent flash
         (function () {
@@ -24,7 +29,19 @@
             if (currentTheme) {
                 document.documentElement.classList.add(currentTheme);
             }
+            if (localStorage.getItem('zen-mode') === 'enabled') {
+                document.documentElement.classList.add('zen-mode');
+            }
         })();
+
+        // Register Service Worker for PWA support
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(registration => console.log('ServiceWorker registered'))
+                    .catch(error => console.log('ServiceWorker registration failed: ', error));
+            });
+        }
     </script>
 </head>
 
