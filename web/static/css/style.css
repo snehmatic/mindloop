@@ -1536,8 +1536,6 @@ html.dark-mode .settings-toggle:hover {
     text-align: center;
     color: var(--text-muted);
 }
-<<<<<<< Updated upstream
-=======
 
 /* Vim navigation focus */
 .vim-focused {
@@ -1571,4 +1569,3 @@ html.zen-mode main.container {
 .home-grid, .grid.mt-lg, main.container {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
->>>>>>> Stashed changes
