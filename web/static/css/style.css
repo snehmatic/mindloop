@@ -1536,3 +1536,53 @@ html.dark-mode .settings-toggle:hover {
     text-align: center;
     color: var(--text-muted);
 }
+
+/* --- Zen Mode --- */
+.zen-hide {
+    transition: opacity 0.4s ease, visibility 0.4s ease, max-height 0.4s ease, margin 0.4s ease, padding 0.4s ease;
+    opacity: 1;
+    visibility: visible;
+    max-height: 2000px;
+    overflow: hidden;
+}
+
+body.zen-mode .zen-hide {
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none;
+    max-height: 0 !important;
+    margin-top: 0 !important;
+    margin-bottom: 0 !important;
+    padding-top: 0 !important;
+    padding-bottom: 0 !important;
+    border: none !important;
+}
+
+/* Zen toggle button */
+#zen-toggle {
+    position: fixed;
+    top: 1.5rem;
+    right: 1.5rem;
+    z-index: 1000;
+    background: var(--bg-surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-full);
+    padding: 0.5rem;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.3s ease;
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+#zen-toggle:hover {
+    background: var(--bg-surface-alt);
+    transform: scale(1.05);
+}
+body.zen-mode #zen-toggle {
+    opacity: 0.3;
+}
+body.zen-mode #zen-toggle:hover {
+    opacity: 1;
+}

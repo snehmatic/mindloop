@@ -29,6 +29,9 @@
 </head>
 
 <body>
+    <button id="zen-toggle" onclick="document.body.classList.toggle('zen-mode')" title="Toggle Zen Mode">
+        <i data-lucide="eye" class="icon-sm"></i>
+    </button>
     {{ if .ActiveFocus }}
     <style>
         @keyframes focus-rail-move {

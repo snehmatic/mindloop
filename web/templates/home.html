@@ -13,7 +13,7 @@
 </div>
 {{ end }}
 
-    <div class="page-header" style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
+    <div class="page-header zen-hide" style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
             <h1 style="font-weight: 800; font-size: 2.5rem; margin-bottom: 0.2rem;">
                 {{ if .UserName }}
@@ -93,7 +93,7 @@
         </div>
 
         <!-- Right Column: Interactive Widgets -->
-        <div style="display: flex; flex-direction: column; gap: 1.5rem; height: 100%;">
+        <div class="zen-hide" style="display: flex; flex-direction: column; gap: 1.5rem; height: 100%;">
             <!-- Pending Tasks Widget -->
             <div class="card" style="display: flex; flex-direction: column; flex: 1;">
                 <div class="flex-between mb-md">
