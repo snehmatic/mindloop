@@ -2,10 +2,28 @@ package note
 
 import (
 	"errors"
+	"fmt"
+	"unicode/utf8"
 
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
+
+const maxLabelsLength = 200
+
+// UpdateInput describes fields to change. A nil field is left unchanged.
+type UpdateInput struct {
+	Title   *string
+	Content *string
+	Labels  *string
+}
+
+func validateLabels(labels string) error {
+	if utf8.RuneCountInString(labels) > maxLabelsLength {
+		return fmt.Errorf("labels cannot exceed %d characters", maxLabelsLength)
+	}
+	return nil
+}
 
 // Service handles business logic for markdown notes
 type Service struct {
@@ -21,6 +39,9 @@ func NewService(db *gorm.DB) *Service {
 func (s *Service) CreateNote(title, content, labels string) (*models.Note, error) {
 	if title == "" && content == "" {
 		return nil, errors.New("note must have a title or content")
+	}
+	if err := validateLabels(labels); err != nil {
+		return nil, err
 	}
 	note := &models.Note{
 		Title:   title,
@@ -53,13 +74,31 @@ func (s *Service) GetNote(id int) (*models.Note, error) {
 
 // UpdateNote modifies an existing markdown note in the database
 func (s *Service) UpdateNote(id int, title, content, labels string) (*models.Note, error) {
+	return s.UpdateNoteFields(id, UpdateInput{
+		Title:   &title,
+		Content: &content,
+		Labels:  &labels,
+	})
+}
+
+// UpdateNoteFields updates only the fields supplied by the caller.
+func (s *Service) UpdateNoteFields(id int, input UpdateInput) (*models.Note, error) {
 	note, err := s.GetNote(id)
 	if err != nil {
 		return nil, err
 	}
-	note.Title = title
-	note.Content = content
-	note.Labels = labels
+	if input.Title != nil {
+		note.Title = *input.Title
+	}
+	if input.Content != nil {
+		note.Content = *input.Content
+	}
+	if input.Labels != nil {
+		if err := validateLabels(*input.Labels); err != nil {
+			return nil, err
+		}
+		note.Labels = *input.Labels
+	}
 	if err := s.DB.Save(note).Error; err != nil {
 		return nil, err
 	}
