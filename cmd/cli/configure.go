@@ -84,7 +84,10 @@ func CreateUserConfigYAML(username, mode string, dbConfig *config.DBConfig) {
 		uc.DbConfig = *dbConfig
 	}
 
-	uc.WriteToYAML()
+	if err := uc.WriteToYAMLError(); err != nil {
+		utils.PrintErrorln("Error writing user config to YAML")
+		return
+	}
 	utils.PrintSuccessln("User config created successfully!")
 	utils.PrintInfof("You can find your config at: %s\n", config.GetUserConfigPath())
 }
