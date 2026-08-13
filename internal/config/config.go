@@ -229,7 +229,7 @@ func (uc UserConfig) WriteToYAMLError() error {
 		return fmt.Errorf("create temporary user config: %w", err)
 	}
 	tmpPath := tmp.Name()
-	defer os.Remove(tmpPath)
+	defer func() { _ = os.Remove(tmpPath) }()
 
 	if err := tmp.Chmod(0644); err != nil {
 		_ = tmp.Close()
