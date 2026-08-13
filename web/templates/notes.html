@@ -39,12 +39,45 @@
     </div>
 
     <!-- Notes History -->
-    <div class="notes-list">
+    <div class="filter-sort-bar mb-md animate-slide-up" data-target="#notes-list-grid">
+        <div class="search-wrapper">
+            <i data-lucide="search"></i>
+            <input type="text" placeholder="Search notes..." class="search-input">
+        </div>
+        <div class="controls-wrapper">
+            <div class="control-group">
+                <span class="control-label">
+                    <i data-lucide="tag"></i>
+                    <span>Tags</span>
+                </span>
+                <select class="filter-select" data-filter-key="labels" data-dynamic="true">
+                    <option value="">All Labels</option>
+                </select>
+            </div>
+            <div class="control-group">
+                <span class="control-label">
+                    <i data-lucide="arrow-up-down"></i>
+                    <span>Sort</span>
+                </span>
+                <select class="sort-select">
+                    <option value="date-desc">Recently Updated</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="title-asc">Title (A-Z)</option>
+                    <option value="title-desc">Title (Z-A)</option>
+                </select>
+            </div>
+        </div>
+    </div>
 
+    <div class="notes-list">
         {{ if .Notes }}
-        <div class="grid">
+        <div class="grid" id="notes-list-grid">
             {{ range .Notes }}
-            <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;" onclick="if(!event.target.closest('button') && !event.target.closest('a')) window.location.href='/notes/view/{{ .ID }}'">
+            <div class="card card-hover" style="display: flex; flex-direction: column; justify-content: space-between; cursor: pointer;" onclick="if(!event.target.closest('button') && !event.target.closest('a')) window.location.href='/notes/view/{{ .ID }}'"
+                data-title="{{ if .Title }}{{ .Title }}{{ else }}Untitled Note{{ end }}"
+                data-date="{{ iso8601 .UpdatedAt }}"
+                data-labels="{{ .Labels }}"
+                data-searchable="{{ .Title }} {{ .Content }} {{ .Labels }}">
                 <div id="display-note-{{ .ID }}">
                     <div class="flex-between mb-sm">
                         <h3 style="margin-bottom: 0;">{{ if .Title }}{{ .Title }}{{ else }}Untitled Note{{ end }}</h3>
@@ -102,6 +135,11 @@
                 </div>
             </div>
             {{ end }}
+            <div id="filter-empty-state" class="empty-state animate-fade-in" style="display: none; grid-column: 1 / -1; padding: 3rem;">
+                <div id="filter-empty-icon" class="empty-icon"></div>
+                <h3 id="filter-empty-title"></h3>
+                <p id="filter-empty-desc"></p>
+            </div>
         </div>
         {{ else }}
         <div class="empty-state">

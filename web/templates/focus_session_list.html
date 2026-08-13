@@ -7,47 +7,96 @@
         </form>
     </div>
 
+    <div class="filter-sort-bar mb-md" data-target="#focus-sessions-list">
+        <div class="search-wrapper">
+            <i data-lucide="search"></i>
+            <input type="text" placeholder="Search focus sessions..." class="search-input">
+        </div>
+        <div class="controls-wrapper">
+            <div class="control-group">
+                <span class="control-label">
+                    <i data-lucide="clock"></i>
+                    <span>Duration</span>
+                </span>
+                <select class="filter-select" data-filter-key="duration">
+                    <option value="">All Durations</option>
+                    <option value="short">Short (&lt; 25m)</option>
+                    <option value="pomodoro">Pomodoro (25m - 50m)</option>
+                    <option value="long">Long (&gt; 50m)</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+                <span class="control-label">
+                    <i data-lucide="arrow-up-down"></i>
+                    <span>Sort</span>
+                </span>
+                <select class="sort-select">
+                    <option value="date-desc">Newest First</option>
+                    <option value="date-asc">Oldest First</option>
+                    <option value="duration-desc">Longest Duration</option>
+                    <option value="duration-asc">Shortest Duration</option>
+                    <option value="title-asc">Title (A-Z)</option>
+                    <option value="title-desc">Title (Z-A)</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
     {{ if .Sessions }}
     <div class="card" style="padding: 0;">
-        {{ range .Sessions }}
-        <div
-            style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <div style="font-weight: 600;">{{ .Title }}</div>
-                <div class="text-sm text-muted">{{ .CreatedAt.Format "Jan 02, 15:04" }}</div>
-            </div>
-            <div class="flex-center gap-md">
-                <div class="text-xl font-bold" style="color: var(--primary);">{{ printf "%.0f" .Duration }}m</div>
+        <div id="focus-sessions-list">
+            {{ range .Sessions }}
+            <div class="focus-session-item"
+                data-title="{{ .Title }}"
+                data-date="{{ iso8601 .CreatedAt }}"
+                data-duration="{{ .Duration }}"
+                data-searchable="{{ .Title }}">
+                <div
+                    style="padding: 1rem 1.5rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <div style="font-weight: 600;">{{ .Title }}</div>
+                        <div class="text-sm text-muted">{{ .CreatedAt.Format "Jan 02, 15:04" }}</div>
+                    </div>
+                    <div class="flex-center gap-md">
+                        <div class="text-xl font-bold" style="color: var(--primary);">{{ printf "%.0f" .Duration }}m</div>
 
-                {{ if eq .Status "active" }}
-                <span class="badge badge-primary">Active</span>
-                {{ else }}
-                <div class="flex-center gap-sm">
-                    <button onclick="toggleEditFocus('{{ .ID }}')" class="btn btn-sm btn-secondary"
-                        style="padding: 0.25rem 0.5rem;"><i data-lucide="edit-2" style="width: 14px;"></i></button>
-                    <form hx-post="/focus/delete" hx-target="#focus-view" class="mb-0"
-                        hx-confirm="Delete this session?">
+                        {{ if eq .Status "active" }}
+                        <span class="badge badge-primary">Active</span>
+                        {{ else }}
+                        <div class="flex-center gap-sm">
+                            <button onclick="toggleEditFocus('{{ .ID }}')" class="btn btn-sm btn-secondary"
+                                style="padding: 0.25rem 0.5rem;"><i data-lucide="edit-2" style="width: 14px;"></i></button>
+                            <form hx-post="/focus/delete" hx-target="#focus-view" class="mb-0"
+                                hx-confirm="Delete this session?">
+                                <input type="hidden" name="id" value="{{ .ID }}">
+                                <button type="submit" class="btn btn-danger-outline btn-sm" style="padding: 0.25rem 0.5rem;"><i
+                                        data-lucide="trash-2" style="width: 14px;"></i></button>
+                            </form>
+                        </div>
+                        {{ end }}
+                    </div>
+                </div>
+
+                <!-- Edit Form -->
+                <div id="edit-focus-{{ .ID }}"
+                    style="display: none; padding: 1rem; background: var(--bg-surface-alt); border-bottom: 1px solid var(--border);">
+                    <form hx-post="/focus/update" hx-target="#focus-view" class="flex-center gap-sm">
                         <input type="hidden" name="id" value="{{ .ID }}">
-                        <button type="submit" class="btn btn-danger-outline btn-sm" style="padding: 0.25rem 0.5rem;"><i
-                                data-lucide="trash-2" style="width: 14px;"></i></button>
+                        <input type="text" name="title" value="{{ .Title }}" required style="flex: 1;">
+                        <button type="submit" class="btn btn-sm btn-primary">Save</button>
+                        <button type="button" class="btn btn-sm btn-secondary"
+                            onclick="toggleEditFocus('{{ .ID }}')">Cancel</button>
                     </form>
                 </div>
-                {{ end }}
+            </div>
+            {{ end }}
+            <div id="filter-empty-state" class="empty-state animate-fade-in" style="display: none; padding: 2rem;">
+                <div id="filter-empty-icon" class="empty-icon"></div>
+                <h3 id="filter-empty-title"></h3>
+                <p id="filter-empty-desc"></p>
             </div>
         </div>
-
-        <!-- Edit Form -->
-        <div id="edit-focus-{{ .ID }}"
-            style="display: none; padding: 1rem; background: var(--bg-surface-alt); border-bottom: 1px solid var(--border);">
-            <form hx-post="/focus/update" hx-target="#focus-view" class="flex-center gap-sm">
-                <input type="hidden" name="id" value="{{ .ID }}">
-                <input type="text" name="title" value="{{ .Title }}" required style="flex: 1;">
-                <button type="submit" class="btn btn-sm btn-primary">Save</button>
-                <button type="button" class="btn btn-sm btn-secondary"
-                    onclick="toggleEditFocus('{{ .ID }}')">Cancel</button>
-            </form>
-        </div>
-        {{ end }}
     </div>
     {{ else }}
     <div class="empty-state">

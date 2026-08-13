@@ -28,6 +28,11 @@
                 <button type="submit" class="btn btn-secondary btn-sm"
                     style="height: 34px; line-height: 1;">Filter</button>
             </div>
+            <div class="flex-col" style="margin-left: auto;">
+                <label style="visibility: hidden; margin-bottom: 0.25rem; font-weight: 600;">AI Overview</label>
+                <a href="/journal?openAiModal=true" class="btn btn-primary btn-sm"
+                    style="height: 34px; line-height: 1;"><i data-lucide="sparkles" class="icon-sm" style="margin-right: 4px;"></i> AI Overview</a>
+            </div>
         </form>
     </div>
 </div>
@@ -136,11 +141,18 @@
     <canvas id="pointsChart"></canvas>
 </div>
 
+<div class="card mt-md mb-xl">
+    <h3 class="mb-md">Peak Productivity Hours</h3>
+    <p class="text-sm text-muted mb-md">Tasks completed by time of day.</p>
+    <canvas id="peakHoursChart"></canvas>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script type="application/json" id="data-labels">{{ .Charts.Labels | json }}</script>
 <script type="application/json" id="data-focus">{{ .Charts.DailyFocus | json }}</script>
 <script type="application/json" id="data-habits">{{ .Charts.DailyHabits | json }}</script>
 <script type="application/json" id="data-points">{{ .Charts.DailyPoints | json }}</script>
+<script type="application/json" id="data-peak-hours">{{ .Charts.PeakHoursData | json }}</script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         // Data passed from Go backend
@@ -239,6 +251,46 @@
                     y: {
                         beginAtZero: true,
                         grid: { color: 'rgba(0,0,0,0.05)' }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+
+        // Chart.js Configuration for Peak Hours
+        const peakHoursData = JSON.parse(document.getElementById('data-peak-hours').textContent);
+        const hourLabels = Array.from({length: 24}, (_, i) => {
+            if (i === 0) return '12 AM';
+            if (i < 12) return i + ' AM';
+            if (i === 12) return '12 PM';
+            return (i - 12) + ' PM';
+        });
+        const ctxPeak = document.getElementById('peakHoursChart').getContext('2d');
+        new Chart(ctxPeak, {
+            type: 'bar',
+            data: {
+                labels: hourLabels,
+                datasets: [{
+                    label: 'Tasks Completed',
+                    data: peakHoursData,
+                    backgroundColor: 'rgba(249, 115, 22, 0.5)',
+                    borderColor: 'rgba(249, 115, 22, 1)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: { stepSize: 1 },
+                        grid: { display: false }
                     },
                     x: {
                         grid: { display: false }

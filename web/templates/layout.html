@@ -7,6 +7,10 @@
         <title>{{ .Title }} - Mindloop</title>
     <link rel="icon" type="image/svg+xml" href="/static/favicon_io/favicon.svg">
     <link rel="stylesheet" href='{{ asset "/static/css/style.css" }}'>
+    <link rel="stylesheet" href='{{ asset "/static/css/vim_nav.css" }}'>
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#0d9488">
+    <link rel="apple-touch-icon" href="/static/favicon_io/favicon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,6 +20,7 @@
     <link rel="stylesheet" href='{{ asset "/static/css/easymde.min.css" }}'>
     <script src="/static/js/purify.min.js"></script>
     <script src="/static/js/easymde.min.js"></script>
+    <script src='{{ asset "/static/js/filter_sort.js" }}'></script>
     <script>
         // Check for saved user preference early to prevent flash
         (function () {
@@ -28,6 +33,44 @@
 </head>
 
 <body>
+
+    {{ if .ActiveFocus }}
+    <style>
+        @keyframes focus-rail-move {
+            0% { background-position: 0 0; }
+            100% { background-position: 100vw 0; }
+        }
+        @keyframes focus-breathe {
+            from { opacity: 0.02; }
+            to { opacity: 0.06; }
+        }
+        .focus-rail {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: linear-gradient(to right, var(--primary) 0%, transparent 50%, var(--primary) 100%);
+            background-size: 50vw 100%;
+            z-index: 10000;
+            animation: focus-rail-move 4s linear infinite;
+            box-shadow: 0 0 8px var(--primary);
+        }
+        .focus-ambient {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 0%, var(--primary) 0%, transparent 70%);
+            animation: focus-breathe 6s ease-in-out infinite alternate;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .focus-rail, .focus-ambient {
+                animation: none;
+            }
+        }
+    </style>
+    <div class="focus-ambient"></div>
+    <div class="focus-rail"></div>
+    {{ end }}
         <header>
         <nav>
             <a href="/" class="logo">
@@ -60,6 +103,9 @@
 
                 <li><a href="/void" class="nav-link" title="The Void"><i data-lucide="ghost"></i> <span class="nav-text">Void</span></a></li>
                 <li><a href="/summary" class="nav-link" title="Summary"><i data-lucide="bar-chart-2"></i> <span class="nav-text">Summary</span></a></li>
+
+                
+
 
                 <!-- Icon-only items -->
                 <li><a href="/about" class="nav-link" title="About"><i data-lucide="info"></i></a></li>
@@ -105,6 +151,22 @@
         <!-- Placeholder for HTMX OOB Toasts -->
         <div id="toast-container" style="position: fixed; bottom: 20px; right: 20px; z-index: 100;"></div>
 
+        
+        <!-- Fresh Start Modal -->
+        <div id="recalibrate-modal" class="flex-center" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; backdrop-filter: blur(4px);">
+            <div class="card animate-pop-in" style="max-width: 400px; width: 100%;">
+                <div class="flex-between mb-md">
+                    <h2 class="mb-0 text-warning flex-center gap-sm"><i data-lucide="refresh-cw"></i> Emergency Recalibrate</h2>
+                    <button class="btn btn-sm" style="background: none; border: none; font-size: 1.5rem;" onclick="document.getElementById('recalibrate-modal').style.display='none'">&times;</button>
+                </div>
+                <p class="text-muted mb-md">Are you feeling overwhelmed? This will clear your task backlog (moving overdue tasks to Someday) and preserve your habit momentum so you can start fresh without shame.</p>
+                <form action="/recalibrate" method="POST" class="flex-end gap-sm mt-lg mb-0">
+                    <button type="button" class="btn btn-secondary" onclick="document.getElementById('recalibrate-modal').style.display='none'">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background: var(--warning); border-color: var(--warning); color: #000;">Start Fresh</button>
+                </form>
+            </div>
+        </div>
+
         <!-- Milestone Celebration Overlay -->
         <div id="milestone-overlay" class="flex-center"
             style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 1000; flex-direction: column; text-align: center; color: white; backdrop-filter: blur(8px); animation: fadeIn 0.5s ease;">
@@ -119,6 +181,29 @@
 
         {{ template "content" . }}
     </main>
+
+    <!-- Command Palette -->
+    <div id="command-palette">
+        <div class="cmd-modal">
+            <div class="cmd-input-container">
+                <i data-lucide="search"></i>
+                <input type="text" id="cmd-input" placeholder="Type a command or search... (Cmd+K)" autocomplete="off" spellcheck="false">
+            </div>
+            <div id="cmd-results"></div>
+        </div>
+    </div>
+    <script src="/static/js/command_palette.js"></script>
+    <script src="/static/js/vim_nav.js"></script>
+
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(err => {
+                    console.error('ServiceWorker registration failed: ', err);
+                });
+            });
+        }
+    </script>
 
     <script>
         function closeMilestone() {

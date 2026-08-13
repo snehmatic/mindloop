@@ -39,8 +39,18 @@ func (s *Service) GenerateSummary(start, end time.Time) (models.SummaryReport, e
 		TotalPoints: totalPoints,
 	}
 
-	var tasksCompleted int64
-	s.DB.Model(&models.Task{}).Where("Status = ? AND UpdatedAt >= ? AND UpdatedAt <= ?", "completed", start, end).Count(&tasksCompleted)
+	var tasks []models.Task
+	s.DB.Where("Status = ? AND UpdatedAt >= ? AND UpdatedAt <= ?", "completed", start, end).Find(&tasks)
+	tasksCompleted := len(tasks)
+
+	peakHours := make(map[int]int)
+	for i := 0; i < 24; i++ {
+		peakHours[i] = 0
+	}
+	for _, t := range tasks {
+		hour := t.UpdatedAt.Hour()
+		peakHours[hour]++
+	}
 
 	return models.SummaryReport{
 		DateRange:      fmt.Sprintf("%s to %s", start.Format("02-Jan-2006"), end.Format("02-Jan-2006")),
@@ -48,7 +58,8 @@ func (s *Service) GenerateSummary(start, end time.Time) (models.SummaryReport, e
 		Habits:         habitStats,
 		Intents:        intentStats,
 		Points:         pointStats,
-		TasksCompleted: int(tasksCompleted),
+		TasksCompleted: tasksCompleted,
+		PeakHours:      peakHours,
 	}, nil
 }
 

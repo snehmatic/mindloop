@@ -18,6 +18,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/motivation"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 )
 
@@ -70,6 +71,7 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Calculate completion for UI
+	momentums, _ := mlh.habit.CalculateMomentums(habits)
 	var habitViews []HabitView
 	for _, h := range habits {
 		actual := 0
@@ -112,13 +114,13 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 			pct = 100
 		}
 
-		streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+		momentum := momentums[h.ID]
 
 		habitViews = append(habitViews, HabitView{
 			Habit:       h,
 			ActualCount: actual,
 			ProgressPct: pct,
-			Streak:      streak,
+			Momentum:    momentum,
 		})
 	}
 
@@ -252,13 +254,13 @@ func (mlh *MindloopHandler) HandleHabitView(w http.ResponseWriter, r *http.Reque
 		heatmap[dateStr] = ratio
 	}
 
-	streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+	momentum, _ := mlh.habit.CalculateMomentum(h)
 
 	mlh.renderTemplate(w, "habit_view.html", map[string]interface{}{
-		"Title":   "Habit: " + h.Title,
-		"Habit":   h,
-		"Heatmap": heatmap,
-		"Streak":  streak,
+		"Title":    "Habit: " + h.Title,
+		"Habit":    h,
+		"Heatmap":  heatmap,
+		"Momentum": momentum,
 	})
 }
 
@@ -306,13 +308,13 @@ func (mlh *MindloopHandler) getHabitView(id string) (*HabitView, error) {
 		pct = 100
 	}
 
-	streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+	momentum, _ := mlh.habit.CalculateMomentum(h)
 
 	return &HabitView{
 		Habit:       *h,
 		ActualCount: actual,
 		ProgressPct: pct,
-		Streak:      streak,
+		Momentum:    momentum,
 	}, nil
 }
 
@@ -775,14 +777,21 @@ func (mlh *MindloopHandler) HandleSummary(w http.ResponseWriter, r *http.Request
 	dailyHabits, _ := mlh.summary.GetHabitSeries(start, now)
 	dailyPoints, _ := mlh.summary.GetPointSeries(start, now)
 
+	// Convert PeakHours map to array for chart (hours 0-23)
+	peakHoursData := make([]int, 24)
+	for i := 0; i < 24; i++ {
+		peakHoursData[i] = report.PeakHours[i]
+	}
+
 	mlh.renderTemplate(w, "summary.html", map[string]interface{}{
 		"Title":  "Summary",
 		"Report": report,
 		"Charts": map[string]interface{}{
-			"Labels":      labels,
-			"DailyFocus":  dailyFocus,
-			"DailyHabits": dailyHabits,
-			"DailyPoints": dailyPoints,
+			"Labels":        labels,
+			"DailyFocus":    dailyFocus,
+			"DailyHabits":   dailyHabits,
+			"DailyPoints":   dailyPoints,
+			"PeakHoursData": peakHoursData,
 		},
 	})
 }
@@ -982,10 +991,28 @@ func (mlh *MindloopHandler) HandleNoteCreate(w http.ResponseWriter, r *http.Requ
 	_, err := mlh.note.CreateNote(title, content, labels)
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating note")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/notes?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/notes?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
 
+	source := r.FormValue("source")
+	if source != "" {
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", source)
+			return
+		}
+		http.Redirect(w, r, source, http.StatusSeeOther)
+		return
+	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Redirect", "/notes?success=true")
+		return
+	}
 	http.Redirect(w, r, "/notes?success=true", http.StatusSeeOther)
 }
 
@@ -1117,6 +1144,7 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	ptsQuest, _ := strconv.Atoi(r.FormValue("pts_quest"))
 	ptsTask, _ := strconv.Atoi(r.FormValue("pts_task"))
 	ptsSubTask, _ := strconv.Atoi(r.FormValue("pts_subtask"))
+	ptsMilestoneInterval, _ := strconv.Atoi(r.FormValue("pts_milestone_interval"))
 
 	if err := config.UpdateUserConfig(func(uc *config.UserConfig) error {
 		uc.Name = name
@@ -1132,13 +1160,14 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 			Gamification: r.FormValue("gamification") == "on",
 		}
 		uc.PointsConfig = config.PointsConfig{
-			Focus:   ptsFocus,
-			Habit:   ptsHabit,
-			Intent:  ptsIntent,
-			Journal: ptsJournal,
-			Quest:   ptsQuest,
-			Task:    ptsTask,
-			SubTask: ptsSubTask,
+			Focus:             ptsFocus,
+			Habit:             ptsHabit,
+			Intent:            ptsIntent,
+			Journal:           ptsJournal,
+			Quest:             ptsQuest,
+			Task:              ptsTask,
+			SubTask:           ptsSubTask,
+			MilestoneInterval: ptsMilestoneInterval,
 		}
 		if mode == "byodb" {
 			uc.DbConfig = config.DBConfig{
@@ -1149,13 +1178,14 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 				Name:     r.FormValue("db_name"),
 			}
 		}
+		uc.PointsConfig.MilestoneInterval = points.NormalizeMilestoneInterval(uc.PointsConfig.MilestoneInterval)
+		points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 		return nil
 	}); err != nil {
 		log.Error().Err(err).Msg("Error writing user settings")
 		http.Error(w, "failed to write user settings", http.StatusInternalServerError)
 		return
 	}
-
 	// Update in-memory config to reflect changes immediately
 	if mlh.config != nil {
 		mlh.config.UserName = name
@@ -1265,4 +1295,16 @@ func (mlh *MindloopHandler) HandleBackupImport(w http.ResponseWriter, r *http.Re
 	}
 
 	http.Redirect(w, r, "/settings?success=true", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleRecalibrate(w http.ResponseWriter, r *http.Request) {
+	if err := mlh.habit.RecalibrateAll(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := mlh.task.RecalibrateTasks(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

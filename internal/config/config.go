@@ -9,6 +9,7 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
+	"github.com/snehmatic/mindloop/internal/gamification"
 	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
@@ -99,7 +100,6 @@ func InitConfig(name, mode, port string) {
 				cfg.DBConfig = uc.DbConfig
 			}
 		}
-
 		if mode == "api" {
 			// init DB Config
 			err := godotenv.Load()
@@ -147,13 +147,14 @@ type FeatureFlags struct {
 
 // PointsConfig stores the user-defined point values for each activity type
 type PointsConfig struct {
-	Focus   int `yaml:"focus"`
-	Habit   int `yaml:"habit"`
-	Intent  int `yaml:"intent"`
-	Journal int `yaml:"journal"`
-	Quest   int `yaml:"quest"`
-	Task    int `yaml:"task"`
-	SubTask int `yaml:"subtask"`
+	Focus             int `yaml:"focus"`
+	Habit             int `yaml:"habit"`
+	Intent            int `yaml:"intent"`
+	Journal           int `yaml:"journal"`
+	Quest             int `yaml:"quest"`
+	Task              int `yaml:"task"`
+	SubTask           int `yaml:"subtask"`
+	MilestoneInterval int `yaml:"milestone_interval"`
 }
 
 // SetDefaults ensures that the UserConfig has sensible default values
@@ -188,6 +189,7 @@ func (uc *UserConfig) SetDefaults() {
 	if uc.PointsConfig.SubTask == 0 {
 		uc.PointsConfig.SubTask = 1
 	}
+	uc.PointsConfig.MilestoneInterval = gamification.NormalizeMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 }
 
 // ValidateUserConfig checks if the user configuration is valid and exists

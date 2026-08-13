@@ -2,8 +2,10 @@ package focus
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
+	"github.com/snehmatic/mindloop/internal/core/hooks"
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
@@ -39,6 +41,9 @@ func (s *Service) StartSession(title string) (*models.FocusSession, error) {
 	if err := s.DB.Create(session).Error; err != nil {
 		return nil, err
 	}
+	hooks.ExecuteHook("focus_start", map[string]string{
+		"MINDLOOP_FOCUS_TITLE": session.Title,
+	})
 	return session, nil
 }
 
@@ -80,6 +85,10 @@ func (s *Service) EndSession(id int, pointsToAward int) (*models.FocusSession, b
 
 	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryFocus, session.ID, pointsToAward)
 
+	hooks.ExecuteHook("focus_stop", map[string]string{
+		"MINDLOOP_FOCUS_TITLE":    session.Title,
+		"MINDLOOP_FOCUS_DURATION": fmt.Sprintf("%f", session.Duration),
+	})
 	return &session, milestoneReached, nil
 }
 

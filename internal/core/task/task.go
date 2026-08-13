@@ -1,10 +1,13 @@
 package task
 
 import (
+	"time"
 	"errors"
 
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/log"
+	"github.com/snehmatic/mindloop/internal/nlp"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -14,19 +17,29 @@ var logger = log.Get()
 // Service handles business logic for tasks and sub-tasks
 type Service struct {
 	db *gorm.DB
+	uc *config.UserConfig
 }
 
 // NewService creates a new task Service instance
 func NewService(db *gorm.DB) *Service {
-	return &Service{db: db}
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+
+	return &Service{
+		db: db,
+		uc: &uc,
+	}
 }
 
 // CreateTask persists a new task to the database
 func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Task, error) {
+	cleanedTitle, dueDate := nlp.ExtractDate(title)
+
 	t := &models.Task{
-		Title:          title,
+		Title:          cleanedTitle,
 		IntentID:       intentID,
 		FocusSessionID: focusID,
+		DueDate:        dueDate,
 	}
 	if err := s.db.Create(t).Error; err != nil {
 		logger.Error().Err(err).Msg("Failed to create task")
@@ -38,13 +51,21 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 // CompleteTask marks a task as completed in the database
 func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 	var task models.Task
-	if err := s.db.First(&task, id).Error; err != nil {
+	if err := s.db.Preload("SubTasks").First(&task, id).Error; err != nil {
 		return false, errors.New("task not found")
 	}
 
 	task.Status = "completed"
 	if err := s.db.Save(&task).Error; err != nil {
 		return false, err
+	}
+
+	for _, st := range task.SubTasks {
+		if st.Status != "completed" {
+			if _, err := s.CompleteSubTask(st.ID, s.uc.PointsConfig.SubTask); err != nil {
+				logger.Error().Err(err).Uint("subtask_id", st.ID).Msg("Failed to complete subtask while completing task")
+			}
+		}
 	}
 
 	milestoneReached, err := points.AwardPoints(s.db, models.CategoryTask, task.ID, pointsVal)
@@ -155,4 +176,21 @@ func (s *Service) ReorderSubTasks(ids []uint) error {
 		}
 		return nil
 	})
+}
+
+// GetTask retrieves a single task by ID
+func (s *Service) GetTask(id uint) (*models.Task, error) {
+	var t models.Task
+	if err := s.db.Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
+		return db.Order("Position ASC, CreatedAt ASC")
+	}).First(&t, id).Error; err != nil {
+		return nil, err
+	}
+	return &t, nil
+}
+
+// RecalibrateTasks clears due dates for all pending tasks that were due in the past
+func (s *Service) RecalibrateTasks() error {
+	today := time.Now().Truncate(24 * time.Hour)
+	return s.db.Model(&models.Task{}).Where("Status = ? AND DueDate < ?", "pending", today).Update("DueDate", nil).Error
 }

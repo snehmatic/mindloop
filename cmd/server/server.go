@@ -16,11 +16,13 @@ import (
 	"github.com/snehmatic/mindloop/db"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
+	"github.com/snehmatic/mindloop/internal/core/dump"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/note"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/core/quest"
 	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/core/task"
@@ -38,6 +40,14 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	// Static files from embedded FS
 	staticFS := http.FS(web.WebFS)
 	r.PathPrefix("/static/").Handler(http.FileServer(staticFS))
+	
+	// PWA root files
+	r.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFileFS(w, r, web.WebFS, "static/sw.js")
+	})
+	r.HandleFunc("/manifest.json", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFileFS(w, r, web.WebFS, "static/manifest.json")
+	})
 
 	// Routes
 	r.HandleFunc("/", mlh.HandleHome).Methods("GET")
@@ -103,6 +113,13 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/settings", mlh.HandleSettings).Methods("GET")
 	r.HandleFunc("/settings/update", mlh.HandleSettingsUpdate).Methods("POST")
 
+	// AI Routes
+	r.HandleFunc("/api/v1/ai/settings", mlh.HandleGetAISettings).Methods("GET")
+	r.HandleFunc("/api/v1/ai/settings", mlh.HandleSaveAISettings).Methods("POST")
+	r.HandleFunc("/api/v1/ai/models", mlh.HandleListAIModels).Methods("GET")
+	r.HandleFunc("/api/v1/ai/test", mlh.HandleTestAIConnection).Methods("POST")
+	r.HandleFunc("/api/v1/ai/generate", mlh.HandleGenerateAIJournal).Methods("GET")
+
 	// Backup Routes
 	r.HandleFunc("/backup/export", mlh.HandleBackupExport).Methods("GET")
 	r.HandleFunc("/backup/import", mlh.HandleBackupImport).Methods("POST")
@@ -157,6 +174,7 @@ func main() {
 
 	// Init global config
 	config.InitConfig(AppName, *mode, fmt.Sprintf(":%s", *port))
+	applyMilestoneInterval()
 	appConfig := config.GetConfig()
 
 	database, err := db.ConnectToDb(*appConfig)
@@ -174,8 +192,10 @@ func main() {
 	summaryService := summary.NewService(database)
 	habitService := habit.NewService(database)
 	taskService := task.NewService(database)
+	dumpService := dump.NewService(database)
 
 	mlh := v1.NewMindloopHandler(
+		database,
 		journalService,
 		noteService,
 		habitService,
@@ -185,7 +205,14 @@ func main() {
 		summaryService,
 		backupService,
 		taskService,
+		dumpService,
 	)
 
 	ServeMindloop(mlh)
+}
+
+func applyMilestoneInterval() {
+	uc := config.UserConfig{}
+	_ = uc.ReadFromYAML()
+	points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 }
