@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -259,9 +260,9 @@ func (mlh *MindloopHandler) HandleHabitView(w http.ResponseWriter, r *http.Reque
 	momentum, _ := mlh.habit.CalculateMomentum(h)
 
 	mlh.renderTemplate(w, "habit_view.html", map[string]interface{}{
-		"Title":   "Habit: " + h.Title,
-		"Habit":   h,
-		"Heatmap": heatmap,
+		"Title":    "Habit: " + h.Title,
+		"Habit":    h,
+		"Heatmap":  heatmap,
 		"Momentum": momentum,
 	})
 }
@@ -820,16 +821,16 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 			log.Error().Msg("Error in clean slate all")
 		} else {
 			// Also reset user config (Name and FeatureFlags), but keep DB config
-			uc := config.UserConfig{}
-			if readErr := uc.ReadFromYAML(); readErr == nil {
+			if configErr := config.UpdateUserConfig(func(uc *config.UserConfig) error {
 				uc.Name = ""
 				uc.FeatureFlags = config.FeatureFlags{} // Reset all flags to false
-				uc.WriteToYAML()
-
+				return nil
+			}); configErr != nil {
+				err = fmt.Errorf("failed to reset user config: %w", configErr)
+				log.Error().Err(configErr).Msg("Error resetting user config")
+			} else if mlh.config != nil {
 				// Update in-memory config
-				if mlh.config != nil {
-					mlh.config.UserName = ""
-				}
+				mlh.config.UserName = ""
 			}
 		}
 	case "journal":
@@ -1148,19 +1149,20 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	ptsSubTask, _ := strconv.Atoi(r.FormValue("pts_subtask"))
 	ptsMilestoneInterval, _ := strconv.Atoi(r.FormValue("pts_milestone_interval"))
 
-	uc := config.UserConfig{
-		Name:            name,
-		Mode:            mode,
-		EditorWideWidth: r.FormValue("editor_wide_width") == "on",
-		FeatureFlags: config.FeatureFlags{
+	if err := config.UpdateUserConfig(func(uc *config.UserConfig) error {
+		uc.Name = name
+		uc.Mode = mode
+		// EditorWideWidth is intentionally preserved: it is updated by its own
+		// endpoint and is not part of this form.
+		uc.FeatureFlags = config.FeatureFlags{
 			FocusCloud:   r.FormValue("focus_cloud") == "on",
 			HabitCloud:   r.FormValue("habit_cloud") == "on",
 			IntentCloud:  r.FormValue("intent_cloud") == "on",
 			JournalCloud: r.FormValue("journal_cloud") == "on",
 			NoteCloud:    r.FormValue("note_cloud") == "on",
 			Gamification: r.FormValue("gamification") == "on",
-		},
-		PointsConfig: config.PointsConfig{
+		}
+		uc.PointsConfig = config.PointsConfig{
 			Focus:             ptsFocus,
 			Habit:             ptsHabit,
 			Intent:            ptsIntent,
@@ -1169,23 +1171,24 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 			Task:              ptsTask,
 			SubTask:           ptsSubTask,
 			MilestoneInterval: ptsMilestoneInterval,
-		},
-	}
-
-	if mode == "byodb" {
-		uc.DbConfig = config.DBConfig{
-			Host:     r.FormValue("db_host"),
-			Port:     r.FormValue("db_port"),
-			User:     r.FormValue("db_user"),
-			Password: r.FormValue("db_pass"),
-			Name:     r.FormValue("db_name"),
 		}
+		if mode == "byodb" {
+			uc.DbConfig = config.DBConfig{
+				Host:     r.FormValue("db_host"),
+				Port:     r.FormValue("db_port"),
+				User:     r.FormValue("db_user"),
+				Password: r.FormValue("db_pass"),
+				Name:     r.FormValue("db_name"),
+			}
+		}
+		uc.PointsConfig.MilestoneInterval = points.NormalizeMilestoneInterval(uc.PointsConfig.MilestoneInterval)
+		points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Msg("Error writing user settings")
+		http.Error(w, "failed to write user settings", http.StatusInternalServerError)
+		return
 	}
-
-	uc.PointsConfig.MilestoneInterval = points.NormalizeMilestoneInterval(uc.PointsConfig.MilestoneInterval)
-	uc.WriteToYAML()
-	points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
-
 	// Update in-memory config to reflect changes immediately
 	if mlh.config != nil {
 		mlh.config.UserName = name
@@ -1203,10 +1206,14 @@ func (mlh *MindloopHandler) HandleSettingsUpdateWidth(w http.ResponseWriter, r *
 
 	isWide := r.FormValue("wide") == "true"
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
-	uc.EditorWideWidth = isWide
-	uc.WriteToYAML()
+	if err := config.UpdateUserConfig(func(uc *config.UserConfig) error {
+		uc.EditorWideWidth = isWide
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Msg("Error writing editor width setting")
+		http.Error(w, "failed to write editor width setting", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "success"}); err != nil {
