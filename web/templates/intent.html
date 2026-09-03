@@ -93,7 +93,10 @@
     <div style="width: 100%; max-width: 600px; margin-top: 3rem; border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: left;">
         <div style="display: flex; justify-content: space-between; align-items: center;" class="mb-sm">
             <h3 class="mb-0">Tasks for this Intent</h3>
-            <button type="button" onclick="document.getElementById('intent-add-task-form').style.display = document.getElementById('intent-add-task-form').style.display === 'none' ? 'flex' : 'none'" class="btn btn-sm btn-primary-outline" style="padding: 0.25rem 0.75rem; background: transparent; color: var(--primary); border: 1px solid var(--primary);"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Task</button>
+            <div style="display: flex; gap: 0.5rem;">
+                <button type="button" class="btn btn-sm btn-secondary chunker-btn" title="Break down intent via AI" style="padding: 0.25rem 0.75rem; color: var(--primary);" hx-post="/api/v1/chunk" hx-vals='{"type":"intent", "id":"{{ .CurrentIntent.ID }}"}' hx-target="#intent-tasks-list" hx-swap="afterbegin" hx-indicator="#chunk-spinner-intent-{{ .CurrentIntent.ID }}"><i data-lucide="wand-2" style="width:14px;height:14px; margin-right: 2px;"></i> AI Chunk</button>
+                <button type="button" onclick="document.getElementById('intent-add-task-form').style.display = document.getElementById('intent-add-task-form').style.display === 'none' ? 'flex' : 'none'" class="btn btn-sm btn-primary-outline" style="padding: 0.25rem 0.75rem; background: transparent; color: var(--primary); border: 1px solid var(--primary);"><i data-lucide="plus" style="width:14px;height:14px;"></i> Add Task</button>
+            </div>
         </div>
         
         <form id="intent-add-task-form" action="/tasks/new" method="POST" class="flex-center gap-sm mb-md" style="display: none; border-left: 3px solid var(--primary); padding-left: 1rem;">
@@ -103,8 +106,9 @@
             <button type="submit" class="btn btn-primary btn-sm">Save</button>
         </form>
 
+        <div id="chunk-spinner-intent-{{ .CurrentIntent.ID }}" class="htmx-indicator p-sm text-center" style="font-size: 0.85em; color: var(--text-muted); position: absolute; left: 0; right: 0; top: -10px;"><i data-lucide="loader-2" class="spin icon-sm text-primary"></i> Generating tasks...</div>
+        <div class="flex-col gap-sm" id="intent-tasks-list" style="position: relative; transition: all 0.3s ease;">
         {{ if .Tasks }}
-        <div class="flex-col gap-sm">
             {{ range .Tasks }}
             <div class="card p-sm" style="display: flex; justify-content: space-between; align-items: center; {{ if eq .Status "completed" }}opacity: 0.7;{{ end }}">
                 <div style="display: flex; align-items: center; gap: 0.5rem; {{ if eq .Status "completed" }}text-decoration: line-through;{{ end }}">
@@ -120,10 +124,10 @@
                 {{ end }}
             </div>
             {{ end }}
-        </div>
         {{ else }}
-        <p class="text-sm text-muted text-center">No tasks added to this intent yet.</p>
+            <p class="text-sm text-muted text-center mb-0">No tasks added to this intent yet.</p>
         {{ end }}
+        </div>
     </div>
     {{ end }}
 
@@ -187,22 +191,67 @@
     </div>
 
     <div id="history-section" style="display: none;">
+        <div class="filter-sort-bar mb-md" data-target="#intent-history-list">
+            <div class="search-wrapper">
+                <i data-lucide="search"></i>
+                <input type="text" placeholder="Search intent history..." class="search-input">
+            </div>
+            <div class="controls-wrapper">
+                <div class="control-group">
+                    <span class="control-label">
+                        <i data-lucide="activity"></i>
+                        <span>Status</span>
+                    </span>
+                    <select class="filter-select" data-filter-key="status">
+                        <option value="">All Statuses</option>
+                        <option value="done">Done</option>
+                        <option value="paused">Paused</option>
+                        <option value="active">Active</option>
+                    </select>
+                </div>
+                
+                <div class="control-group">
+                    <span class="control-label">
+                        <i data-lucide="arrow-up-down"></i>
+                        <span>Sort</span>
+                    </span>
+                    <select class="sort-select">
+                        <option value="date-desc">Newest First</option>
+                        <option value="date-asc">Oldest First</option>
+                        <option value="title-asc">Title (A-Z)</option>
+                        <option value="title-desc">Title (Z-A)</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
         {{ if .History }}
         <div class="card" style="padding: 0;">
-            {{ range .History }}
-            <div class="flex-between" style="padding: 1rem; border-bottom: 1px solid var(--border);">
-                <div>
-                    <div style="font-weight: 500;">{{ .Name }}</div>
-                    <div class="text-xs text-muted">{{ .CreatedAt.Format "Jan 02" }} - {{ .Status }}</div>
+            <div id="intent-history-list">
+                {{ range .History }}
+                <div class="flex-between" style="padding: 1rem; border-bottom: 1px solid var(--border);"
+                    data-title="{{ .Name }}"
+                    data-date="{{ iso8601 .CreatedAt }}"
+                    data-status="{{ .Status }}"
+                    data-searchable="{{ .Name }}">
+                    <div>
+                        <div style="font-weight: 500;">{{ .Name }}</div>
+                        <div class="text-xs text-muted">{{ .CreatedAt.Format "Jan 02" }} - {{ title .Status }}</div>
+                    </div>
+                    <form action="/intent/delete" method="POST" class="mb-0"
+                        onsubmit="return confirm('Delete this intent?');">
+                        <input type="hidden" name="id" value="{{ .ID }}">
+                        <button type="submit" class="btn btn-danger-outline btn-sm" style="padding: 0.25rem 0.5rem;"><i
+                                data-lucide="trash-2" style="width: 14px;"></i></button>
+                    </form>
                 </div>
-                <form action="/intent/delete" method="POST" class="mb-0"
-                    onsubmit="return confirm('Delete this intent?');">
-                    <input type="hidden" name="id" value="{{ .ID }}">
-                    <button type="submit" class="btn btn-danger-outline btn-sm" style="padding: 0.25rem 0.5rem;"><i
-                            data-lucide="trash-2" style="width: 14px;"></i></button>
-                </form>
+                {{ end }}
+                <div id="filter-empty-state" class="empty-state animate-fade-in" style="display: none; padding: 2rem;">
+                    <div id="filter-empty-icon" class="empty-icon"></div>
+                    <h3 id="filter-empty-title"></h3>
+                    <p id="filter-empty-desc"></p>
+                </div>
             </div>
-            {{ end }}
         </div>
         {{ else }}
         <div class="text-center text-muted" style="padding: 2rem;">No history found.</div>

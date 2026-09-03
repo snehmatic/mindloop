@@ -3,6 +3,7 @@ package v1
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"html/template"
 	"io"
 	"net/http"
@@ -14,11 +15,15 @@ import (
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/gorilla/mux"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog/log"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/motivation"
+	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 )
+
+var markdownPolicy = bluemonday.UGCPolicy()
 
 func mdToHTML(md []byte) []byte {
 	// create markdown parser with extensions
@@ -31,7 +36,7 @@ func mdToHTML(md []byte) []byte {
 	opts := html.RendererOptions{Flags: htmlFlags}
 	renderer := html.NewRenderer(opts)
 
-	return markdown.Render(doc, renderer)
+	return markdownPolicy.SanitizeBytes(markdown.Render(doc, renderer))
 }
 
 // --- Quote Handler ---
@@ -69,6 +74,7 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Calculate completion for UI
+	momentums, _ := mlh.habit.CalculateMomentums(habits)
 	var habitViews []HabitView
 	for _, h := range habits {
 		actual := 0
@@ -111,13 +117,13 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 			pct = 100
 		}
 
-		streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+		momentum := momentums[h.ID]
 
 		habitViews = append(habitViews, HabitView{
 			Habit:       h,
 			ActualCount: actual,
 			ProgressPct: pct,
-			Streak:      streak,
+			Momentum:    momentum,
 		})
 	}
 
@@ -251,13 +257,13 @@ func (mlh *MindloopHandler) HandleHabitView(w http.ResponseWriter, r *http.Reque
 		heatmap[dateStr] = ratio
 	}
 
-	streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+	momentum, _ := mlh.habit.CalculateMomentum(h)
 
 	mlh.renderTemplate(w, "habit_view.html", map[string]interface{}{
-		"Title":   "Habit: " + h.Title,
-		"Habit":   h,
-		"Heatmap": heatmap,
-		"Streak":  streak,
+		"Title":    "Habit: " + h.Title,
+		"Habit":    h,
+		"Heatmap":  heatmap,
+		"Momentum": momentum,
 	})
 }
 
@@ -305,13 +311,13 @@ func (mlh *MindloopHandler) getHabitView(id string) (*HabitView, error) {
 		pct = 100
 	}
 
-	streak, _ := mlh.habit.CalculateStreak(h.ID, h.Interval)
+	momentum, _ := mlh.habit.CalculateMomentum(h)
 
 	return &HabitView{
 		Habit:       *h,
 		ActualCount: actual,
 		ProgressPct: pct,
-		Streak:      streak,
+		Momentum:    momentum,
 	}, nil
 }
 
@@ -774,14 +780,21 @@ func (mlh *MindloopHandler) HandleSummary(w http.ResponseWriter, r *http.Request
 	dailyHabits, _ := mlh.summary.GetHabitSeries(start, now)
 	dailyPoints, _ := mlh.summary.GetPointSeries(start, now)
 
+	// Convert PeakHours map to array for chart (hours 0-23)
+	peakHoursData := make([]int, 24)
+	for i := 0; i < 24; i++ {
+		peakHoursData[i] = report.PeakHours[i]
+	}
+
 	mlh.renderTemplate(w, "summary.html", map[string]interface{}{
 		"Title":  "Summary",
 		"Report": report,
 		"Charts": map[string]interface{}{
-			"Labels":      labels,
-			"DailyFocus":  dailyFocus,
-			"DailyHabits": dailyHabits,
-			"DailyPoints": dailyPoints,
+			"Labels":        labels,
+			"DailyFocus":    dailyFocus,
+			"DailyHabits":   dailyHabits,
+			"DailyPoints":   dailyPoints,
+			"PeakHoursData": peakHoursData,
 		},
 	})
 }
@@ -808,16 +821,16 @@ func (mlh *MindloopHandler) HandleCleanSlate(w http.ResponseWriter, r *http.Requ
 			log.Error().Msg("Error in clean slate all")
 		} else {
 			// Also reset user config (Name and FeatureFlags), but keep DB config
-			uc := config.UserConfig{}
-			if readErr := uc.ReadFromYAML(); readErr == nil {
+			if configErr := config.UpdateUserConfig(func(uc *config.UserConfig) error {
 				uc.Name = ""
 				uc.FeatureFlags = config.FeatureFlags{} // Reset all flags to false
-				uc.WriteToYAML()
-
+				return nil
+			}); configErr != nil {
+				err = fmt.Errorf("failed to reset user config: %w", configErr)
+				log.Error().Err(configErr).Msg("Error resetting user config")
+			} else if mlh.config != nil {
 				// Update in-memory config
-				if mlh.config != nil {
-					mlh.config.UserName = ""
-				}
+				mlh.config.UserName = ""
 			}
 		}
 	case "journal":
@@ -981,10 +994,28 @@ func (mlh *MindloopHandler) HandleNoteCreate(w http.ResponseWriter, r *http.Requ
 	_, err := mlh.note.CreateNote(title, content, labels)
 	if err != nil {
 		log.Error().Err(err).Msg("Error creating note")
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", "/notes?error="+err.Error())
+			return
+		}
 		http.Redirect(w, r, "/notes?error="+err.Error(), http.StatusSeeOther)
 		return
 	}
 
+	source := r.FormValue("source")
+	if source != "" {
+		if r.Header.Get("HX-Request") == "true" {
+			w.Header().Set("HX-Redirect", source)
+			return
+		}
+		http.Redirect(w, r, source, http.StatusSeeOther)
+		return
+	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Redirect", "/notes?success=true")
+		return
+	}
 	http.Redirect(w, r, "/notes?success=true", http.StatusSeeOther)
 }
 
@@ -1116,42 +1147,48 @@ func (mlh *MindloopHandler) HandleSettingsUpdate(w http.ResponseWriter, r *http.
 	ptsQuest, _ := strconv.Atoi(r.FormValue("pts_quest"))
 	ptsTask, _ := strconv.Atoi(r.FormValue("pts_task"))
 	ptsSubTask, _ := strconv.Atoi(r.FormValue("pts_subtask"))
+	ptsMilestoneInterval, _ := strconv.Atoi(r.FormValue("pts_milestone_interval"))
 
-	uc := config.UserConfig{
-		Name:            name,
-		Mode:            mode,
-		EditorWideWidth: r.FormValue("editor_wide_width") == "on",
-		FeatureFlags: config.FeatureFlags{
+	if err := config.UpdateUserConfig(func(uc *config.UserConfig) error {
+		uc.Name = name
+		uc.Mode = mode
+		// EditorWideWidth is intentionally preserved: it is updated by its own
+		// endpoint and is not part of this form.
+		uc.FeatureFlags = config.FeatureFlags{
 			FocusCloud:   r.FormValue("focus_cloud") == "on",
 			HabitCloud:   r.FormValue("habit_cloud") == "on",
 			IntentCloud:  r.FormValue("intent_cloud") == "on",
 			JournalCloud: r.FormValue("journal_cloud") == "on",
 			NoteCloud:    r.FormValue("note_cloud") == "on",
 			Gamification: r.FormValue("gamification") == "on",
-		},
-		PointsConfig: config.PointsConfig{
-			Focus:   ptsFocus,
-			Habit:   ptsHabit,
-			Intent:  ptsIntent,
-			Journal: ptsJournal,
-			Quest:   ptsQuest,
-			Task:    ptsTask,
-			SubTask: ptsSubTask,
-		},
-	}
-
-	if mode == "byodb" {
-		uc.DbConfig = config.DBConfig{
-			Host:     r.FormValue("db_host"),
-			Port:     r.FormValue("db_port"),
-			User:     r.FormValue("db_user"),
-			Password: r.FormValue("db_pass"),
-			Name:     r.FormValue("db_name"),
 		}
+		uc.PointsConfig = config.PointsConfig{
+			Focus:             ptsFocus,
+			Habit:             ptsHabit,
+			Intent:            ptsIntent,
+			Journal:           ptsJournal,
+			Quest:             ptsQuest,
+			Task:              ptsTask,
+			SubTask:           ptsSubTask,
+			MilestoneInterval: ptsMilestoneInterval,
+		}
+		if mode == "byodb" {
+			uc.DbConfig = config.DBConfig{
+				Host:     r.FormValue("db_host"),
+				Port:     r.FormValue("db_port"),
+				User:     r.FormValue("db_user"),
+				Password: r.FormValue("db_pass"),
+				Name:     r.FormValue("db_name"),
+			}
+		}
+		uc.PointsConfig.MilestoneInterval = points.NormalizeMilestoneInterval(uc.PointsConfig.MilestoneInterval)
+		points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Msg("Error writing user settings")
+		http.Error(w, "failed to write user settings", http.StatusInternalServerError)
+		return
 	}
-
-	uc.WriteToYAML()
-
 	// Update in-memory config to reflect changes immediately
 	if mlh.config != nil {
 		mlh.config.UserName = name
@@ -1169,10 +1206,14 @@ func (mlh *MindloopHandler) HandleSettingsUpdateWidth(w http.ResponseWriter, r *
 
 	isWide := r.FormValue("wide") == "true"
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
-	uc.EditorWideWidth = isWide
-	uc.WriteToYAML()
+	if err := config.UpdateUserConfig(func(uc *config.UserConfig) error {
+		uc.EditorWideWidth = isWide
+		return nil
+	}); err != nil {
+		log.Error().Err(err).Msg("Error writing editor width setting")
+		http.Error(w, "failed to write editor width setting", http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]string{"status": "success"}); err != nil {
@@ -1257,4 +1298,16 @@ func (mlh *MindloopHandler) HandleBackupImport(w http.ResponseWriter, r *http.Re
 	}
 
 	http.Redirect(w, r, "/settings?success=true", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleRecalibrate(w http.ResponseWriter, r *http.Request) {
+	if err := mlh.habit.RecalibrateAll(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if err := mlh.task.RecalibrateTasks(); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 }

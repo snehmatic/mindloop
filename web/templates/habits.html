@@ -56,7 +56,54 @@
     </form>
 </div>
 
-<div class="grid">
+<div class="filter-sort-bar mb-md animate-slide-up" data-target="#active-habits-list">
+    <div class="search-wrapper">
+        <i data-lucide="search"></i>
+        <input type="text" placeholder="Search habits..." class="search-input">
+    </div>
+    <div class="controls-wrapper">
+        <div class="control-group">
+            <span class="control-label">
+                <i data-lucide="clock"></i>
+                <span>Interval</span>
+            </span>
+            <select class="filter-select" data-filter-key="interval">
+                <option value="">All Intervals</option>
+                <option value="daily">Daily</option>
+                <option value="weekly">Weekly</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <span class="control-label">
+                <i data-lucide="activity"></i>
+                <span>Status</span>
+            </span>
+            <select class="filter-select" data-filter-key="progress">
+                <option value="">All Progress</option>
+                <option value="not_started">Not Started</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+        </div>
+        
+        <div class="control-group">
+            <span class="control-label">
+                <i data-lucide="arrow-up-down"></i>
+                <span>Sort</span>
+            </span>
+            <select class="sort-select">
+                <option value="momentum-desc">Highest Momentum</option>
+                <option value="progress-val-desc">Highest Progress %</option>
+                <option value="title-asc">Title (A-Z)</option>
+                <option value="title-desc">Title (Z-A)</option>
+                <option value="date-desc">Newest First</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<div class="grid animate-slide-up" id="active-habits-list">
     {{ range .Habits }}
     {{ template "_habit_card.html" . }}
     {{ else }}
@@ -69,6 +116,11 @@
         </button>
     </div>
     {{ end }}
+    <div id="filter-empty-state" class="empty-state animate-fade-in" style="display: none; grid-column: 1 / -1; padding: 3rem;">
+        <div id="filter-empty-icon" class="empty-icon"></div>
+        <h3 id="filter-empty-title"></h3>
+        <p id="filter-empty-desc"></p>
+    </div>
 </div>
 
 {{ if .EndedHabits }}

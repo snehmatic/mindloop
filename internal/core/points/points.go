@@ -1,12 +1,26 @@
 package points
 
 import (
+	"github.com/snehmatic/mindloop/internal/gamification"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
 
-// MilestoneInterval defines the point increment at which a milestone celebration is triggered
-var MilestoneInterval = 100
+// DefaultMilestoneInterval defines the default point increment for milestone celebrations.
+const DefaultMilestoneInterval = gamification.DefaultMilestoneInterval
+
+// MilestoneInterval defines the point increment at which a milestone celebration is triggered.
+var MilestoneInterval = DefaultMilestoneInterval
+
+// NormalizeMilestoneInterval returns a safe milestone interval value.
+func NormalizeMilestoneInterval(interval int) int {
+	return gamification.NormalizeMilestoneInterval(interval)
+}
+
+// SetMilestoneInterval updates the milestone interval used by AwardPoints.
+func SetMilestoneInterval(interval int) {
+	MilestoneInterval = NormalizeMilestoneInterval(interval)
+}
 
 // AwardPoints creates a new PointTransaction and returns true if a milestone was reached
 func AwardPoints(db *gorm.DB, activityType models.PointCategory, activityID uint, points int) (bool, error) {
@@ -29,8 +43,9 @@ func AwardPoints(db *gorm.DB, activityType models.PointCategory, activityID uint
 	newTotal := currentTotal + points
 
 	// Check if a milestone boundary was crossed
-	currentMilestone := currentTotal / MilestoneInterval
-	newMilestone := newTotal / MilestoneInterval
+	interval := NormalizeMilestoneInterval(MilestoneInterval)
+	currentMilestone := currentTotal / interval
+	newMilestone := newTotal / interval
 
 	return newMilestone > currentMilestone, nil
 }

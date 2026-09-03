@@ -14,7 +14,7 @@ GOFILES=$(wildcard *.go)
 # Make is verbose in Linux. Make it silent.
 MAKEFLAGS += --silent
 
-.PHONY: all build build-cli build-server run-server start-server kill-server test fmt clean help
+.PHONY: all build run-server start-server kill-server test lint fmt clean help
 
 ## all: Build both CLI and Server binaries
 all: build
@@ -28,6 +28,12 @@ build:
 run-server:
 	@echo "  >  Running server on port $(PORT)..."
 	go run main.go server -p $(PORT)
+
+## dev: Run the server with live reloading using 'air'
+dev:
+	@echo "  >  Starting live reload server with air on port $(PORT)..."
+	$$(go env GOPATH)/bin/air -c .air.toml
+
 
 ## start-server: Build and run the server in background
 start-server: build

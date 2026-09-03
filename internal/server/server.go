@@ -84,10 +84,20 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/tasks/subtask/delete", mlh.HandleSubtaskDelete).Methods("POST")
 	r.HandleFunc("/tasks/subtask/reorder", mlh.HandleSubTaskReorder).Methods("POST")
 
+	r.HandleFunc("/recalibrate", mlh.HandleRecalibrate).Methods("POST")
+
 	// Settings Route
 	r.HandleFunc("/settings", mlh.HandleSettings).Methods("GET")
 	r.HandleFunc("/settings/update", mlh.HandleSettingsUpdate).Methods("POST")
 	r.HandleFunc("/settings/update-width", mlh.HandleSettingsUpdateWidth).Methods("POST")
+
+	// AI Routes
+	r.HandleFunc("/api/v1/chunk", mlh.HandleChunk).Methods("POST")
+	r.HandleFunc("/api/v1/ai/settings", mlh.HandleGetAISettings).Methods("GET")
+	r.HandleFunc("/api/v1/ai/settings", mlh.HandleSaveAISettings).Methods("POST")
+	r.HandleFunc("/api/v1/ai/models", mlh.HandleListAIModels).Methods("GET")
+	r.HandleFunc("/api/v1/ai/test", mlh.HandleTestAIConnection).Methods("POST")
+	r.HandleFunc("/api/v1/ai/generate", mlh.HandleGenerateAIJournal).Methods("GET")
 
 	// Backup Routes
 	r.HandleFunc("/backup/export", mlh.HandleBackupExport).Methods("GET")
@@ -100,6 +110,9 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	r.HandleFunc("/cleanslate", mlh.HandleCleanSlate).Methods("POST")
 	r.HandleFunc("/about", mlh.HandleAbout).Methods("GET")
 	r.HandleFunc("/void", mlh.HandleVoid).Methods("GET")
+
+	// Quick Dump Route
+	r.HandleFunc("/api/dump", mlh.HandleQuickDump).Methods("POST")
 
 	return r
 }

@@ -11,6 +11,7 @@ import (
 	v1 "github.com/snehmatic/mindloop/api/v1"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
+	"github.com/snehmatic/mindloop/internal/core/dump"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
@@ -41,13 +42,18 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 
 	// AutoMigrate manually to ensure tables exist
 	err = database.AutoMigrate(
-		&models.JournalEntry{},
+		&models.Intent{},
+		&models.FocusSession{},
 		&models.Habit{},
 		&models.HabitLog{},
-		&models.FocusSession{},
-		&models.Intent{},
+		&models.JournalEntry{},
+		&models.Note{},
 		&models.SideQuest{},
 		&models.PointTransaction{},
+		&models.Task{},
+		&models.SubTask{},
+		&models.AppSetting{},
+		&models.BrainDump{},
 	)
 	if err != nil {
 		t.Fatalf("Failed to migrate test db: %v", err)
@@ -62,8 +68,10 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 	habitService := habit.NewService(database)
 	backupService := backup.NewService(database)
 	taskService := task.NewService(database)
+	dumpService := dump.NewService(database)
 
 	return v1.NewMindloopHandler(
+		database,
 		journalService,
 		noteService,
 		habitService,
@@ -73,6 +81,7 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 		summaryService,
 		backupService,
 		taskService,
+		dumpService,
 	)
 }
 
@@ -125,7 +134,7 @@ func TestHabitFlow(t *testing.T) {
 
 	resp = w.Result()
 	loc, _ = resp.Location()
-	if !strings.Contains(loc.String(), "success=done") {
+	if !strings.Contains(loc.String(), "success=done") && !strings.Contains(loc.String(), "success=true") {
 		t.Errorf("Log Habit failed/redirected wrong: %v", loc)
 	}
 
@@ -172,4 +181,47 @@ func TestSummaryGeneration(t *testing.T) {
 	if !strings.Contains(w.Body.String(), "Summary Report") {
 		t.Errorf("Summary page content missing expected title")
 	}
+}
+
+func TestQuickDump(t *testing.T) {
+	mlh := setupTestServer(t)
+
+	t.Run("successful request", func(t *testing.T) {
+		val := url.Values{}
+		val.Add("content", "test dump")
+		req := httptest.NewRequest("POST", "/api/dump", strings.NewReader(val.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		w := httptest.NewRecorder()
+
+		mlh.HandleQuickDump(w, req)
+
+		if w.Code != http.StatusOK {
+			t.Errorf("Expected status 200, got %d", w.Code)
+		}
+	})
+
+	t.Run("empty content", func(t *testing.T) {
+		val := url.Values{}
+		val.Add("content", "")
+		req := httptest.NewRequest("POST", "/api/dump", strings.NewReader(val.Encode()))
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		w := httptest.NewRecorder()
+
+		mlh.HandleQuickDump(w, req)
+
+		if w.Code != http.StatusBadRequest {
+			t.Errorf("Expected status 400 for empty content, got %d", w.Code)
+		}
+	})
+
+	t.Run("invalid method", func(t *testing.T) {
+		req := httptest.NewRequest("GET", "/api/dump", nil)
+		w := httptest.NewRecorder()
+
+		mlh.HandleQuickDump(w, req)
+
+		if w.Code != http.StatusMethodNotAllowed {
+			t.Errorf("Expected status 405 for GET method, got %d", w.Code)
+		}
+	})
 }

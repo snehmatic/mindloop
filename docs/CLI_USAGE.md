@@ -4,14 +4,15 @@ This guide provides a detailed overview of the `mindloop` CLI commands and how t
 
 ## Table of Contents
 - [Getting Started](#getting-started)
+- [Dashboard (TUI)](#dashboard-tui)
 - [Intent Management](#intent-management)
 - [Side Quests](#side-quests)
 - [Focus Sessions](#focus-sessions)
 - [Habit Tracking](#habit-tracking)
 - [Journaling](#journaling)
 - [Quick Notes](#quick-notes)
+- [The Void](#the-void)
 - [Tasks](#tasks)
-- [Routines](#routines)
 - [Summary](#summary)
 - [Data Management (Backup & Restore)](#data-management-backup--restore)
 - [Help](#help)
@@ -27,6 +28,21 @@ mindloop configure
 This interactive command will guide you through setting up:
 *   **Username**: Your display name.
 *   **Mode**: Choose between `local` (SQLite) or `byodb` (Bring Your Own Database, e.g., PostgreSQL).
+*   **Milestone interval**: How many points are needed between milestone celebrations. The default is `200`.
+
+---
+
+## Dashboard (TUI)
+
+Mindloop includes a beautiful Terminal User Interface (TUI) dashboard to act as your daily command center directly in the terminal.
+
+### Commands
+
+*   **Open the dashboard:**
+    ```bash
+    mindloop dash
+    ```
+    This opens an interactive interface where you can view your active Intent, monitor a live Focus Session timer, and interactively toggle your daily habits using your keyboard. Press `q` to quit.
 
 ---
 
@@ -115,6 +131,13 @@ Focus sessions allow you to track time spent on specific tasks, helping you stay
     mindloop focus end <session_id>
     ```
     Stops the timer and records the session duration.
+
+*   **Check session status:**
+    ```bash
+    mindloop focus status
+    mindloop focus status --format=compact  # For tmux/waybar integration
+    ```
+    Displays the remaining time and progress of the active session.
 
 *   **Rate a session:**
     ```bash
@@ -213,6 +236,14 @@ Capture your thoughts and reflections directly from the terminal.
     mindloop journal delete <entry_id>
     ```
 
+*   **Generate an AI-assisted journal entry:**
+    ```bash
+    mindloop journal generate
+    mindloop journal generate --weekly
+    mindloop journal generate --yearly
+    ```
+    Builds a journal-style reflection from your activity summary, prints it for review, and asks whether to save it.
+
 ---
 
 ## Quick Notes
@@ -221,10 +252,16 @@ Capture ideas, snippets, and important information quickly without context switc
 
 ### Commands
 
-*   **Quick capture:**
+*   **Quick capture (Note):**
     ```bash
     mindloop note "Meeting with team at 3 PM"
     ```
+
+*   **Quick-Dump (Capture on the Fly):**
+    ```bash
+    mindloop dump "Need to buy milk later"
+    ```
+    Sub-100ms ultra-fast execution for side-thoughts without losing context.
 
 *   **New note (Editor):**
     ```bash
@@ -254,6 +291,25 @@ Capture ideas, snippets, and important information quickly without context switc
 
 ---
 
+## The Void
+
+Enter a focused breathing session from the terminal.
+
+### Commands
+
+*   **Start the default 5-minute session:**
+    ```bash
+    mindloop void
+    ```
+
+*   **Start a custom duration:**
+    ```bash
+    mindloop void 10
+    ```
+    The optional argument is the number of minutes. Press `Ctrl+C` to exit early.
+
+---
+
 ## Tasks
 
 Manage independent tasks and optionally link them to intents or focus sessions.
@@ -277,28 +333,11 @@ Manage independent tasks and optionally link them to intents or focus sessions.
     mindloop task complete <task_id>
     ```
 
----
-
-## Routines
-
-Group multiple habits into a specific time of day.
-
-### Commands
-
-*   **Create a routine:**
+*   **AI Micro-Task Chunker:**
     ```bash
-    mindloop routine create "Morning Routine" --time "Morning"
+    mindloop chunk "Implement feature X"
     ```
-
-*   **Add a habit to a routine:**
-    ```bash
-    mindloop routine add-habit <routine_id> <habit_id>
-    ```
-
-*   **List routines:**
-    ```bash
-    mindloop routine list
-    ```
+    Automatically decompose an intention or large task into 3-5 actionable sub-15min micro-steps using the LLM.
 
 ---
 
@@ -321,6 +360,8 @@ Get a bird's-eye view of your productivity metrics.
     mindloop summary --month  # Current month
     mindloop summary --year   # Current year
     ```
+
+    For an AI-written overview based on this summary data, use `mindloop journal generate` with the matching range flag.
 
 ---
 

@@ -33,9 +33,13 @@ Building a robust foundation for long-term maintainability.
 - [ ] **Testing**: Increase unit test coverage for core logic (Intents, Habits).
 - [ ] **Performance**: Optimize SQLite queries and template rendering for larger datasets.
 - [ ] **Containerization**: Official Docker image for easier deployment.
+- [ ] **Contributor & Agent Workflow**: Keep issue templates, PR descriptions, and agent guidance explicit enough for both human contributors and AI coding agents.
 
 ## Recently Completed
+- [x] **AI-Assisted Journal Generation**: Generate reflective journal entries from summary data and optionally save them.
+- [x] **The Void for CLI**: Timed breathing mode via `mindloop void [minutes]`.
 - [x] **Gamification**: Comprehensive points system with customizable rewards, celebrations, and milestone tracking.
+- [x] **Task Completion Behavior**: Completing a parent task can mark its sub-tasks as done.
 - [x] **UI Polish**: Massive consistency update (Alignment, Icons, Spacing).
 - [x] **Visuals**: Dark Mode, Glassmorphism elements.
 - [x] **Features**: Side Quest Modal, Habit Heatmaps, stacked Settings.

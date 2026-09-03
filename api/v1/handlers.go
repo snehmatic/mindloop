@@ -12,6 +12,7 @@ import (
 	"github.com/rs/zerolog/log"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/backup"
+	"github.com/snehmatic/mindloop/internal/core/dump"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/core/intent"
@@ -23,13 +24,14 @@ import (
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/snehmatic/mindloop/web"
+	"gorm.io/gorm"
 )
 
 type HabitView struct {
 	models.Habit
 	ActualCount int
 	ProgressPct int
-	Streak      int
+	Momentum    int
 }
 
 var templateFuncs = template.FuncMap{
@@ -72,6 +74,7 @@ var templateFuncs = template.FuncMap{
 
 type MindloopHandler struct {
 	config  *config.Config
+	DB      *gorm.DB
 	journal *journal.Service
 	note    *note.Service
 	habit   *habit.Service
@@ -81,9 +84,11 @@ type MindloopHandler struct {
 	summary *summary.Service
 	backup  *backup.Service
 	task    *task.Service
+	dump    *dump.Service
 }
 
 func NewMindloopHandler(
+	db *gorm.DB,
 	journal *journal.Service,
 	note *note.Service,
 	habit *habit.Service,
@@ -93,9 +98,11 @@ func NewMindloopHandler(
 	summary *summary.Service,
 	backup *backup.Service,
 	task *task.Service,
+	dump *dump.Service,
 ) *MindloopHandler {
 	return &MindloopHandler{
 		config:  config.GetConfig(),
+		DB:      db,
 		journal: journal,
 		note:    note,
 		habit:   habit,
@@ -105,6 +112,7 @@ func NewMindloopHandler(
 		summary: summary,
 		backup:  backup,
 		task:    task,
+		dump:    dump,
 	}
 }
 
@@ -142,6 +150,13 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 			uc := config.UserConfig{}
 			_ = uc.ReadFromYAML()
 			d["Config"] = uc
+		}
+		if _, exists := d["ActiveFocus"]; !exists && mlh.focus != nil {
+			activeFocus, err := mlh.focus.GetActiveSession()
+			if err != nil {
+				log.Error().Err(err).Msg("Failed to get active focus session for layout")
+			}
+			d["ActiveFocus"] = activeFocus
 		}
 	}
 
@@ -216,6 +231,44 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// Build Active Habits for Dashboard
+	momentums, _ := mlh.habit.CalculateMomentums(habits)
+	var activeHabits []HabitView
+	for _, h := range habits {
+		actual := 0
+		for _, log := range habitLogs {
+			if log.HabitID == h.ID && log.CreatedAt.After(todayStart) {
+				actual = log.ActualCount
+				break
+			}
+		}
+		pct := 0
+		if h.TargetCount > 0 {
+			pct = (actual * 100) / h.TargetCount
+		}
+		if pct > 100 {
+			pct = 100
+		}
+		momentum := momentums[h.ID]
+		activeHabits = append(activeHabits, HabitView{
+			Habit:       h,
+			ActualCount: actual,
+			ProgressPct: pct,
+			Momentum:    momentum,
+		})
+	}
+
+	// 4. Pending Tasks
+	allTasks, _ := mlh.task.ListTasks()
+	var pendingTasks []models.TaskView
+	for _, t := range allTasks {
+		if t.Status == "pending" {
+			pendingTasks = append(pendingTasks, models.ToTaskView(t))
+		}
+	}
+
+	// 5. Active Focus
+	activeFocus, _ := mlh.focus.GetActiveSession()
 	mlh.renderTemplate(w, "home.html", map[string]interface{}{
 		"Title": "Home",
 		"Dashboard": map[string]interface{}{
@@ -224,6 +277,9 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 			"FocusMinutes":    focusMinutes,
 			"CompletedHabits": completedHabits,
 			"TotalHabits":     totalHabits,
+			"ActiveHabits":    activeHabits,
+			"PendingTasks":    pendingTasks,
+			"ActiveFocus":     activeFocus,
 		},
 	})
 }
@@ -402,4 +458,27 @@ func (mlh *MindloopHandler) HandleIntentResume(w http.ResponseWriter, r *http.Re
 	}
 
 	http.Redirect(w, r, "/intent", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleQuickDump(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	content := r.FormValue("content")
+	if content == "" {
+		http.Error(w, "Content cannot be empty", http.StatusBadRequest)
+		return
+	}
+
+	_, err := mlh.dump.CreateDump(content)
+	if err != nil {
+		log.Error().Err(err).Msg("Error creating brain dump")
+		http.Error(w, "Error saving dump", http.StatusInternalServerError)
+		return
+	}
+
+	// Just return 200 OK
+	w.WriteHeader(http.StatusOK)
 }

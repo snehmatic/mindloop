@@ -93,3 +93,29 @@ func TestEndAndRestartSession(t *testing.T) {
 		t.Errorf("Failed to start second session after ending first: %v", err)
 	}
 }
+
+func TestGetActiveSession(t *testing.T) {
+	db := setupTestDB(t)
+	s := focus.NewService(db)
+
+	sess, err := s.GetActiveSession()
+	if err != nil {
+		t.Fatalf("Failed to get active session: %v", err)
+	}
+	if sess != nil {
+		t.Errorf("Expected nil active session, got %v", sess)
+	}
+
+	_, err = s.StartSession("Session 1")
+	if err != nil {
+		t.Fatalf("Failed to start session: %v", err)
+	}
+
+	sess, err = s.GetActiveSession()
+	if err != nil {
+		t.Fatalf("Failed to get active session: %v", err)
+	}
+	if sess == nil {
+		t.Errorf("Expected active session, got nil")
+	}
+}

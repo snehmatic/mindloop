@@ -1,4 +1,11 @@
-<div class="card card-hover" style="position: relative;" id="habit-card-{{ .ID }}">
+<div class="card card-hover" style="position: relative;" id="habit-card-{{ .ID }}"
+    data-title="{{ .Title }}"
+    data-interval="{{ .Interval }}"
+    data-momentum="{{ .Momentum }}"
+    data-progress-val="{{ .ProgressPct }}"
+    data-progress="{{ if eq .ActualCount 0 }}not_started{{ else if ge .ActualCount .TargetCount }}completed{{ else }}in_progress{{ end }}"
+    data-date="{{ iso8601 .CreatedAt }}"
+    data-searchable="{{ .Title }}">
     <div class="flex-between mb-sm" style="align-items: flex-start;">
         <div style="flex: 1;">
             <h3 class="mb-sm">
@@ -7,11 +14,14 @@
             <div class="flex-center gap-sm" style="flex-wrap: wrap; justify-content: flex-start;">
                 <span class="text-sm text-muted" style="text-transform: capitalize;">{{ .Interval }} • Target: {{
                     .TargetCount }}</span>
-                {{ if gt .Streak 0 }}
-                <span
-                    style="background: #ffedd5; color: #c2410c; padding: 0.1rem 0.5rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; border: 1px solid #fed7aa; display: inline-flex; align-items: center; gap: 0.25rem;">
-                    <i data-lucide="flame" style="width: 1em; height: 1em;"></i> {{ .Streak }} Day Streak
-                </span>
+                {{ if gt .Momentum 0 }}
+                <div class="flex-center gap-xs" title="Momentum Index" style="background: var(--bg-hover); padding: 0.2rem 0.5rem; border-radius: 999px; display: inline-flex; align-items: center;">
+                    <svg role="img" aria-label="Momentum ring" width="16" height="16" viewBox="0 0 36 36" style="transform: rotate(-90deg);">
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="var(--border)" stroke-width="4" />
+                      <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#3b82f6" stroke-width="4" stroke-dasharray="{{ .Momentum }}, 100" />
+                    </svg>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--text);">{{ .Momentum }}%</span>
+                </div>
                 {{ end }}
             </div>
         </div>

@@ -4,10 +4,12 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"sync"
 
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog"
+	"github.com/snehmatic/mindloop/internal/gamification"
 	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/spf13/cobra"
@@ -72,6 +74,7 @@ type DBConfig struct {
 
 var once sync.Once
 var cfg *Config
+var userConfigMu sync.Mutex
 
 // InitConfig initializes the global application configuration
 func InitConfig(name, mode, port string) {
@@ -97,7 +100,6 @@ func InitConfig(name, mode, port string) {
 				cfg.DBConfig = uc.DbConfig
 			}
 		}
-
 		if mode == "api" {
 			// init DB Config
 			err := godotenv.Load()
@@ -145,13 +147,14 @@ type FeatureFlags struct {
 
 // PointsConfig stores the user-defined point values for each activity type
 type PointsConfig struct {
-	Focus   int `yaml:"focus"`
-	Habit   int `yaml:"habit"`
-	Intent  int `yaml:"intent"`
-	Journal int `yaml:"journal"`
-	Quest   int `yaml:"quest"`
-	Task    int `yaml:"task"`
-	SubTask int `yaml:"subtask"`
+	Focus             int `yaml:"focus"`
+	Habit             int `yaml:"habit"`
+	Intent            int `yaml:"intent"`
+	Journal           int `yaml:"journal"`
+	Quest             int `yaml:"quest"`
+	Task              int `yaml:"task"`
+	SubTask           int `yaml:"subtask"`
+	MilestoneInterval int `yaml:"milestone_interval"`
 }
 
 // SetDefaults ensures that the UserConfig has sensible default values
@@ -186,6 +189,7 @@ func (uc *UserConfig) SetDefaults() {
 	if uc.PointsConfig.SubTask == 0 {
 		uc.PointsConfig.SubTask = 1
 	}
+	uc.PointsConfig.MilestoneInterval = gamification.NormalizeMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 }
 
 // ValidateUserConfig checks if the user configuration is valid and exists
@@ -204,17 +208,63 @@ func ValidateUserConfig(cmd *cobra.Command) {
 
 // WriteToYAML persists the current UserConfig to a YAML file
 func (uc UserConfig) WriteToYAML() {
-	marshalled, err := yaml.Marshal(uc)
-	if err != nil {
-		utils.PrintErrorln("Error marshalling user config to YAML")
-		return
-	}
-	err = os.WriteFile(GetUserConfigPath(), marshalled, 0644)
-	if err != nil {
-		utils.PrintErrorln("Error writing user config to file")
+	if err := uc.WriteToYAMLError(); err != nil {
+		utils.PrintErrorln("Error writing user config to YAML")
 		return
 	}
 	utils.PrintSuccessln("User config written to YAML successfully")
+}
+
+// WriteToYAMLError persists the current UserConfig with an atomic replacement.
+func (uc UserConfig) WriteToYAMLError() error {
+	marshalled, err := yaml.Marshal(uc)
+	if err != nil {
+		return fmt.Errorf("marshal user config: %w", err)
+	}
+
+	path := GetUserConfigPath()
+	dir := filepath.Dir(path)
+	tmp, err := os.CreateTemp(dir, ".user_config.yaml.tmp-*")
+	if err != nil {
+		return fmt.Errorf("create temporary user config: %w", err)
+	}
+	tmpPath := tmp.Name()
+	defer func() { _ = os.Remove(tmpPath) }()
+
+	if err := tmp.Chmod(0644); err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("set temporary user config permissions: %w", err)
+	}
+	if _, err := tmp.Write(marshalled); err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("write temporary user config: %w", err)
+	}
+	if err := tmp.Sync(); err != nil {
+		_ = tmp.Close()
+		return fmt.Errorf("sync temporary user config: %w", err)
+	}
+	if err := tmp.Close(); err != nil {
+		return fmt.Errorf("close temporary user config: %w", err)
+	}
+	if err := os.Rename(tmpPath, path); err != nil {
+		return fmt.Errorf("replace user config: %w", err)
+	}
+	return nil
+}
+
+// UpdateUserConfig serializes read-modify-write updates to the user config.
+func UpdateUserConfig(mutate func(*UserConfig) error) error {
+	userConfigMu.Lock()
+	defer userConfigMu.Unlock()
+
+	uc := UserConfig{}
+	if err := uc.ReadFromYAML(); err != nil && !os.IsNotExist(err) {
+		return err
+	}
+	if err := mutate(&uc); err != nil {
+		return err
+	}
+	return uc.WriteToYAMLError()
 }
 
 // ReadFromYAML loads the UserConfig from a YAML file

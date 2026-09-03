@@ -17,8 +17,8 @@ Located in `internal/core`, this layer isolates the rules for each domain:
 *   `summary`: Aggregates data for productivity reporting.
 
 ## Interfaces (Presentation Layer)
-*   **CLI (`cmd/cli`):** Built with [Cobra](https://github.com/spf13/cobra), this interface interacts directly with the local database for low-latency command-line usage. Use `mindloop --version` to check your current version. Check out the [CLI Usage Guide](docs/CLI_USAGE.md) for detailed command instructions.
-*   **Web Server (`cmd/server`):** A Go HTTP server exposing a REST API (`api/v1`).
+*   **CLI (`cmd/cli`):** Built with [Cobra](https://github.com/spf13/cobra), this interface interacts directly with the local database for low-latency command-line usage. Use `mindloop --version` to check your current version. Check out the [CLI Usage Guide](CLI_USAGE.md) for detailed command instructions.
+*   **Web Server (`cmd/cli/server.go`):** A Go HTTP server exposed through the `mindloop server` subcommand.
 *   **Web UI:** Server-Side Rendered (SSR) HTML templates (`web/templates`) utilizing vanilla CSS/JS. "Vibe coded" with Gemini (backend-focused developer approach).
 
 ## Data Layer

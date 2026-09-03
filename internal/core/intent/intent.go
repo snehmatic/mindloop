@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/snehmatic/mindloop/internal/core/points"
+	"github.com/snehmatic/mindloop/internal/nlp"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
 )
@@ -23,9 +24,12 @@ func (s *Service) StartIntent(name string) (*models.Intent, error) {
 		return nil, errors.New("name cannot be empty")
 	}
 
+	cleanedName, dueDate := nlp.ExtractDate(name)
+
 	intent := &models.Intent{
-		Name:   name,
-		Status: "active",
+		Name:    cleanedName,
+		Status:  "active",
+		DueDate: dueDate,
 	}
 
 	if err := s.DB.Create(intent).Error; err != nil {

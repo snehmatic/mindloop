@@ -9,6 +9,7 @@
 *.dylib
 mindloop
 mindloop-server
+server
 
 # Test binary, built with `go test -c`
 *.test
@@ -45,3 +46,8 @@ server.log
 .gemini/
 gha-creds-*.json
 .agent/
+.worktrees/
+
+# Air live reload
+tmp/
+build-errors.log

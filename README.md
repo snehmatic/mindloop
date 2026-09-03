@@ -11,6 +11,8 @@
 
 **Mindloop** is a comprehensive productivity suite designed for local-first workflow management. It operates as a **CLI tool**, a **local API**, and a **UI**, utilizing a local SQLite database with BYODB (Bring Your Own Database) support.
 
+Recent highlights include an **Interactive Command Center**, an integrated **Cmd+K Command Palette**, a built-in **TUI Dashboard** (`mindloop dash`), natural language date parsing, and AI-assisted journal generation.
+
 ## Table of Contents
 - [Getting Started](#getting-started)
   - [Prerequisites](#prerequisites)
@@ -64,7 +66,7 @@ Download the latest pre-compiled binary for your OS from the [Releases Page](htt
     ```bash
     make build
     ```
-    This generates `mindloop` (CLI) and `mindloop-server` (Server) binaries.
+    This generates the `mindloop` binary. The same binary provides both CLI commands and the local server via `mindloop server`.
 
 3.  **Run the Server (Quick Start):**
     For local development with the UI:
@@ -77,18 +79,33 @@ Download the latest pre-compiled binary for your OS from the [Releases Page](htt
     ```bash
     make run-server PORT=9000 MODE=byodb
     ```
-    
+
     Access the UI at [http://localhost:8765](http://localhost:8765)
+
+    **Live Reloading (Development):**
+    For active development, you can run the server with live reloading. This requires [Air](https://github.com/air-verse/air).
+    First, install `air` globally:
+    ```bash
+    go install github.com/air-verse/air@latest
+    ```
+    Then, start the development server:
+    ```bash
+    make dev
+    ```
+    The server will automatically rebuild and restart when you save changes to Go, HTML, CSS, or JS files.
 
 ### Build Commands
 
 The project includes a `Makefile` to simplify common tasks:
 
-*   `make build`: Build both the CLI and Server binaries.
-*   `make build-cli`: Build only the CLI binary.
+*   `make build`: Build the binary.
+*   `make run-server`: Run the local server in the foreground.
+*   `make dev`: Run the server with live-reloading (requires `air`).
 *   `make start-server`: Build and run the server in the background (daemon).
 *   `make kill-server`: Stop the background server.
 *   `make test`: Run unit tests.
+*   `make lint`: Run `golangci-lint`.
+*   `make fmt`: Format Go files.
 *   `make clean`: Remove build artifacts.
 
 ## Documentation
@@ -97,7 +114,9 @@ The project includes a `Makefile` to simplify common tasks:
 * **[Architecture](docs/ARCHITECTURE.md)**: Learn about Mindloop's clean architecture, interfaces, and data layer.
 * **[CLI Usage Guide](docs/CLI_USAGE.md)**: Detailed instructions on how to use Mindloop directly from the command line.
 * **[Web UI Documentation](docs/web_ui.md)**: A visual tour of the web interface and responsive design.
+* **[Roadmap](docs/ROADMAP.md)**: Current development status, experimental areas, and planned directions.
 * **[Releasing Guide](docs/RELEASES.md)**: Instructions on how to create and publish new releases.
+* **[Contributing](CONTRIBUTING.md)**: Guidance for contributors, maintainers, and AI coding agents.
 
 ## Configuration
 
@@ -113,8 +132,38 @@ To use an external database (e.g., PostgreSQL), you can configure the applicatio
 
 ## Motivation
 
-Mindloop is a productivity suite, for getting started with intentions, habits, journals or focus sessions.
+**Mindloop** is a productivity suite for getting started with intentions, habits, journals, and focus sessions.
+As a developer with attention problems, Mindloop originally started as a very personal CLI tool to manage my daily work routine and reduce some of the mental clutter that comes with context switching all day.
+The initial workflow was intentionally simple:
+* Intents to define one single thing I wanted to work on or pay attention to
+* Focus sessions to break that intention down into smaller chunks of high quality, intentional deep work
 
-As a developer with attention problems, Mindloop started as a personal CLI tool to manage my daily work routine. `Intents` to set one single intention or work item to track and focus on, and `focus sessions` to break that intention down into chunks of high quality deep work frames.
+That alone worked surprisingly well.
+Instead of planning an ideal day or maintaining some giant productivity system that I'd eventually ignore, this gave me something much smaller and more immediate: decide what matters right now, work on it, and close the loop.
+Along the way, additional features like `habits` and `journal` were added almost as an afterthought. But weirdly enough, those ended up becoming part of the workflow too.
+I’d usually start my day by ticking off a few habits I cared about (daily and weekly), then work through an active intention using focus sessions, and by the end of the day, write a tiny journal entry just to mentally close work for the day, shut the laptop, and go touch some grass (or did I?).
 
-This workflow worked well for starters. Alongside, the additional `habits` and `journal` features were added just because. But weirdly enough those caught up and I incorporated them into my workflow as well. I'd start my day ticking off habits that I had set (daily and weekly) and by the end of the day, write down a mini journal to just close the loop, end work and go touch some grass.
+Over time, **Mindloop** evolved beyond just a CLI experiment.
+What started as a tool to help me focus on work gradually became a slightly more opinionated system for managing attention, reflection, and intentionality. Tasks, subtasks, notes, summaries, side quests, AI overviews, and other features naturally grew around that core.
+But the philosophy has stayed mostly the same.
+_Mindloop is not meant to be a system for planning the perfect day, optimizing every hour, or building the most aesthetic productivity dashboard known to mankind (I despise frontend).
+It is intentionally a bit more present and reflective._
+
+The core idea is simple:
+* pick something meaningful to focus on
+* work on it in deliberate chunks
+* keep track of a few recurring systems that matter
+* reflect a little
+* and finally, move on
+
+This is also why some seemingly obvious productivity features have intentionally been avoided or delayed.
+For example, routines/rituals or heavily pre-planned workflows sound useful on paper (and honestly, I still think they are), but they introduce a strange overlap with the intention-centric design of Mindloop.
+If everything is pre-planned, templated, stacked, drag-and-dropped, and optimized into perfect routines, then the question becomes: what purpose do intentions serve anymore?
+That starts pulling Mindloop in a different direction.
+
+At least for now, Mindloop is less about designing a perfect life system, and more about helping reduce mental chaos in the present.
+It exists to answer simpler questions:
+* What am I doing right now?
+* Am I actually paying attention to it?
+* Did I close the day with some amount of intention?
+That’s really where Mindloop started, and honestly, still the _soul_ of the project.

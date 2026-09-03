@@ -1,0 +1,16 @@
+{
+  "name": "Mindloop",
+  "short_name": "Mindloop",
+  "description": "ADHD-friendly workflow management.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f0fdfa",
+  "theme_color": "#0d9488",
+  "icons": [
+    {
+      "src": "/static/favicon_io/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512"
+    }
+  ]
+}

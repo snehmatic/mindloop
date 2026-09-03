@@ -2,9 +2,12 @@ package cli
 
 import (
 	"fmt"
+	"time"
 
 	cfg "github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/core/ai"
 	"github.com/snehmatic/mindloop/internal/core/journal"
+	"github.com/snehmatic/mindloop/internal/core/summary"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
 	"github.com/spf13/cobra"
@@ -14,6 +17,79 @@ var (
 	mood           *string
 	journalService *journal.Service
 )
+
+func getJournalTimeRange(period string) (time.Time, time.Time) {
+	now := time.Now()
+	switch period {
+	case "yearly":
+		return time.Date(now.Year()-1, now.Month(), now.Day(), 0, 0, 0, 0, now.Location()), now
+	case "weekly":
+		end := time.Now()
+		start := end.AddDate(0, 0, -7)
+		start = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, start.Location())
+		return start, end
+	case "daily":
+		return now.Add(-24 * time.Hour), now
+	default:
+		return now.Add(-24 * time.Hour), now
+	}
+}
+
+var generateCmd = &cobra.Command{
+	Use:     "generate",
+	Short:   "Auto-generate a journal entry using AI",
+	Example: `mindloop journal generate -w`,
+	Run: func(cmd *cobra.Command, args []string) {
+		weekly, _ := cmd.Flags().GetBool("weekly")
+		yearly, _ := cmd.Flags().GetBool("yearly")
+
+		period := "daily"
+		if weekly {
+			period = "weekly"
+		} else if yearly {
+			period = "yearly"
+		}
+
+		start, end := getJournalTimeRange(period)
+
+		summarySvc := summary.NewService(gdb)
+		report, err := summarySvc.GenerateSummary(start, end)
+		if err != nil {
+			utils.PrintErrorln("Failed to generate summary report:", err)
+			return
+		}
+
+		utils.PrintLoadingln("✨ Generating AI journal entry...")
+		aiService := ai.NewService(gdb)
+		generatedText, err := aiService.GenerateJournal(report)
+		if err != nil {
+			utils.PrintErrorln("Failed to generate journal:", err)
+			return
+		}
+
+		fmt.Println("\n" + generatedText + "\n")
+
+		fmt.Print("Would you like to save this into the journal? (y/N): ")
+		var response string
+		_, _ = fmt.Scanln(&response)
+		if response == "y" || response == "Y" {
+			title := fmt.Sprintf("AI Summary: %s", report.DateRange)
+			// Assuming journal points default to 5 if config isn't read fully
+			uc := cfg.UserConfig{}
+			_ = uc.ReadFromYAML()
+			pts := uc.PointsConfig.Journal
+			if pts == 0 {
+				pts = 5
+			}
+			_, err = journalService.CreateEntry(title, generatedText, "reflective", pts)
+			if err != nil {
+				utils.PrintErrorln("Failed to save journal:", err)
+			} else {
+				utils.PrintSuccessln("Saved successfully!")
+			}
+		}
+	},
+}
 
 var journalCmd = &cobra.Command{
 	Use:     "journal",
@@ -159,6 +235,12 @@ func init() {
 	journalCmd.AddCommand(journalListCmd)
 	journalCmd.AddCommand(journalViewCmd)
 	journalCmd.AddCommand(journalDeleteCmd)
+
+	generateCmd.Flags().BoolP("daily", "d", false, "Generate daily summary")
+	generateCmd.Flags().BoolP("weekly", "w", false, "Generate weekly summary")
+	generateCmd.Flags().BoolP("yearly", "y", false, "Generate yearly summary")
+	journalCmd.AddCommand(generateCmd)
+
 	rootCmd.AddCommand(journalCmd)
 
 	mood = journalNewCmd.Flags().StringP("mood", "m", "neutral", "Set journal mood")

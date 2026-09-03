@@ -1,6 +1,19 @@
 {{ define "content" }}
 <div class="mb-lg animate-slide-up">
-    <div class="page-header" style="margin-bottom: 2.5rem;">
+    
+{{ if .Dashboard.ActiveFocus }}
+<div class="card mb-lg animate-slide-up" style="border-left: 4px solid var(--primary); background: var(--bg-surface-alt);">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div>
+            <h3 style="margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;"><i data-lucide="zap" class="icon-sm text-primary"></i> Active Focus Session</h3>
+            <p class="text-sm text-muted" style="margin-bottom: 0;">{{ .Dashboard.ActiveFocus.Title }}</p>
+        </div>
+        <a href="/focus" class="btn btn-primary btn-sm">Resume</a>
+    </div>
+</div>
+{{ end }}
+
+    <div class="page-header" style="margin-bottom: 2.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
         <div>
             <h1 style="font-weight: 800; font-size: 2.5rem; margin-bottom: 0.2rem;">
                 {{ if .UserName }}
@@ -11,146 +24,157 @@
             </h1>
             <p class="text-muted" style="font-size: 1.1rem; margin-bottom: 0;">Here's your command center for today.</p>
         </div>
+        <button class="btn btn-sm btn-secondary" style="color: var(--warning); border-color: var(--warning);" onclick="document.getElementById('recalibrate-modal').style.display='flex'">
+            <i data-lucide="refresh-cw" class="icon-sm"></i> Fresh Start
+        </button>
     </div>
 
     <div class="grid home-grid">
 
-        <!-- Active Context Card -->
-        <!-- Direct grid child for height matching -->
-        <div style="display: flex; flex-direction: column; height: 100%; min-height: 340px;">
-            {{ if .Dashboard.CurrentQuest }}
-            <div class="card"
-                style="border: 1px solid var(--warning); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1); background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-alt) 100%); height: 100%; display: flex; flex-direction: column;">
-                <div class="mb-md text-xs font-bold"
-                    style="color: var(--warning); text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem;">
-                    <i data-lucide="sword" class="icon-sm"></i> Active Side Quest
-                </div>
-                <h2 style="font-size: 2rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem;">{{ .Dashboard.CurrentQuest.Title }}</h2>
-                <div style="flex: 1;"></div> <!-- Spacer -->
-
-                <div class="card mb-md" style="background: var(--bg-body); border: 1px solid var(--border); padding: 1rem; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
-                    <div class="flex-between mb-xs">
-                        <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Main Focus Paused</span>
-                        <i data-lucide="pause-circle" class="icon-sm" style="color: var(--warning);"></i>
+        <!-- Left Column: Active Context & Stats -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; height: 100%;">
+            <!-- Active Context Card -->
+            <div style="display: flex; flex-direction: column; flex: 1; min-height: 240px;">
+                {{ if .Dashboard.CurrentQuest }}
+                <div class="card"
+                    style="border: 1px solid var(--warning); box-shadow: 0 4px 20px rgba(245, 158, 11, 0.1); background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-alt) 100%); height: 100%; display: flex; flex-direction: column;">
+                    <div class="mb-md text-xs font-bold"
+                        style="color: var(--warning); text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="sword" class="icon-sm"></i> Active Side Quest
                     </div>
-                    {{ if .Dashboard.CurrentIntent }}
-                    <div class="text-sm font-medium">{{ .Dashboard.CurrentIntent.Name }}</div>
-                    {{ end }}
-                </div>
+                    <h2 style="font-size: 1.75rem; font-weight: 800; line-height: 1.2; margin-bottom: 0.5rem;">{{ .Dashboard.CurrentQuest.Title }}</h2>
+                    <div style="flex: 1;"></div> <!-- Spacer -->
 
-                <a href="/intent" class="btn" style="width: 100%; background: var(--warning); color: #fff; border: none; font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);">Return to Quest <i data-lucide="arrow-right" class="icon-sm" style="margin-left: 4px;"></i></a>
-            </div>
-            {{ else if .Dashboard.CurrentIntent }}
-            <div class="card"
-                style="border: 1px solid var(--primary); box-shadow: 0 4px 20px rgba(13, 148, 136, 0.1); background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-alt) 100%); height: 100%; display: flex; flex-direction: column;">
-                <div class="mb-md text-xs font-bold text-primary"
-                    style="text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem;">
-                    <i data-lucide="crosshair" class="icon-sm"></i> Today's Focus
+                    <div class="card mb-md" style="background: var(--bg-body); border: 1px solid var(--border); padding: 1rem; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02);">
+                        <div class="flex-between mb-xs">
+                            <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Main Focus Paused</span>
+                            <i data-lucide="pause-circle" class="icon-sm" style="color: var(--warning);"></i>
+                        </div>
+                        {{ if .Dashboard.CurrentIntent }}
+                        <div class="text-sm font-medium">{{ .Dashboard.CurrentIntent.Name }}</div>
+                        {{ end }}
+                    </div>
+
+                    <a href="/intent" class="btn" style="width: 100%; background: var(--warning); color: #fff; border: none; font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,255,255,0.2);">Return to Quest <i data-lucide="arrow-right" class="icon-sm" style="margin-left: 4px;"></i></a>
                 </div>
-                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;">
-                    <h2 style="font-size: 2.5rem; font-weight: 800; line-height: 1.2; margin-bottom: 2rem; color: var(--text-main);">{{ .Dashboard.CurrentIntent.Name }}</h2>
+                {{ else if .Dashboard.CurrentIntent }}
+                <div class="card"
+                    style="border: 1px solid var(--primary); box-shadow: 0 4px 20px rgba(13, 148, 136, 0.1); background: linear-gradient(145deg, var(--bg-surface) 0%, var(--bg-surface-alt) 100%); height: 100%; display: flex; flex-direction: column;">
+                    <div class="mb-md text-xs font-bold text-primary"
+                        style="text-transform: uppercase; letter-spacing: 0.1em; display: flex; align-items: center; gap: 0.5rem;">
+                        <i data-lucide="crosshair" class="icon-sm"></i> Today's Focus
+                    </div>
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: flex-start;">
+                        <h2 style="font-size: 2rem; font-weight: 800; line-height: 1.2; margin-bottom: 1.5rem; color: var(--text-main);">{{ .Dashboard.CurrentIntent.Name }}</h2>
+                    </div>
+                    <a href="/intent" class="btn btn-primary" style="width: 100%;">Focus on this <i data-lucide="arrow-right" class="icon-sm" style="margin-left: 4px;"></i></a>
                 </div>
-                <a href="/intent" class="btn btn-primary" style="width: 100%;">Focus on this <i data-lucide="arrow-right" class="icon-sm" style="margin-left: 4px;"></i></a>
-            </div>
-            {{ else }}
-            <div class="empty-state" style="height: 100%; width: 100%; padding: 3rem; display: flex; flex-direction: column; align-items: center; background: var(--bg-surface-alt);">
-                <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                    <div class="empty-icon mb-sm" style="margin-bottom: 1rem;"><i data-lucide="target" style="width: 48px; height: 48px; color: var(--primary);"></i></div>
-                    <h3 class="mb-sm">No Intent Set</h3>
-                    <p class="mb-md" style="margin: 0 auto; max-width: 300px;">Define your main focus for today to get started.</p>
+                {{ else }}
+                <div class="empty-state" style="height: 100%; width: 100%; padding: 2rem; display: flex; flex-direction: column; align-items: center; background: var(--bg-surface-alt);">
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                        <div class="empty-icon mb-sm" style="margin-bottom: 1rem;"><i data-lucide="target" style="width: 48px; height: 48px; color: var(--primary);"></i></div>
+                        <h3 class="mb-sm">No Intent Set</h3>
+                        <p class="mb-md" style="margin: 0 auto; max-width: 300px;">Define your main focus for today to get started.</p>
+                    </div>
+                    <a href="/intent" class="btn btn-primary btn-lg" style="margin-top: auto; font-size: 1.1rem; padding: 0.75rem 2rem;">Set Intent</a>
                 </div>
-                <a href="/intent" class="btn btn-primary btn-lg" style="margin-top: auto; font-size: 1.1rem; padding: 0.75rem 2rem;">Set Intent</a>
+                {{ end }}
             </div>
-            {{ end }}
+
+            <!-- Focus Time Card -->
+            <div class="card" style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; font-size: 0.85rem; letter-spacing: 0.05em;">
+                    <i data-lucide="timer" class="icon-sm"></i> Focus Time Today
+                </div>
+                <div class="stat-display" style="font-size: 1.5rem; margin: 0; line-height: 1;">
+                    {{ .Dashboard.FocusMinutes }} <span class="text-sm font-medium text-muted">min</span>
+                </div>
+            </div>
         </div>
 
-        <!-- Stats Column -->
-        <div class="flex-col gap-md" style="height: 100%;">
-            <!-- Focus Time -->
-            <div class="card" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <div class="flex-between mb-xs">
-                    <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Focus Time</span>
-                    <i data-lucide="timer" class="icon-sm"></i>
+        <!-- Right Column: Interactive Widgets -->
+        <div style="display: flex; flex-direction: column; gap: 1.5rem; height: 100%;">
+            <!-- Pending Tasks Widget -->
+            <div class="card" style="display: flex; flex-direction: column; flex: 1;">
+                <div class="flex-between mb-md">
+                    <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Pending Tasks</span>
+                    <i data-lucide="list-todo" class="icon-sm"></i>
                 </div>
-                <div class="stat-display">
-                    {{ .Dashboard.FocusMinutes }} <span class="text-base font-medium text-muted">min</span>
+                <div style="flex: 1; overflow-y: auto;">
+                    {{ if .Dashboard.PendingTasks }}
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        {{ range .Dashboard.PendingTasks }}
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <form action="/tasks/complete" method="POST" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="hidden" name="id" value="{{ .ID }}">
+                                <input type="checkbox" onchange="this.form.submit()" style="accent-color: var(--primary);">
+                                <span class="text-sm font-medium">{{ .Title }}</span>
+                            </form>
+                        </li>
+                        {{ end }}
+                    </ul>
+                    {{ else }}
+                    <div class="text-sm text-muted" style="text-align: center; margin-top: 1rem;">No pending tasks!</div>
+                    {{ end }}
                 </div>
             </div>
 
-            <!-- Habit Progress -->
-            <div class="card" style="flex: 1; display: flex; flex-direction: column; justify-content: center;">
-                <div class="flex-between mb-xs">
-                    <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Habits</span>
+            <!-- Daily Habits Widget -->
+            <div class="card" style="display: flex; flex-direction: column; flex: 1;">
+                <div class="flex-between mb-md">
+                    <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Daily Habits</span>
                     <i data-lucide="sprout" class="icon-sm"></i>
                 </div>
-                <div class="flex-between">
-                    <div class="stat-display">
-                        {{ .Dashboard.CompletedHabits }} <span class="text-muted" style="font-size: 1.25rem;">/ {{ .Dashboard.TotalHabits }}</span>
-                    </div>
+                <div style="flex: 1; overflow-y: auto;">
+                    {{ if .Dashboard.ActiveHabits }}
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        {{ range .Dashboard.ActiveHabits }}
+                        <li style="padding: 0.5rem 0; border-bottom: 1px solid var(--border-color);">
+                            <form action="/habits/log" method="POST" style="margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                                <input type="hidden" name="habit_id" value="{{ .ID }}">
+                                <input type="checkbox" onchange="this.form.submit()" {{ if ge .ActualCount .TargetCount }}checked disabled{{ end }} style="accent-color: var(--success);">
+                                <span class="text-sm font-medium {{ if ge .ActualCount .TargetCount }}text-muted{{ end }}" {{ if ge .ActualCount .TargetCount }}style="text-decoration: line-through;"{{ end }}>{{ .Title }} ({{ .ActualCount }}/{{ .TargetCount }})</span>
+                            </form>
+                        </li>
+                        {{ end }}
+                    </ul>
+                    {{ else }}
+                    <div class="text-sm text-muted" style="text-align: center; margin-top: 1rem;">No active habits!</div>
+                    {{ end }}
                 </div>
-                {{ if eq .Dashboard.TotalHabits 0 }}
-                <div class="text-xs text-muted mt-md">Start tracking by <a href="/habits">adding a habit</a>.</div>
-                {{ end }}
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Quick Capture Row -->
+    <div class="grid mt-lg" style="grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <!-- Quick Note -->
+        <div class="card" style="box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+            <div class="flex-between mb-sm">
+                <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">Quick Note</span>
+                <i data-lucide="file-text" class="icon-sm"></i>
+            </div>
+            <form action="/notes/new" method="POST" style="margin: 0; display: flex; gap: 0.5rem;">
+                <input type="hidden" name="source" value="/">
+                <input type="hidden" name="title" value="Quick Note">
+                <input type="text" name="content" class="form-control" placeholder="Jot something down..." required style="flex: 1;">
+                <button type="submit" class="btn btn-secondary btn-sm"><i data-lucide="send" class="icon-sm"></i></button>
+            </form>
+        </div>
+
+        <!-- The Void Entry -->
+        <div class="card" style="background: var(--bg-surface-alt); border-style: dashed;">
+            <div class="flex-between mb-sm">
+                <span class="text-xs font-bold text-muted" style="text-transform: uppercase;">The Void</span>
+                <i data-lucide="ghost" class="icon-sm text-muted"></i>
+            </div>
+            <div style="display: flex; gap: 0.5rem;">
+                <input type="text" class="form-control" placeholder="Scream into the void..." onkeypress="if(event.key==='Enter') { this.value=''; this.placeholder='It is gone...'; setTimeout(()=>this.placeholder='Scream into the void...', 2000); }" style="flex: 1; border-color: transparent; background: rgba(0,0,0,0.1);">
+                <a href="/void" class="btn btn-secondary btn-sm" title="Enter The Void"><i data-lucide="arrow-right" class="icon-sm"></i></a>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Quick Access -->
-<div class="page-header" style="margin-top: 3rem; margin-bottom: 1.5rem;"><h3 style="margin-bottom: 0;">Quick Access</h3></div>
-<div class="quick-access-grid">
-    <a href="/intent" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--primary-light); color: var(--primary-dark);">
-            <i data-lucide="crosshair"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Intent</h4>
-        <p class="text-sm text-muted mb-0">Manage daily focus.</p>
-    </a>
-
-    <a href="/habits" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--success-bg); color: var(--success);">
-            <i data-lucide="check-square"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Habits</h4>
-        <p class="text-sm text-muted mb-0">Track routines.</p>
-    </a>
-
-    <a href="/focus" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--warning-bg); color: var(--warning);">
-            <i data-lucide="zap"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Focus</h4>
-        <p class="text-sm text-muted mb-0">Deep work timer.</p>
-    </a>
-
-    <a href="/tasks" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--primary-light); color: var(--primary-dark);">
-            <i data-lucide="list-todo"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Tasks</h4>
-        <p class="text-sm text-muted mb-0">Manage to-dos.</p>
-    </a>
-
-    <a href="/notes" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--success-bg); color: var(--success);">
-            <i data-lucide="file-text"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Notes</h4>
-        <p class="text-sm text-muted mb-0">Capture ideas.</p>
-    </a>
-
-    <a href="/void" class="card card-hover" style="text-decoration: none; color: inherit;">
-        <div class="flex-center mb-md"
-            style="width: 40px; height: 40px; border-radius: 8px; background: var(--bg-surface-alt); color: var(--text-muted);">
-            <i data-lucide="ghost"></i>
-        </div>
-        <h4 class="mb-xs" style="font-weight: 700;">Void</h4>
-        <p class="text-sm text-muted mb-0">Scream into it.</p>
-    </a>
-</div>
 {{ end }}

@@ -1,0 +1,11 @@
+/* --- Vim Navigation --- */
+.vim-focus {
+    outline: 2px solid var(--primary) !important;
+    outline-offset: 4px;
+    border-radius: var(--radius-sm);
+    background-color: var(--primary-light) !important;
+    transition: all 0.2s ease;
+}
+html.dark-mode .vim-focus {
+    background-color: rgba(45, 212, 191, 0.1) !important;
+}

@@ -45,6 +45,7 @@ var summaryCmd = &cobra.Command{
 		ac.Logger.Info().Msgf("Generated summary from %s to %s", start.Format("02-Jan-2006"), end.Format("02-Jan-2006"))
 		utils.PrintSuccessln("Summary generated successfully!")
 
+		utils.PrintInfoln("\n💡 Tip: For an AI-generated overview, use `mindloop journal generate -d` (or -w, -y)")
 		utils.PrintInfoln("You can also use -d, -w, -m, or -y flags to specify the time range for these summaries. (-d is default)")
 	},
 }
