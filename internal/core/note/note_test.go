@@ -90,3 +90,45 @@ func TestCreateNoteEmpty(t *testing.T) {
 		t.Error("Expected error when creating empty note, got nil")
 	}
 }
+
+func TestUpdateNoteFieldsPreservesOmittedValues(t *testing.T) {
+	db := setupTestDB(t)
+	s := note.NewService(db)
+
+	n, err := s.CreateNote("Original title", "Original content", "work")
+	if err != nil {
+		t.Fatalf("Failed to create note: %v", err)
+	}
+	updatedContent := "Updated content"
+	updated, err := s.UpdateNoteFields(int(n.ID), note.UpdateInput{Content: &updatedContent})
+	if err != nil {
+		t.Fatalf("Failed to update note fields: %v", err)
+	}
+	if updated.Title != "Original title" || updated.Content != updatedContent || updated.Labels != "work" {
+		t.Fatalf("partial update changed omitted fields: %+v", updated)
+	}
+}
+
+func TestNoteLabelsAreValidated(t *testing.T) {
+	db := setupTestDB(t)
+	s := note.NewService(db)
+	tooLong := make([]rune, 201)
+	for i := range tooLong {
+		tooLong[i] = 'x'
+	}
+
+	if _, err := s.CreateNote("title", "content", string(tooLong)); err == nil {
+		t.Fatal("expected long labels to be rejected on create")
+	}
+	n, err := s.CreateNote("title", "content", "ok")
+	if err != nil {
+		t.Fatalf("Failed to create valid note: %v", err)
+	}
+	if _, err := s.UpdateNoteFields(int(n.ID), note.UpdateInput{Labels: stringPtr(string(tooLong))}); err == nil {
+		t.Fatal("expected long labels to be rejected on update")
+	}
+}
+
+func stringPtr(value string) *string {
+	return &value
+}
