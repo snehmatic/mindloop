@@ -15,12 +15,15 @@ import (
 	"github.com/gomarkdown/markdown/html"
 	"github.com/gomarkdown/markdown/parser"
 	"github.com/gorilla/mux"
+	"github.com/microcosm-cc/bluemonday"
 	"github.com/rs/zerolog/log"
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/motivation"
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 )
+
+var markdownPolicy = bluemonday.UGCPolicy()
 
 func mdToHTML(md []byte) []byte {
 	// create markdown parser with extensions
@@ -33,7 +36,7 @@ func mdToHTML(md []byte) []byte {
 	opts := html.RendererOptions{Flags: htmlFlags}
 	renderer := html.NewRenderer(opts)
 
-	return markdown.Render(doc, renderer)
+	return markdownPolicy.SanitizeBytes(markdown.Render(doc, renderer))
 }
 
 // --- Quote Handler ---
