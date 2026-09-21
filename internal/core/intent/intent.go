@@ -6,7 +6,6 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/internal/nlp"
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
 // Service handles the logic for managing user intents
@@ -14,8 +13,8 @@ type Service struct {
 	repo Repository
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{repo: NewSQLRepository(db)}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
 func (s *Service) StartIntent(name string) (*models.Intent, error) {

@@ -183,15 +183,15 @@ func main() {
 	}
 
 	// Initialize core services
-	journalService := journal.NewService(database)
-	noteService := note.NewService(database)
+	journalService := journal.NewService(journal.NewSQLRepository(database))
+	noteService := note.NewService(note.NewSQLRepository(database))
 	backupService := backup.NewService(database)
-	focusService := focus.NewService(database)
-	intentService := intent.NewService(database)
-	questService := quest.NewService(database)
+	focusService := focus.NewService(focus.NewSQLRepository(database))
+	intentService := intent.NewService(intent.NewSQLRepository(database))
+	questService := quest.NewService(quest.NewSQLRepository(database))
 	summaryService := summary.NewService(database)
-	habitService := habit.NewService(database)
-	taskService := task.NewService(database)
+	habitService := habit.NewService(habit.NewSQLRepository(database))
+	taskService := task.NewService(task.NewSQLRepository(database))
 	dumpService := dump.NewService(database)
 
 	mlh := v1.NewMindloopHandler(

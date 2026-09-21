@@ -31,7 +31,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestIntentService(t *testing.T) {
 	db := setupTestDB(t)
-	s := intent.NewService(db)
+	s := intent.NewService(intent.NewSQLRepository(db))
 
 	// 1. Start Intent
 	i, err := s.StartIntent("Test Intent")

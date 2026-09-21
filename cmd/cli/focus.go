@@ -24,7 +24,7 @@ var focusCmd = &cobra.Command{
 	Example: `mindloop focus start "Work on project"`,
 	Args:    cobra.NoArgs,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		focusService = focus.NewService(gdb)
+		focusService = focus.NewService(focus.NewSQLRepository(gdb))
 	},
 }
 

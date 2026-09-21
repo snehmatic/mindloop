@@ -7,7 +7,6 @@ import (
 	"github.com/snehmatic/mindloop/internal/core/hooks"
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
 // Service handles the logic for managing focus sessions
@@ -15,8 +14,8 @@ type Service struct {
 	repo Repository
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{repo: NewSQLRepository(db)}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
 func (s *Service) StartSession(title string) (*models.FocusSession, error) {
@@ -68,7 +67,7 @@ func (s *Service) EndSession(id int, pointsToAward int) (*models.FocusSession, b
 		return nil, false, ErrFocusSessionIsNotActive
 	}
 
-	session.Status = "ended" // Or models.StatusEnded if it existed, but we'll stick to original string "ended"
+	session.Status = models.StatusEnded // Or models.StatusEnded if it existed, but we'll stick to original string models.StatusEnded
 	session.EndTime = time.Now()
 	session.Duration = session.EndTime.Sub(session.CreatedAt).Minutes()
 
@@ -95,7 +94,7 @@ func (s *Service) RateSession(id int, rating int) (*models.FocusSession, error) 
 		return nil, err
 	}
 
-	if session.Status != "ended" {
+	if session.Status != models.StatusEnded {
 		return nil, ErrFocusSessionIsNotEnded
 	}
 

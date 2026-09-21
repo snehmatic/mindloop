@@ -29,8 +29,10 @@ func (r *SQLRepository) ListEntries() ([]models.JournalEntry, error) {
 
 func (r *SQLRepository) GetEntry(id string) (*models.JournalEntry, error) {
 	var entry models.JournalEntry
-	result := r.db.First(&entry, id)
-	return &entry, result.Error
+	if err := r.db.First(&entry, id).Error; err != nil {
+		return nil, err
+	}
+	return &entry, nil
 }
 
 func (r *SQLRepository) UpdateEntry(entry *models.JournalEntry) error {

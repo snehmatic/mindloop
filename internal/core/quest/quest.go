@@ -5,15 +5,14 @@ import (
 
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
 type Service struct {
 	repo Repository
 }
 
-func NewService(db *gorm.DB) *Service {
-	return &Service{repo: NewSQLRepository(db)}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
 func (s *Service) StartQuest(title string) (*models.SideQuest, error) {

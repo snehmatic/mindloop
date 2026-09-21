@@ -31,7 +31,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestJournalService(t *testing.T) {
 	db := setupTestDB(t)
-	s := journal.NewService(db)
+	s := journal.NewService(journal.NewSQLRepository(db))
 
 	// 1. Create Entry
 	_, err := s.CreateEntry("Test Journal", "Test Content", "happy", 5)
@@ -75,7 +75,7 @@ func TestJournalService(t *testing.T) {
 
 func TestCreateEntryValidation(t *testing.T) {
 	db := setupTestDB(t)
-	s := journal.NewService(db)
+	s := journal.NewService(journal.NewSQLRepository(db))
 
 	tests := []struct {
 		name    string

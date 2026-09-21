@@ -29,8 +29,10 @@ func (r *SQLRepository) ListNotes() ([]models.Note, error) {
 
 func (r *SQLRepository) GetNote(id int) (*models.Note, error) {
 	var note models.Note
-	result := r.db.First(&note, id)
-	return &note, result.Error
+	if err := r.db.First(&note, id).Error; err != nil {
+		return nil, err
+	}
+	return &note, nil
 }
 
 func (r *SQLRepository) UpdateNote(note *models.Note) error {

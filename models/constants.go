@@ -6,4 +6,5 @@ const (
 	StatusActive    = "active"
 	StatusPaused    = "paused"
 	StatusDone      = "done"
+	StatusEnded     = "ended"
 )

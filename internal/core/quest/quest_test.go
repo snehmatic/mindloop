@@ -31,7 +31,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestQuestService(t *testing.T) {
 	db := setupTestDB(t)
-	s := quest.NewService(db)
+	s := quest.NewService(quest.NewSQLRepository(db))
 
 	// 1. Start Quest
 	q, err := s.StartQuest("Emergency Fix")

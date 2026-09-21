@@ -26,7 +26,7 @@ var habitCmd = &cobra.Command{
 	Short:   "Manage your habits",
 	Example: `mindloop habit add "Exercise"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		habitService = habit.NewService(gdb)
+		habitService = habit.NewService(habit.NewSQLRepository(gdb))
 	},
 }
 

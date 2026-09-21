@@ -96,7 +96,7 @@ var journalCmd = &cobra.Command{
 	Long:    `Journal your thoughts, feelings, and progress to reflect on your journey.`,
 	Example: `mindloop journal new "Here goes nothing..."`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		journalService = journal.NewService(gdb)
+		journalService = journal.NewService(journal.NewSQLRepository(gdb))
 	},
 }
 

@@ -59,15 +59,15 @@ func setupTestServer(t *testing.T) *v1.MindloopHandler {
 		t.Fatalf("Failed to migrate test db: %v", err)
 	}
 
-	journalService := journal.NewService(database)
-	noteService := note.NewService(database)
-	focusService := focus.NewService(database)
-	intentService := intent.NewService(database)
-	questService := quest.NewService(database)
+	journalService := journal.NewService(journal.NewSQLRepository(database))
+	noteService := note.NewService(note.NewSQLRepository(database))
+	focusService := focus.NewService(focus.NewSQLRepository(database))
+	intentService := intent.NewService(intent.NewSQLRepository(database))
+	questService := quest.NewService(quest.NewSQLRepository(database))
 	summaryService := summary.NewService(database)
-	habitService := habit.NewService(database)
+	habitService := habit.NewService(habit.NewSQLRepository(database))
 	backupService := backup.NewService(database)
-	taskService := task.NewService(database)
+	taskService := task.NewService(task.NewSQLRepository(database))
 	dumpService := dump.NewService(database)
 
 	return v1.NewMindloopHandler(

@@ -8,7 +8,6 @@ import (
 	"github.com/snehmatic/mindloop/internal/log"
 	"github.com/snehmatic/mindloop/internal/nlp"
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
 var logger = log.Get()
@@ -16,17 +15,11 @@ var logger = log.Get()
 // Service handles business logic for tasks and sub-tasks
 type Service struct {
 	repo Repository
-	uc   *config.UserConfig
 }
 
 // NewService creates a new task Service instance
-func NewService(db *gorm.DB) *Service {
-	uc := config.GetUserConfig()
-
-	return &Service{
-		repo: NewSQLRepository(db),
-		uc:   uc,
-	}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
 // CreateTask persists a new task to the database
@@ -60,7 +53,7 @@ func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 
 	for _, st := range task.SubTasks {
 		if st.Status != models.StatusCompleted {
-			if _, err := s.CompleteSubTask(st.ID, s.uc.PointsConfig.SubTask); err != nil {
+			if _, err := s.CompleteSubTask(st.ID, config.GetUserConfig().PointsConfig.SubTask); err != nil {
 				logger.Error().Err(err).Uint("subtask_id", st.ID).Msg("Failed to complete subtask while completing task")
 			}
 		}

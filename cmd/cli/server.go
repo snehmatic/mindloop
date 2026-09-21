@@ -25,15 +25,15 @@ var serverCmd = &cobra.Command{
 	Short: "Start the Mindloop web server",
 	Run: func(cmd *cobra.Command, args []string) {
 		// Initialize core services
-		journalService := journal.NewService(gdb)
-		noteService := note.NewService(gdb)
+		journalService := journal.NewService(journal.NewSQLRepository(gdb))
+		noteService := note.NewService(note.NewSQLRepository(gdb))
 		backupService := backup.NewService(gdb)
-		focusService := focus.NewService(gdb)
-		intentService := intent.NewService(gdb)
-		questService := quest.NewService(gdb)
+		focusService := focus.NewService(focus.NewSQLRepository(gdb))
+		intentService := intent.NewService(intent.NewSQLRepository(gdb))
+		questService := quest.NewService(quest.NewSQLRepository(gdb))
 		summaryService := summary.NewService(gdb)
-		habitService := habit.NewService(gdb)
-		taskService := task.NewService(gdb)
+		habitService := habit.NewService(habit.NewSQLRepository(gdb))
+		taskService := task.NewService(task.NewSQLRepository(gdb))
 		dumpService := dump.NewService(gdb)
 
 		mlh := v1.NewMindloopHandler(

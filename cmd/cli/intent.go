@@ -18,7 +18,7 @@ var intentCmd = &cobra.Command{
 	Short:   "Manage your intents",
 	Example: `mindloop intent start "Get this work done"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		intentService = intent.NewService(gdb)
+		intentService = intent.NewService(intent.NewSQLRepository(gdb))
 	},
 }
 

@@ -40,8 +40,10 @@ func (r *SQLRepository) GetActiveQuest() (*models.SideQuest, error) {
 
 func (r *SQLRepository) GetQuest(id uint) (*models.SideQuest, error) {
 	var quest models.SideQuest
-	result := r.db.First(&quest, id)
-	return &quest, result.Error
+	if err := r.db.First(&quest, id).Error; err != nil {
+		return nil, err
+	}
+	return &quest, nil
 }
 
 func (r *SQLRepository) UpdateQuest(quest *models.SideQuest) error {

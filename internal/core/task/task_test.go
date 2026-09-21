@@ -31,7 +31,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestTaskService(t *testing.T) {
 	db := setupTestDB(t)
-	s := task.NewService(db)
+	s := task.NewService(task.NewSQLRepository(db))
 
 	// 1. Create Task
 	var intentID uint = 1

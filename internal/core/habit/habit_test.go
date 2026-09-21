@@ -32,7 +32,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestHabitService(t *testing.T) {
 	db := setupTestDB(t)
-	s := habit.NewService(db)
+	s := habit.NewService(habit.NewSQLRepository(db))
 
 	// 1. Create Habit
 	h := &models.Habit{
@@ -87,7 +87,7 @@ func TestHabitService(t *testing.T) {
 }
 
 func TestCalculateMomentum(t *testing.T) {
-	s := habit.NewService(nil)
+	s := habit.NewService(habit.NewSQLRepository(nil))
 	today := time.Now().Truncate(24 * time.Hour)
 
 	h := &models.Habit{Title: "Run", TargetCount: 1, Interval: models.Daily}

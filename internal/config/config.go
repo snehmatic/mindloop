@@ -117,15 +117,19 @@ func InitConfig(name, mode, port string) {
 	})
 }
 
-var userCfg *UserConfig
+var userCfg UserConfig
 var userCfgOnce sync.Once
+var userCfgMu sync.RWMutex
 
-// GetUserConfig returns the singleton instance of UserConfig
-func GetUserConfig() *UserConfig {
+// GetUserConfig returns a safe value copy of the singleton UserConfig
+func GetUserConfig() UserConfig {
 	userCfgOnce.Do(func() {
-		userCfg = &UserConfig{}
+		userCfg = UserConfig{}
 		_ = userCfg.ReadFromYAML()
 	})
+
+	userCfgMu.RLock()
+	defer userCfgMu.RUnlock()
 	return userCfg
 }
 
@@ -264,14 +268,16 @@ func (uc UserConfig) WriteToYAMLError() error {
 
 // UpdateUserConfig serializes read-modify-write updates to the user config.
 func UpdateUserConfig(mutate func(*UserConfig) error) error {
-	userConfigMu.Lock()
-	defer userConfigMu.Unlock()
+	// ensure init
+	_ = GetUserConfig()
 
-	uc := GetUserConfig()
-	if err := mutate(uc); err != nil {
+	userCfgMu.Lock()
+	defer userCfgMu.Unlock()
+
+	if err := mutate(&userCfg); err != nil {
 		return err
 	}
-	return uc.WriteToYAMLError()
+	return userCfg.WriteToYAMLError()
 }
 
 // ReadFromYAML loads the UserConfig from a YAML file

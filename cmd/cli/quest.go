@@ -21,9 +21,9 @@ var questCmd = &cobra.Command{
 	Long:    `Side quests are ad-hoc tasks that interrupt your main flow.`,
 	Example: `mindloop quest start "Fix prod issue"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		questService = quest.NewService(gdb)
-		intentService = intent.NewService(gdb)
-		focusService = focus.NewService(gdb)
+		questService = quest.NewService(quest.NewSQLRepository(gdb))
+		intentService = intent.NewService(intent.NewSQLRepository(gdb))
+		focusService = focus.NewService(focus.NewSQLRepository(gdb))
 	},
 }
 

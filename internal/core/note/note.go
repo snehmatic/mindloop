@@ -5,7 +5,6 @@ import (
 	"unicode/utf8"
 
 	"github.com/snehmatic/mindloop/models"
-	"gorm.io/gorm"
 )
 
 const maxLabelsLength = 200
@@ -30,8 +29,8 @@ type Service struct {
 }
 
 // NewService creates a new note Service instance
-func NewService(db *gorm.DB) *Service {
-	return &Service{repo: NewSQLRepository(db)}
+func NewService(repo Repository) *Service {
+	return &Service{repo: repo}
 }
 
 // CreateNote persists a new markdown note to the database

@@ -31,7 +31,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestNoteService(t *testing.T) {
 	db := setupTestDB(t)
-	s := note.NewService(db)
+	s := note.NewService(note.NewSQLRepository(db))
 
 	// 1. Create Note
 	n, err := s.CreateNote("Test Title", "Test Content", "label1,label2")
@@ -83,7 +83,7 @@ func TestNoteService(t *testing.T) {
 
 func TestCreateNoteEmpty(t *testing.T) {
 	db := setupTestDB(t)
-	s := note.NewService(db)
+	s := note.NewService(note.NewSQLRepository(db))
 
 	_, err := s.CreateNote("", "", "")
 	if err == nil {
@@ -93,7 +93,7 @@ func TestCreateNoteEmpty(t *testing.T) {
 
 func TestUpdateNoteFieldsPreservesOmittedValues(t *testing.T) {
 	db := setupTestDB(t)
-	s := note.NewService(db)
+	s := note.NewService(note.NewSQLRepository(db))
 
 	n, err := s.CreateNote("Original title", "Original content", "work")
 	if err != nil {
@@ -111,7 +111,7 @@ func TestUpdateNoteFieldsPreservesOmittedValues(t *testing.T) {
 
 func TestNoteLabelsAreValidated(t *testing.T) {
 	db := setupTestDB(t)
-	s := note.NewService(db)
+	s := note.NewService(note.NewSQLRepository(db))
 	tooLong := make([]rune, 201)
 	for i := range tooLong {
 		tooLong[i] = 'x'

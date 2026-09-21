@@ -37,9 +37,9 @@ type dashboardModel struct {
 }
 
 func initialModel() dashboardModel {
-	hService := habit.NewService(gdb)
-	iService := intent.NewService(gdb)
-	fService := focus.NewService(gdb)
+	hService := habit.NewService(habit.NewSQLRepository(gdb))
+	iService := intent.NewService(intent.NewSQLRepository(gdb))
+	fService := focus.NewService(focus.NewSQLRepository(gdb))
 
 	var activeIntent string
 	intents, _ := iService.ListActiveIntents()
@@ -102,7 +102,7 @@ func (m dashboardModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case " ":
 			if len(m.habits) > 0 {
 				h := m.habits[m.cursor]
-				hService := habit.NewService(gdb)
+				hService := habit.NewService(habit.NewSQLRepository(gdb))
 				idStr := fmt.Sprintf("%d", h.ID)
 				if m.habitLogs[h.ID] {
 					_, _ = hService.UnlogHabit(idStr)
