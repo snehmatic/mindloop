@@ -142,7 +142,7 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 		switch success {
 		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		case "done":
+		case models.StatusDone:
 			data["SuccessMessage"] = "Habit logged successfully! Keep it up!"
 		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
@@ -360,7 +360,7 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 	}
 
 	if uc.FeatureFlags.Gamification && logRes != nil && habit != nil && logRes.ActualCount == habit.TargetCount {
-		successType := "done"
+		successType := models.StatusDone
 		if milestoneReached {
 			successType = "milestone"
 		}
@@ -456,7 +456,7 @@ func (mlh *MindloopHandler) HandleIntent(w http.ResponseWriter, r *http.Request)
 		switch success {
 		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		case "done":
+		case models.StatusDone:
 			data["SuccessMessage"] = "Intent completed successfully! Great job!"
 		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
@@ -534,7 +534,7 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 			}
 		}
 	} else if uc.FeatureFlags.Gamification {
-		successType := "done"
+		successType := models.StatusDone
 		if milestoneReached {
 			successType = "milestone"
 		}
@@ -581,7 +581,7 @@ func (mlh *MindloopHandler) HandleFocus(w http.ResponseWriter, r *http.Request) 
 		switch success {
 		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		case "done":
+		case models.StatusDone:
 			data["SuccessMessage"] = "Focus session ended successfully! Well done!"
 		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
@@ -659,7 +659,7 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 	}
 
 	if uc.FeatureFlags.Gamification {
-		successType := "done"
+		successType := models.StatusDone
 		if milestoneReached {
 			successType = "milestone"
 		}

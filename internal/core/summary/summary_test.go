@@ -67,7 +67,7 @@ func TestSummaryService(t *testing.T) {
 	// 3. Seed Intent
 	db.Create(&models.Intent{
 		Name:   "Intent 1",
-		Status: "done",
+		Status: models.StatusDone,
 		Model:  gorm.Model{CreatedAt: now},
 	})
 

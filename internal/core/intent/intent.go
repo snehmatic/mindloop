@@ -27,7 +27,7 @@ func (s *Service) StartIntent(name string) (*models.Intent, error) {
 
 	intent := &models.Intent{
 		Name:    cleanedName,
-		Status:  "active",
+		Status:  models.StatusActive,
 		DueDate: dueDate,
 	}
 
@@ -45,13 +45,13 @@ func (s *Service) ListIntents() ([]models.Intent, error) {
 
 func (s *Service) ListActiveIntents() ([]models.Intent, error) {
 	var intents []models.Intent
-	result := s.DB.Where("status = ?", "active").Order("CreatedAt DESC").Find(&intents)
+	result := s.DB.Where("status = ?", models.StatusActive).Order("CreatedAt DESC").Find(&intents)
 	return intents, result.Error
 }
 
 func (s *Service) GetOngoingIntent() (*models.Intent, error) {
 	var intents []models.Intent
-	result := s.DB.Where("status IN ?", []string{"active", "paused"}).Limit(1).Find(&intents)
+	result := s.DB.Where("status IN ?", []string{models.StatusActive, models.StatusPaused}).Limit(1).Find(&intents)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -80,7 +80,7 @@ func (s *Service) EndIntent(idStr string, pointsToAward int) (*models.Intent, bo
 	}
 
 	now := time.Now()
-	intent.Status = "done"
+	intent.Status = models.StatusDone
 	intent.EndedAt = &now
 
 	if err := s.DB.Save(&intent).Error; err != nil {
@@ -107,11 +107,11 @@ func (s *Service) PauseIntent(id uint) (*models.Intent, error) {
 		return nil, err
 	}
 
-	if intent.Status != "active" {
+	if intent.Status != models.StatusActive {
 		return nil, ErrIntentIsNotActive
 	}
 
-	intent.Status = "paused"
+	intent.Status = models.StatusPaused
 	if err := s.DB.Save(&intent).Error; err != nil {
 		return nil, err
 	}
@@ -124,11 +124,11 @@ func (s *Service) ResumeIntent(id uint) (*models.Intent, error) {
 		return nil, err
 	}
 
-	if intent.Status != "paused" {
+	if intent.Status != models.StatusPaused {
 		return nil, ErrIntentIsNotPaused
 	}
 
-	intent.Status = "active"
+	intent.Status = models.StatusActive
 	if err := s.DB.Save(&intent).Error; err != nil {
 		return nil, err
 	}

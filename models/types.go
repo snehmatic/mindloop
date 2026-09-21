@@ -26,8 +26,8 @@ var (
 // Habit represents a task that the user wants to perform regularly
 type Habit struct {
 	gorm.Model
-	Title       string       `gorm:"type:varchar(100)" json:"title"`
-	Description string       `gorm:"type:text" json:"description"`
+	Title          string       `gorm:"type:varchar(100)" json:"title"`
+	Description    string       `gorm:"type:text" json:"description"`
 	Interval       IntervalType `gorm:"type:varchar(100)" json:"interval"`
 	TargetCount    int          `gorm:"type:int" json:"target_count"`
 	EndDate        *time.Time   `json:"end_date,omitempty"`

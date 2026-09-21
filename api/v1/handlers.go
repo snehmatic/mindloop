@@ -262,7 +262,7 @@ func (mlh *MindloopHandler) HandleHome(w http.ResponseWriter, r *http.Request) {
 	allTasks, _ := mlh.task.ListTasks()
 	var pendingTasks []models.TaskView
 	for _, t := range allTasks {
-		if t.Status == "pending" {
+		if t.Status == models.StatusPending {
 			pendingTasks = append(pendingTasks, models.ToTaskView(t))
 		}
 	}
@@ -301,7 +301,7 @@ func (mlh *MindloopHandler) HandleJournalList(w http.ResponseWriter, r *http.Req
 		switch success {
 		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		case "done":
+		case models.StatusDone:
 			data["SuccessMessage"] = "Journal entry saved! Great reflection!"
 		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
@@ -338,7 +338,7 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 				w.Header().Set("HX-Trigger", "{\"confetti\": {}}")
 			}
 		} else {
-			successType := "done"
+			successType := models.StatusDone
 			if milestoneReached {
 				successType = "milestone"
 			}
@@ -366,7 +366,7 @@ func (mlh *MindloopHandler) HandleQuestStart(w http.ResponseWriter, r *http.Requ
 
 	// 1. Pause Intent
 	currentIntent, _ := mlh.intent.GetOngoingIntent()
-	if currentIntent != nil && currentIntent.Status == "active" {
+	if currentIntent != nil && currentIntent.Status == models.StatusActive {
 		_, _ = mlh.intent.PauseIntent(currentIntent.ID)
 	}
 
@@ -399,7 +399,7 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 
 	// Auto-resume intent if one is paused
 	currentIntent, _ := mlh.intent.GetOngoingIntent()
-	if currentIntent != nil && currentIntent.Status == "paused" {
+	if currentIntent != nil && currentIntent.Status == models.StatusPaused {
 		_, _ = mlh.intent.ResumeIntent(currentIntent.ID)
 	}
 
@@ -411,7 +411,7 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 				w.Header().Set("HX-Trigger", "{\"confetti\": {}}")
 			}
 		} else {
-			successType := "done"
+			successType := models.StatusDone
 			if milestoneReached {
 				successType = "milestone"
 			}

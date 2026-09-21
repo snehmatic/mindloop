@@ -25,7 +25,7 @@ func (s *Service) StartSession(title string) (*models.FocusSession, error) {
 	}
 
 	var activeSessions []models.FocusSession
-	if err := s.DB.Where("status = ?", "active").Limit(1).Find(&activeSessions).Error; err != nil {
+	if err := s.DB.Where("status = ?", models.StatusActive).Limit(1).Find(&activeSessions).Error; err != nil {
 		return nil, err
 	}
 	if len(activeSessions) > 0 {
@@ -34,7 +34,7 @@ func (s *Service) StartSession(title string) (*models.FocusSession, error) {
 
 	session := &models.FocusSession{
 		Title:  title,
-		Status: "active",
+		Status: models.StatusActive,
 	}
 
 	if err := s.DB.Create(session).Error; err != nil {
@@ -70,7 +70,7 @@ func (s *Service) EndSession(id int, pointsToAward int) (*models.FocusSession, b
 		return nil, false, err
 	}
 
-	if session.Status != "active" {
+	if session.Status != models.StatusActive {
 		return nil, false, ErrFocusSessionIsNotActive
 	}
 
@@ -128,11 +128,11 @@ func (s *Service) PauseSession(id uint) (*models.FocusSession, error) {
 		return nil, err
 	}
 
-	if session.Status != "active" {
+	if session.Status != models.StatusActive {
 		return nil, ErrFocusSessionIsNotActive
 	}
 
-	session.Status = "paused"
+	session.Status = models.StatusPaused
 	if err := s.DB.Save(&session).Error; err != nil {
 		return nil, err
 	}
@@ -145,11 +145,11 @@ func (s *Service) ResumeSession(id uint) (*models.FocusSession, error) {
 		return nil, err
 	}
 
-	if session.Status != "paused" {
+	if session.Status != models.StatusPaused {
 		return nil, ErrFocusSessionIsNotPaused
 	}
 
-	session.Status = "active"
+	session.Status = models.StatusActive
 	if err := s.DB.Save(&session).Error; err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (s *Service) ResumeSession(id uint) (*models.FocusSession, error) {
 
 func (s *Service) GetActiveSession() (*models.FocusSession, error) {
 	var sessions []models.FocusSession
-	err := s.DB.Where("status = ?", "active").Limit(1).Find(&sessions).Error
+	err := s.DB.Where("status = ?", models.StatusActive).Limit(1).Find(&sessions).Error
 	if err != nil {
 		return nil, err
 	}

@@ -38,7 +38,7 @@ func TestQuestService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to start quest: %v", err)
 	}
-	if q.Status != "active" {
+	if q.Status != models.StatusActive {
 		t.Errorf("Expected status 'active', got '%s'", q.Status)
 	}
 
@@ -62,7 +62,7 @@ func TestQuestService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to stop quest: %v", err)
 	}
-	if completed.Status != "done" {
+	if completed.Status != models.StatusDone {
 		t.Errorf("Expected status 'done', got '%s'", completed.Status)
 	}
 	if completed.Note != "Fixed it" {

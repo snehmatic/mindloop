@@ -54,13 +54,13 @@ func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 		return false, ErrTaskNotFound
 	}
 
-	task.Status = "completed"
+	task.Status = models.StatusCompleted
 	if err := s.db.Save(&task).Error; err != nil {
 		return false, err
 	}
 
 	for _, st := range task.SubTasks {
-		if st.Status != "completed" {
+		if st.Status != models.StatusCompleted {
 			if _, err := s.CompleteSubTask(st.ID, s.uc.PointsConfig.SubTask); err != nil {
 				logger.Error().Err(err).Uint("subtask_id", st.ID).Msg("Failed to complete subtask while completing task")
 			}
@@ -105,7 +105,7 @@ func (s *Service) CompleteSubTask(id uint, pointsVal int) (bool, error) {
 		return false, ErrSubtaskNotFound
 	}
 
-	st.Status = "completed"
+	st.Status = models.StatusCompleted
 	if err := s.db.Save(&st).Error; err != nil {
 		return false, err
 	}
@@ -191,5 +191,5 @@ func (s *Service) GetTask(id uint) (*models.Task, error) {
 // RecalibrateTasks clears due dates for all pending tasks that were due in the past
 func (s *Service) RecalibrateTasks() error {
 	today := time.Now().Truncate(24 * time.Hour)
-	return s.db.Model(&models.Task{}).Where("Status = ? AND DueDate < ?", "pending", today).Update("DueDate", nil).Error
+	return s.db.Model(&models.Task{}).Where("Status = ? AND DueDate < ?", models.StatusPending, today).Update("DueDate", nil).Error
 }

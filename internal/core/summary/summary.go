@@ -40,7 +40,7 @@ func (s *Service) GenerateSummary(start, end time.Time) (models.SummaryReport, e
 	}
 
 	var tasks []models.Task
-	s.DB.Where("Status = ? AND UpdatedAt >= ? AND UpdatedAt <= ?", "completed", start, end).Find(&tasks)
+	s.DB.Where("Status = ? AND UpdatedAt >= ? AND UpdatedAt <= ?", models.StatusCompleted, start, end).Find(&tasks)
 	tasksCompleted := len(tasks)
 
 	peakHours := make(map[int]int)

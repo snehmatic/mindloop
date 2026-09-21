@@ -23,7 +23,7 @@ func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 
 	// Check if there is already an active quest
 	var quests []models.SideQuest
-	if err := s.DB.Where("status = ?", "active").Limit(1).Find(&quests).Error; err != nil {
+	if err := s.DB.Where("status = ?", models.StatusActive).Limit(1).Find(&quests).Error; err != nil {
 		return nil, err
 	}
 	if len(quests) > 0 {
@@ -32,7 +32,7 @@ func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 
 	quest := &models.SideQuest{
 		Title:  title,
-		Status: "active",
+		Status: models.StatusActive,
 	}
 
 	if err := s.DB.Create(quest).Error; err != nil {
@@ -47,11 +47,11 @@ func (s *Service) StopQuest(id uint, note string, pointsToAward int) (*models.Si
 		return nil, false, err
 	}
 
-	if quest.Status != "active" {
+	if quest.Status != models.StatusActive {
 		return nil, false, ErrSideQuestIsNotActive
 	}
 
-	quest.Status = "done"
+	quest.Status = models.StatusDone
 	quest.Note = note
 	now := time.Now()
 	quest.EndedAt = &now
@@ -73,7 +73,7 @@ func (s *Service) ListQuests() ([]models.SideQuest, error) {
 
 func (s *Service) GetActiveQuest() (*models.SideQuest, error) {
 	var quests []models.SideQuest
-	err := s.DB.Where("status = ?", "active").Limit(1).Find(&quests).Error
+	err := s.DB.Where("status = ?", models.StatusActive).Limit(1).Find(&quests).Error
 	if err != nil {
 		return nil, err
 	}

@@ -40,7 +40,7 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	// Static files from embedded FS
 	staticFS := http.FS(web.WebFS)
 	r.PathPrefix("/static/").Handler(http.FileServer(staticFS))
-	
+
 	// PWA root files
 	r.HandleFunc("/sw.js", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFileFS(w, r, web.WebFS, "static/sw.js")
