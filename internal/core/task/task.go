@@ -15,8 +15,8 @@ var logger = log.Get()
 
 // Service handles business logic for tasks and sub-tasks
 type Service struct {
-	db *gorm.DB
-	uc *config.UserConfig
+	repo Repository
+	uc   *config.UserConfig
 }
 
 // NewService creates a new task Service instance
@@ -24,8 +24,8 @@ func NewService(db *gorm.DB) *Service {
 	uc := config.GetUserConfig()
 
 	return &Service{
-		db: db,
-		uc: uc,
+		repo: NewSQLRepository(db),
+		uc:   uc,
 	}
 }
 
@@ -39,7 +39,7 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 		FocusSessionID: focusID,
 		DueDate:        dueDate,
 	}
-	if err := s.db.Create(t).Error; err != nil {
+	if err := s.repo.CreateTask(t); err != nil {
 		logger.Error().Err(err).Msg("Failed to create task")
 		return nil, err
 	}
@@ -48,13 +48,13 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 
 // CompleteTask marks a task as completed in the database
 func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
-	var task models.Task
-	if err := s.db.Preload("SubTasks").First(&task, id).Error; err != nil {
+	task, err := s.repo.GetTask(id)
+	if err != nil {
 		return false, ErrTaskNotFound
 	}
 
 	task.Status = models.StatusCompleted
-	if err := s.db.Save(&task).Error; err != nil {
+	if err := s.repo.UpdateTask(task); err != nil {
 		return false, err
 	}
 
@@ -66,7 +66,7 @@ func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 		}
 	}
 
-	milestoneReached, err := points.AwardPoints(s.db, models.CategoryTask, task.ID, pointsVal)
+	milestoneReached, err := points.AwardPoints(s.repo.GetDB(), models.CategoryTask, task.ID, pointsVal)
 	if err != nil {
 		logger.Error().Err(err).Msg("Error awarding points for task")
 	}
@@ -76,13 +76,7 @@ func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 
 // ListTasks retrieves all tasks from the database
 func (s *Service) ListTasks() ([]models.Task, error) {
-	var tasks []models.Task
-	if err := s.db.Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
-		return db.Order("Position ASC, CreatedAt ASC")
-	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
-		return nil, err
-	}
-	return tasks, nil
+	return s.repo.ListTasks()
 }
 
 // AddSubTask persists a new sub-task to the database
@@ -91,7 +85,7 @@ func (s *Service) AddSubTask(taskID uint, title string) (*models.SubTask, error)
 		TaskID: taskID,
 		Title:  title,
 	}
-	if err := s.db.Create(st).Error; err != nil {
+	if err := s.repo.CreateSubTask(st); err != nil {
 		return nil, err
 	}
 	return st, nil
@@ -99,17 +93,17 @@ func (s *Service) AddSubTask(taskID uint, title string) (*models.SubTask, error)
 
 // CompleteSubTask marks a sub-task as completed in the database
 func (s *Service) CompleteSubTask(id uint, pointsVal int) (bool, error) {
-	var st models.SubTask
-	if err := s.db.First(&st, id).Error; err != nil {
+	st, err := s.repo.GetSubTask(id)
+	if err != nil {
 		return false, ErrSubtaskNotFound
 	}
 
 	st.Status = models.StatusCompleted
-	if err := s.db.Save(&st).Error; err != nil {
+	if err := s.repo.UpdateSubTask(st); err != nil {
 		return false, err
 	}
 
-	milestoneReached, err := points.AwardPoints(s.db, models.CategorySubTask, st.ID, pointsVal)
+	milestoneReached, err := points.AwardPoints(s.repo.GetDB(), models.CategorySubTask, st.ID, pointsVal)
 	if err != nil {
 		logger.Error().Err(err).Msg("Error awarding points for subtask")
 	}
@@ -119,76 +113,44 @@ func (s *Service) CompleteSubTask(id uint, pointsVal int) (bool, error) {
 
 // GetTasksByIntent retrieves all tasks linked to a specific intent
 func (s *Service) GetTasksByIntent(intentID uint) ([]models.Task, error) {
-	var tasks []models.Task
-	if err := s.db.Where("IntentID = ?", intentID).Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
-		return db.Order("Position ASC, CreatedAt ASC")
-	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
-		return nil, err
-	}
-	return tasks, nil
+	return s.repo.GetTasksByIntent(intentID)
 }
 
 // GetTasksByFocusSession retrieves all tasks linked to a specific focus session
 func (s *Service) GetTasksByFocusSession(focusID uint) ([]models.Task, error) {
-	var tasks []models.Task
-	if err := s.db.Where("FocusSessionID = ?", focusID).Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
-		return db.Order("Position ASC, CreatedAt ASC")
-	}).Order("Position ASC, CreatedAt DESC").Find(&tasks).Error; err != nil {
-		return nil, err
-	}
-	return tasks, nil
+	return s.repo.GetTasksByFocusSession(focusID)
 }
 
 // DeleteTask removes a task from the database
 func (s *Service) DeleteTask(id uint) error {
-	if err := s.db.Where("TaskID = ?", id).Delete(&models.SubTask{}).Error; err != nil {
+	if err := s.repo.DeleteSubTasksByTaskID(id); err != nil {
 		return err
 	}
-	return s.db.Delete(&models.Task{}, id).Error
+	return s.repo.DeleteTask(id)
 }
 
 // DeleteSubTask removes a subtask from the database
 func (s *Service) DeleteSubTask(id uint) error {
-	return s.db.Delete(&models.SubTask{}, id).Error
+	return s.repo.DeleteSubTask(id)
 }
 
 // ReorderTasks updates the position of a list of tasks
 func (s *Service) ReorderTasks(ids []uint) error {
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		for i, id := range ids {
-			if err := tx.Model(&models.Task{}).Where("id = ?", id).Update("position", i).Error; err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	return s.repo.ReorderTasks(ids)
 }
 
 // ReorderSubTasks updates the position of a list of subtasks
 func (s *Service) ReorderSubTasks(ids []uint) error {
-	return s.db.Transaction(func(tx *gorm.DB) error {
-		for i, id := range ids {
-			if err := tx.Model(&models.SubTask{}).Where("id = ?", id).Update("position", i).Error; err != nil {
-				return err
-			}
-		}
-		return nil
-	})
+	return s.repo.ReorderSubTasks(ids)
 }
 
 // GetTask retrieves a single task by ID
 func (s *Service) GetTask(id uint) (*models.Task, error) {
-	var t models.Task
-	if err := s.db.Preload("SubTasks", func(db *gorm.DB) *gorm.DB {
-		return db.Order("Position ASC, CreatedAt ASC")
-	}).First(&t, id).Error; err != nil {
-		return nil, err
-	}
-	return &t, nil
+	return s.repo.GetTask(id)
 }
 
 // RecalibrateTasks clears due dates for all pending tasks that were due in the past
 func (s *Service) RecalibrateTasks() error {
 	today := time.Now().Truncate(24 * time.Hour)
-	return s.db.Model(&models.Task{}).Where("Status = ? AND DueDate < ?", models.StatusPending, today).Update("DueDate", nil).Error
+	return s.repo.RecalibrateTasks(models.StatusPending, today)
 }
