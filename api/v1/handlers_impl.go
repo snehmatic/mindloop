@@ -329,8 +329,7 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 
 	habitID := r.FormValue("habit_id")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	habit, logRes, milestoneReached, err := mlh.habit.LogHabit(habitID, uc.PointsConfig.Habit)
 	if err != nil {
@@ -516,8 +515,7 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 		http.Redirect(w, r, "/intent", http.StatusSeeOther)
 		return
 	}
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	id := r.FormValue("id")
 	_, milestoneReached, err := mlh.intent.EndIntent(id, uc.PointsConfig.Intent)
@@ -627,8 +625,7 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 		http.Redirect(w, r, "/focus", http.StatusSeeOther)
 		return
 	}
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	idStr := r.FormValue("id")
 	id, _ := strconv.Atoi(idStr)
@@ -1112,8 +1109,7 @@ func (mlh *MindloopHandler) HandleVoid(w http.ResponseWriter, r *http.Request) {
 // --- Settings Handlers ---
 
 func (mlh *MindloopHandler) HandleSettings(w http.ResponseWriter, r *http.Request) {
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML() // Ignore error if file doesn't exist
+	uc := config.GetUserConfig()
 
 	data := map[string]interface{}{
 		"Title":    "Settings",

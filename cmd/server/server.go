@@ -212,7 +212,6 @@ func main() {
 }
 
 func applyMilestoneInterval() {
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 	points.SetMilestoneInterval(uc.PointsConfig.MilestoneInterval)
 }

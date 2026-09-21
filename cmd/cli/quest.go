@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	cfg "github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/quest"
@@ -108,8 +108,7 @@ var questStopCmd = &cobra.Command{
 			utils.PrintInfoln("No note provided. Saving with empty note.")
 		}
 
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 
 		q, milestoneReached, err := questService.StopQuest(q.ID, note, uc.PointsConfig.Quest)
 		if err != nil {

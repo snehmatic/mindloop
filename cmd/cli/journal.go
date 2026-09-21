@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	cfg "github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/ai"
 	"github.com/snehmatic/mindloop/internal/core/journal"
 	"github.com/snehmatic/mindloop/internal/core/summary"
@@ -75,8 +75,7 @@ var generateCmd = &cobra.Command{
 		if response == "y" || response == "Y" {
 			title := fmt.Sprintf("AI Summary: %s", report.DateRange)
 			// Assuming journal points default to 5 if config isn't read fully
-			uc := cfg.UserConfig{}
-			_ = uc.ReadFromYAML()
+			uc := config.GetUserConfig()
 			pts := uc.PointsConfig.Journal
 			if pts == 0 {
 				pts = 5
@@ -125,8 +124,7 @@ var journalNewCmd = &cobra.Command{
 
 		utils.PrintInfoln("Saving your journal entry...")
 		// Mood handling is now done in the service if empty, but we pass the flag value
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 		milestoneReached, err := journalService.CreateEntry(args[0], content, *mood, uc.PointsConfig.Journal)
 		if err != nil {
 			utils.PrintErrorln("Failed to save journal:", err)

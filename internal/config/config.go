@@ -88,17 +88,15 @@ func InitConfig(name, mode, port string) {
 		}
 
 		// Try to load user config
-		uc := UserConfig{}
-		if err := uc.ReadFromYAML(); err == nil {
-			if uc.Name != "" {
-				cfg.UserName = uc.Name
-			}
-			// Override mode if set in user config and not explicitly overridden by flag (which passed here)
-			// For simplicity, we are not overriding mode here as it might conflict with flags
-			// But we can check if DBConfig is needed
-			if uc.Mode == "byodb" {
-				cfg.DBConfig = uc.DbConfig
-			}
+		uc := GetUserConfig()
+		if uc.Name != "" {
+			cfg.UserName = uc.Name
+		}
+		// Override mode if set in user config and not explicitly overridden by flag (which passed here)
+		// For simplicity, we are not overriding mode here as it might conflict with flags
+		// But we can check if DBConfig is needed
+		if uc.Mode == "byodb" {
+			cfg.DBConfig = uc.DbConfig
 		}
 		if mode == "api" {
 			// init DB Config
@@ -117,6 +115,18 @@ func InitConfig(name, mode, port string) {
 
 		cfg.Logger.Info().Msg("Mindloop global config has been set!")
 	})
+}
+
+var userCfg *UserConfig
+var userCfgOnce sync.Once
+
+// GetUserConfig returns the singleton instance of UserConfig
+func GetUserConfig() *UserConfig {
+	userCfgOnce.Do(func() {
+		userCfg = &UserConfig{}
+		_ = userCfg.ReadFromYAML()
+	})
+	return userCfg
 }
 
 // GetConfig returns the global configuration object
@@ -257,11 +267,8 @@ func UpdateUserConfig(mutate func(*UserConfig) error) error {
 	userConfigMu.Lock()
 	defer userConfigMu.Unlock()
 
-	uc := UserConfig{}
-	if err := uc.ReadFromYAML(); err != nil && !os.IsNotExist(err) {
-		return err
-	}
-	if err := mutate(&uc); err != nil {
+	uc := GetUserConfig()
+	if err := mutate(uc); err != nil {
 		return err
 	}
 	return uc.WriteToYAMLError()

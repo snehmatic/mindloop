@@ -21,12 +21,11 @@ type Service struct {
 
 // NewService creates a new task Service instance
 func NewService(db *gorm.DB) *Service {
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	return &Service{
 		db: db,
-		uc: &uc,
+		uc: uc,
 	}
 }
 

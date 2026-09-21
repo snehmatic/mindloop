@@ -147,8 +147,7 @@ func (mlh *MindloopHandler) renderTemplate(w http.ResponseWriter, tmpl string, d
 			d["UserName"] = mlh.config.UserName
 		}
 		if _, exists := d["Config"]; !exists {
-			uc := config.UserConfig{}
-			_ = uc.ReadFromYAML()
+			uc := config.GetUserConfig()
 			d["Config"] = uc
 		}
 		if _, exists := d["ActiveFocus"]; !exists && mlh.focus != nil {
@@ -321,8 +320,7 @@ func (mlh *MindloopHandler) HandleJournalCreate(w http.ResponseWriter, r *http.R
 	content := r.FormValue("content")
 	mood := r.FormValue("mood")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	milestoneReached, err := mlh.journal.CreateEntry(title, content, mood, uc.PointsConfig.Journal)
 	if err != nil {
@@ -392,8 +390,7 @@ func (mlh *MindloopHandler) HandleQuestStop(w http.ResponseWriter, r *http.Reque
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	note := r.FormValue("note")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	_, milestoneReached, _ := mlh.quest.StopQuest(uint(id), note, uc.PointsConfig.Quest)
 
@@ -452,8 +449,7 @@ func (mlh *MindloopHandler) HandleIntentResume(w http.ResponseWriter, r *http.Re
 	// 2. Automatically complete any active side quest
 	activeQuest, _ := mlh.quest.GetActiveQuest()
 	if activeQuest != nil {
-		uc := config.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 		_, _, _ = mlh.quest.StopQuest(activeQuest.ID, "Resumed main intent", uc.PointsConfig.Quest)
 	}
 

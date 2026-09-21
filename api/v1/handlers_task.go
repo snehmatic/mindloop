@@ -136,8 +136,7 @@ func (mlh *MindloopHandler) HandleTaskComplete(w http.ResponseWriter, r *http.Re
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	source := r.FormValue("source")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 	pointsVal := uc.PointsConfig.Task
 
 	milestoneReached, err := mlh.task.CompleteTask(uint(id), pointsVal)
@@ -214,8 +213,7 @@ func (mlh *MindloopHandler) HandleSubtaskComplete(w http.ResponseWriter, r *http
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	source := r.FormValue("source")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 	pointsVal := uc.PointsConfig.SubTask
 
 	milestoneReached, err := mlh.task.CompleteSubTask(uint(id), pointsVal)

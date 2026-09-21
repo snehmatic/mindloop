@@ -76,8 +76,7 @@ var taskCompleteCmd = &cobra.Command{
 		}
 
 		appConfig := config.GetConfig()
-		uc := config.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 
 		database, err := db.ConnectToDb(*appConfig)
 		if err != nil {
@@ -170,8 +169,7 @@ var subtaskCompleteCmd = &cobra.Command{
 		}
 
 		appConfig := config.GetConfig()
-		uc := config.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 
 		database, err := db.ConnectToDb(*appConfig)
 		if err != nil {
