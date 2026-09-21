@@ -1,7 +1,6 @@
 package focus
 
 import (
-	"errors"
 	"fmt"
 	"time"
 
@@ -22,7 +21,7 @@ func NewService(db *gorm.DB) *Service {
 
 func (s *Service) StartSession(title string) (*models.FocusSession, error) {
 	if title == "" {
-		return nil, errors.New("title cannot be empty")
+		return nil, ErrTitleCannotBeEmpty
 	}
 
 	var activeSessions []models.FocusSession
@@ -30,7 +29,7 @@ func (s *Service) StartSession(title string) (*models.FocusSession, error) {
 		return nil, err
 	}
 	if len(activeSessions) > 0 {
-		return nil, errors.New("a focus session is already active")
+		return nil, ErrAFocusSessionIsAlreadyActive
 	}
 
 	session := &models.FocusSession{
@@ -72,7 +71,7 @@ func (s *Service) EndSession(id int, pointsToAward int) (*models.FocusSession, b
 	}
 
 	if session.Status != "active" {
-		return nil, false, errors.New("focus session is not active")
+		return nil, false, ErrFocusSessionIsNotActive
 	}
 
 	session.Status = "ended"
@@ -94,7 +93,7 @@ func (s *Service) EndSession(id int, pointsToAward int) (*models.FocusSession, b
 
 func (s *Service) RateSession(id int, rating int) (*models.FocusSession, error) {
 	if rating < 0 || rating > 10 {
-		return nil, errors.New("rating must be between 0 and 10")
+		return nil, ErrRatingMustBeBetween0And10
 	}
 
 	var session models.FocusSession
@@ -103,7 +102,7 @@ func (s *Service) RateSession(id int, rating int) (*models.FocusSession, error) 
 	}
 
 	if session.Status != "ended" {
-		return nil, errors.New("focus session is not ended")
+		return nil, ErrFocusSessionIsNotEnded
 	}
 
 	session.Rating = rating
@@ -130,7 +129,7 @@ func (s *Service) PauseSession(id uint) (*models.FocusSession, error) {
 	}
 
 	if session.Status != "active" {
-		return nil, errors.New("focus session is not active")
+		return nil, ErrFocusSessionIsNotActive
 	}
 
 	session.Status = "paused"
@@ -147,7 +146,7 @@ func (s *Service) ResumeSession(id uint) (*models.FocusSession, error) {
 	}
 
 	if session.Status != "paused" {
-		return nil, errors.New("focus session is not paused")
+		return nil, ErrFocusSessionIsNotPaused
 	}
 
 	session.Status = "active"

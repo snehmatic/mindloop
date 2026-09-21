@@ -1,7 +1,6 @@
 package intent
 
 import (
-	"errors"
 	"time"
 
 	"github.com/snehmatic/mindloop/internal/core/points"
@@ -21,7 +20,7 @@ func NewService(db *gorm.DB) *Service {
 
 func (s *Service) StartIntent(name string) (*models.Intent, error) {
 	if name == "" {
-		return nil, errors.New("name cannot be empty")
+		return nil, ErrNameCannotBeEmpty
 	}
 
 	cleanedName, dueDate := nlp.ExtractDate(name)
@@ -109,7 +108,7 @@ func (s *Service) PauseIntent(id uint) (*models.Intent, error) {
 	}
 
 	if intent.Status != "active" {
-		return nil, errors.New("intent is not active")
+		return nil, ErrIntentIsNotActive
 	}
 
 	intent.Status = "paused"
@@ -126,7 +125,7 @@ func (s *Service) ResumeIntent(id uint) (*models.Intent, error) {
 	}
 
 	if intent.Status != "paused" {
-		return nil, errors.New("intent is not paused")
+		return nil, ErrIntentIsNotPaused
 	}
 
 	intent.Status = "active"

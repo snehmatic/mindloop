@@ -1,7 +1,6 @@
 package note
 
 import (
-	"errors"
 	"fmt"
 	"unicode/utf8"
 
@@ -38,7 +37,7 @@ func NewService(db *gorm.DB) *Service {
 // CreateNote persists a new markdown note to the database
 func (s *Service) CreateNote(title, content, labels string) (*models.Note, error) {
 	if title == "" && content == "" {
-		return nil, errors.New("note must have a title or content")
+		return nil, ErrNoteMustHaveATitleOrContent
 	}
 	if err := validateLabels(labels); err != nil {
 		return nil, err

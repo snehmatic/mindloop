@@ -1,8 +1,6 @@
 package journal
 
 import (
-	"errors"
-
 	"github.com/snehmatic/mindloop/internal/core/points"
 	"github.com/snehmatic/mindloop/models"
 	"gorm.io/gorm"
@@ -18,10 +16,10 @@ func NewService(db *gorm.DB) *Service {
 
 func (s *Service) CreateEntry(title, content, mood string, pointsToAward int) (bool, error) {
 	if title == "" {
-		return false, errors.New("title cannot be empty")
+		return false, ErrTitleCannotBeEmpty
 	}
 	if content == "" {
-		return false, errors.New("content cannot be empty")
+		return false, ErrContentCannotBeEmpty
 	}
 	if mood == "" {
 		mood = "neutral"

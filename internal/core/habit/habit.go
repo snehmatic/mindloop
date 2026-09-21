@@ -1,7 +1,6 @@
 package habit
 
 import (
-	"errors"
 	"time"
 
 	"github.com/snehmatic/mindloop/internal/core/points"
@@ -19,7 +18,7 @@ func NewService(db *gorm.DB) *Service {
 
 func (s *Service) CreateHabit(habit *models.Habit) error {
 	if habit == nil {
-		return errors.New("habit cannot be nil")
+		return ErrHabitCannotBeNil
 	}
 	if err := habit.ValidateHabit(); err != nil {
 		return err
@@ -33,7 +32,7 @@ func (s *Service) DeleteHabit(id string) error {
 		return err
 	}
 	if len(habits) == 0 {
-		return errors.New("habit not found")
+		return ErrHabitNotFound
 	}
 	return s.DB.Delete(&habits[0]).Error
 }
@@ -44,14 +43,14 @@ func (s *Service) GetHabit(id string) (*models.Habit, error) {
 		return nil, err
 	}
 	if len(habits) == 0 {
-		return nil, errors.New("habit not found")
+		return nil, ErrHabitNotFound
 	}
 	return &habits[0], nil
 }
 
 func (s *Service) UpdateHabit(habit *models.Habit) error {
 	if habit == nil {
-		return errors.New("habit cannot be nil")
+		return ErrHabitCannotBeNil
 	}
 	if err := habit.ValidateHabit(); err != nil {
 		return err
@@ -114,7 +113,7 @@ func (s *Service) LogHabit(habitID string, pointsToAward int) (*models.Habit, *m
 	if len(existingLogs) > 0 {
 		existingLog := existingLogs[0]
 		if existingLog.ActualCount >= habit.TargetCount {
-			return habit, &existingLog, false, errors.New("habit already completed for interval")
+			return habit, &existingLog, false, ErrHabitAlreadyCompletedForInterval
 		}
 
 		existingLog.ActualCount++
@@ -179,12 +178,12 @@ func (s *Service) UnlogHabit(habitID string) (*models.Habit, error) {
 	}
 
 	if len(existingLogs) == 0 {
-		return nil, errors.New("no existing log found for this interval")
+		return nil, ErrNoExistingLogFoundForThisInterval
 	}
 
 	existingLog := existingLogs[0]
 	if existingLog.ActualCount <= 0 {
-		return nil, errors.New("habit is already marked as undone")
+		return nil, ErrHabitIsAlreadyMarkedAsUndone
 	}
 
 	existingLog.ActualCount--
@@ -259,7 +258,7 @@ func (s *Service) CalculateMomentumFromLogs(habit *models.Habit, logs []models.H
 				isForgiven = true
 			}
 		}
-		
+
 		if logMap[dateStr] {
 			momentum += 10
 		} else if !isForgiven {
@@ -278,7 +277,7 @@ func (s *Service) CalculateMomentums(habits []models.Habit) (map[uint]int, error
 	if len(habits) == 0 {
 		return momentums, nil
 	}
-	
+
 	var habitIDs []uint
 	for _, h := range habits {
 		habitIDs = append(habitIDs, h.ID)
@@ -297,7 +296,7 @@ func (s *Service) CalculateMomentums(habits []models.Habit) (map[uint]int, error
 	for _, h := range habits {
 		momentums[h.ID] = s.CalculateMomentumFromLogs(&h, logsByHabit[h.ID])
 	}
-	
+
 	return momentums, nil
 }
 

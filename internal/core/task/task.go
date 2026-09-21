@@ -2,7 +2,6 @@ package task
 
 import (
 	"time"
-	"errors"
 
 	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/points"
@@ -52,7 +51,7 @@ func (s *Service) CreateTask(title string, intentID, focusID *uint) (*models.Tas
 func (s *Service) CompleteTask(id uint, pointsVal int) (bool, error) {
 	var task models.Task
 	if err := s.db.Preload("SubTasks").First(&task, id).Error; err != nil {
-		return false, errors.New("task not found")
+		return false, ErrTaskNotFound
 	}
 
 	task.Status = "completed"
@@ -103,7 +102,7 @@ func (s *Service) AddSubTask(taskID uint, title string) (*models.SubTask, error)
 func (s *Service) CompleteSubTask(id uint, pointsVal int) (bool, error) {
 	var st models.SubTask
 	if err := s.db.First(&st, id).Error; err != nil {
-		return false, errors.New("subtask not found")
+		return false, ErrSubtaskNotFound
 	}
 
 	st.Status = "completed"

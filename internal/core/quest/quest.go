@@ -1,7 +1,6 @@
 package quest
 
 import (
-	"errors"
 	"time"
 
 	"github.com/snehmatic/mindloop/internal/core/points"
@@ -19,7 +18,7 @@ func NewService(db *gorm.DB) *Service {
 
 func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 	if title == "" {
-		return nil, errors.New("title cannot be empty")
+		return nil, ErrTitleCannotBeEmpty
 	}
 
 	// Check if there is already an active quest
@@ -28,7 +27,7 @@ func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 		return nil, err
 	}
 	if len(quests) > 0 {
-		return nil, errors.New("a side quest is already active")
+		return nil, ErrASideQuestIsAlreadyActive
 	}
 
 	quest := &models.SideQuest{
@@ -49,7 +48,7 @@ func (s *Service) StopQuest(id uint, note string, pointsToAward int) (*models.Si
 	}
 
 	if quest.Status != "active" {
-		return nil, false, errors.New("side quest is not active")
+		return nil, false, ErrSideQuestIsNotActive
 	}
 
 	quest.Status = "done"
