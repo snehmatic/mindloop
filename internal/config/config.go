@@ -74,7 +74,6 @@ type DBConfig struct {
 
 var once sync.Once
 var cfg *Config
-var userConfigMu sync.Mutex
 
 // InitConfig initializes the global application configuration
 func InitConfig(name, mode, port string) {
