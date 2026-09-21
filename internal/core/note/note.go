@@ -26,12 +26,12 @@ func validateLabels(labels string) error {
 
 // Service handles business logic for markdown notes
 type Service struct {
-	DB *gorm.DB
+	repo Repository
 }
 
 // NewService creates a new note Service instance
 func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+	return &Service{repo: NewSQLRepository(db)}
 }
 
 // CreateNote persists a new markdown note to the database
@@ -47,7 +47,7 @@ func (s *Service) CreateNote(title, content, labels string) (*models.Note, error
 		Content: content,
 		Labels:  labels,
 	}
-	if err := s.DB.Create(note).Error; err != nil {
+	if err := s.repo.CreateNote(note); err != nil {
 		return nil, err
 	}
 	return note, nil
@@ -55,20 +55,12 @@ func (s *Service) CreateNote(title, content, labels string) (*models.Note, error
 
 // ListNotes retrieves all markdown notes from the database
 func (s *Service) ListNotes() ([]models.Note, error) {
-	var notes []models.Note
-	if err := s.DB.Order("UpdatedAt desc").Find(&notes).Error; err != nil {
-		return nil, err
-	}
-	return notes, nil
+	return s.repo.ListNotes()
 }
 
 // GetNote retrieves a single markdown note by its ID
 func (s *Service) GetNote(id int) (*models.Note, error) {
-	var note models.Note
-	if err := s.DB.First(&note, id).Error; err != nil {
-		return nil, err
-	}
-	return &note, nil
+	return s.repo.GetNote(id)
 }
 
 // UpdateNote modifies an existing markdown note in the database
@@ -98,7 +90,7 @@ func (s *Service) UpdateNoteFields(id int, input UpdateInput) (*models.Note, err
 		}
 		note.Labels = *input.Labels
 	}
-	if err := s.DB.Save(note).Error; err != nil {
+	if err := s.repo.UpdateNote(note); err != nil {
 		return nil, err
 	}
 	return note, nil
@@ -106,10 +98,10 @@ func (s *Service) UpdateNoteFields(id int, input UpdateInput) (*models.Note, err
 
 // DeleteNote removes a markdown note from the database by its ID
 func (s *Service) DeleteNote(id int) error {
-	return s.DB.Delete(&models.Note{}, id).Error
+	return s.repo.DeleteNote(id)
 }
 
 // DeleteAll removes all markdown notes from the database
 func (s *Service) DeleteAll() error {
-	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Note{}).Error
+	return s.repo.DeleteAll()
 }

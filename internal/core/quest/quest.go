@@ -9,11 +9,11 @@ import (
 )
 
 type Service struct {
-	DB *gorm.DB
+	repo Repository
 }
 
 func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+	return &Service{repo: NewSQLRepository(db)}
 }
 
 func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
@@ -21,12 +21,11 @@ func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 		return nil, ErrTitleCannotBeEmpty
 	}
 
-	// Check if there is already an active quest
-	var quests []models.SideQuest
-	if err := s.DB.Where("status = ?", models.StatusActive).Limit(1).Find(&quests).Error; err != nil {
+	activeQuest, err := s.repo.GetActiveQuest()
+	if err != nil {
 		return nil, err
 	}
-	if len(quests) > 0 {
+	if activeQuest != nil {
 		return nil, ErrASideQuestIsAlreadyActive
 	}
 
@@ -35,15 +34,15 @@ func (s *Service) StartQuest(title string) (*models.SideQuest, error) {
 		Status: models.StatusActive,
 	}
 
-	if err := s.DB.Create(quest).Error; err != nil {
+	if err := s.repo.CreateQuest(quest); err != nil {
 		return nil, err
 	}
 	return quest, nil
 }
 
 func (s *Service) StopQuest(id uint, note string, pointsToAward int) (*models.SideQuest, bool, error) {
-	var quest models.SideQuest
-	if err := s.DB.First(&quest, id).Error; err != nil {
+	quest, err := s.repo.GetQuest(id)
+	if err != nil {
 		return nil, false, err
 	}
 
@@ -56,33 +55,23 @@ func (s *Service) StopQuest(id uint, note string, pointsToAward int) (*models.Si
 	now := time.Now()
 	quest.EndedAt = &now
 
-	if err := s.DB.Save(&quest).Error; err != nil {
+	if err := s.repo.UpdateQuest(quest); err != nil {
 		return nil, false, err
 	}
 
-	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryQuest, quest.ID, pointsToAward)
+	milestoneReached, _ := points.AwardPoints(s.repo.GetDB(), models.CategoryQuest, quest.ID, pointsToAward)
 
-	return &quest, milestoneReached, nil
+	return quest, milestoneReached, nil
 }
 
 func (s *Service) ListQuests() ([]models.SideQuest, error) {
-	var quests []models.SideQuest
-	result := s.DB.Order("CreatedAt DESC").Find(&quests)
-	return quests, result.Error
+	return s.repo.ListQuests()
 }
 
 func (s *Service) GetActiveQuest() (*models.SideQuest, error) {
-	var quests []models.SideQuest
-	err := s.DB.Where("status = ?", models.StatusActive).Limit(1).Find(&quests).Error
-	if err != nil {
-		return nil, err
-	}
-	if len(quests) == 0 {
-		return nil, nil
-	}
-	return &quests[0], nil
+	return s.repo.GetActiveQuest()
 }
 
 func (s *Service) DeleteQuest(id uint) error {
-	return s.DB.Delete(&models.SideQuest{}, id).Error
+	return s.repo.DeleteQuest(id)
 }

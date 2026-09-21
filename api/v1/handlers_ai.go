@@ -102,7 +102,7 @@ func (mlh *MindloopHandler) HandleGenerateAIJournal(w http.ResponseWriter, r *ht
 	}
 
 	start, end := utils.GetDateRange(period)
-	summaryService := summary.NewService(mlh.journal.DB)
+	summaryService := summary.NewService(mlh.DB)
 	report, err := summaryService.GenerateSummary(start, end)
 	if err != nil {
 		http.Error(w, "Failed to generate summary data", http.StatusInternalServerError)
