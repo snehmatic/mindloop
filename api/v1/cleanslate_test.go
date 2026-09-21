@@ -46,15 +46,15 @@ func setupCleanSlateTest(t *testing.T) (*MindloopHandler, *gorm.DB) {
 		t.Fatalf("Failed to migrate: %v", err)
 	}
 
-	hService := habit.NewService(db)
-	jService := journal.NewService(db)
-	nService := note.NewService(db)
-	fService := focus.NewService(db)
-	iService := intent.NewService(db)
-	qService := quest.NewService(db)
+	hService := habit.NewService(habit.NewSQLRepository(db))
+	jService := journal.NewService(journal.NewSQLRepository(db))
+	nService := note.NewService(note.NewSQLRepository(db))
+	fService := focus.NewService(focus.NewSQLRepository(db))
+	iService := intent.NewService(intent.NewSQLRepository(db))
+	qService := quest.NewService(quest.NewSQLRepository(db))
 	sService := summary.NewService(db)
 	bService := backup.NewService(db)
-	tService := task.NewService(db)
+	tService := task.NewService(task.NewSQLRepository(db))
 	dService := dump.NewService(db)
 
 	mlh := NewMindloopHandler(db, jService, nService, hService, fService, iService, qService, sService, bService, tService, dService)

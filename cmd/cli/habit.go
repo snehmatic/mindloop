@@ -6,7 +6,7 @@ import (
 	"os"
 	"strconv"
 
-	cfg "github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/habit"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
@@ -26,7 +26,7 @@ var habitCmd = &cobra.Command{
 	Short:   "Manage your habits",
 	Example: `mindloop habit add "Exercise"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		habitService = habit.NewService(gdb)
+		habitService = habit.NewService(habit.NewSQLRepository(gdb))
 	},
 }
 
@@ -218,8 +218,7 @@ var habitLogCmd = &cobra.Command{
 		}
 		habitID := args[0]
 
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 
 		habit, log, milestoneReached, err := habitService.LogHabit(habitID, uc.PointsConfig.Habit)
 		if err != nil {

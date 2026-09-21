@@ -44,13 +44,13 @@ func (mlh *MindloopHandler) HandleTaskList(w http.ResponseWriter, r *http.Reques
 	// Filter active intents and sessions for the association dropdowns
 	var activeIntents []models.Intent
 	for _, i := range intents {
-		if i.Status == "active" {
+		if i.Status == models.StatusActive {
 			activeIntents = append(activeIntents, i)
 		}
 	}
 	var activeSessions []models.FocusSession
 	for _, s := range sessions {
-		if s.Status == "active" {
+		if s.Status == models.StatusActive {
 			activeSessions = append(activeSessions, s)
 		}
 	}
@@ -66,7 +66,7 @@ func (mlh *MindloopHandler) HandleTaskList(w http.ResponseWriter, r *http.Reques
 		switch success {
 		case "added", "true":
 			data["SuccessMessage"] = "Action completed."
-		case "done":
+		case models.StatusDone:
 			data["SuccessMessage"] = "Task completed successfully! Great job!"
 		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
@@ -136,8 +136,7 @@ func (mlh *MindloopHandler) HandleTaskComplete(w http.ResponseWriter, r *http.Re
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	source := r.FormValue("source")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 	pointsVal := uc.PointsConfig.Task
 
 	milestoneReached, err := mlh.task.CompleteTask(uint(id), pointsVal)
@@ -145,7 +144,7 @@ func (mlh *MindloopHandler) HandleTaskComplete(w http.ResponseWriter, r *http.Re
 		log.Error().Err(err).Msg("Error completing task")
 	}
 
-	successCode := "done"
+	successCode := models.StatusDone
 	if milestoneReached {
 		successCode = "milestone"
 	}
@@ -214,8 +213,7 @@ func (mlh *MindloopHandler) HandleSubtaskComplete(w http.ResponseWriter, r *http
 	id, _ := strconv.ParseUint(idStr, 10, 32)
 	source := r.FormValue("source")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 	pointsVal := uc.PointsConfig.SubTask
 
 	milestoneReached, err := mlh.task.CompleteSubTask(uint(id), pointsVal)
@@ -223,7 +221,7 @@ func (mlh *MindloopHandler) HandleSubtaskComplete(w http.ResponseWriter, r *http
 		log.Error().Err(err).Msg("Error completing subtask")
 	}
 
-	successCode := "done"
+	successCode := models.StatusDone
 	if milestoneReached {
 		successCode = "milestone"
 	}

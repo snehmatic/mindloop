@@ -31,14 +31,14 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestIntentService(t *testing.T) {
 	db := setupTestDB(t)
-	s := intent.NewService(db)
+	s := intent.NewService(intent.NewSQLRepository(db))
 
 	// 1. Start Intent
 	i, err := s.StartIntent("Test Intent")
 	if err != nil {
 		t.Fatalf("Failed to start intent: %v", err)
 	}
-	if i.Status != "active" {
+	if i.Status != models.StatusActive {
 		t.Errorf("Expected status 'active', got '%s'", i.Status)
 	}
 
@@ -57,7 +57,7 @@ func TestIntentService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to end intent: %v", err)
 	}
-	if ended.Status != "done" {
+	if ended.Status != models.StatusDone {
 		t.Errorf("Expected status 'done', got '%s'", ended.Status)
 	}
 	if ended.EndedAt == nil {

@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"strings"
 
-	cfg "github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/core/quest"
@@ -21,9 +21,9 @@ var questCmd = &cobra.Command{
 	Long:    `Side quests are ad-hoc tasks that interrupt your main flow.`,
 	Example: `mindloop quest start "Fix prod issue"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		questService = quest.NewService(gdb)
-		intentService = intent.NewService(gdb)
-		focusService = focus.NewService(gdb)
+		questService = quest.NewService(quest.NewSQLRepository(gdb))
+		intentService = intent.NewService(intent.NewSQLRepository(gdb))
+		focusService = focus.NewService(focus.NewSQLRepository(gdb))
 	},
 }
 
@@ -108,8 +108,7 @@ var questStopCmd = &cobra.Command{
 			utils.PrintInfoln("No note provided. Saving with empty note.")
 		}
 
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 
 		q, milestoneReached, err := questService.StopQuest(q.ID, note, uc.PointsConfig.Quest)
 		if err != nil {

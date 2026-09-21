@@ -31,7 +31,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestStartSession(t *testing.T) {
 	db := setupTestDB(t)
-	s := focus.NewService(db)
+	s := focus.NewService(focus.NewSQLRepository(db))
 
 	tests := []struct {
 		name    string
@@ -73,7 +73,7 @@ func TestStartSession(t *testing.T) {
 
 func TestEndAndRestartSession(t *testing.T) {
 	db := setupTestDB(t)
-	s := focus.NewService(db)
+	s := focus.NewService(focus.NewSQLRepository(db))
 
 	// 1. Start session
 	sess, err := s.StartSession("Session 1")
@@ -96,7 +96,7 @@ func TestEndAndRestartSession(t *testing.T) {
 
 func TestGetActiveSession(t *testing.T) {
 	db := setupTestDB(t)
-	s := focus.NewService(db)
+	s := focus.NewService(focus.NewSQLRepository(db))
 
 	sess, err := s.GetActiveSession()
 	if err != nil {

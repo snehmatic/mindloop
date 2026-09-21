@@ -88,17 +88,15 @@ func InitConfig(name, mode, port string) {
 		}
 
 		// Try to load user config
-		uc := UserConfig{}
-		if err := uc.ReadFromYAML(); err == nil {
-			if uc.Name != "" {
-				cfg.UserName = uc.Name
-			}
-			// Override mode if set in user config and not explicitly overridden by flag (which passed here)
-			// For simplicity, we are not overriding mode here as it might conflict with flags
-			// But we can check if DBConfig is needed
-			if uc.Mode == "byodb" {
-				cfg.DBConfig = uc.DbConfig
-			}
+		uc := GetUserConfig()
+		if uc.Name != "" {
+			cfg.UserName = uc.Name
+		}
+		// Override mode if set in user config and not explicitly overridden by flag (which passed here)
+		// For simplicity, we are not overriding mode here as it might conflict with flags
+		// But we can check if DBConfig is needed
+		if uc.Mode == "byodb" {
+			cfg.DBConfig = uc.DbConfig
 		}
 		if mode == "api" {
 			// init DB Config
@@ -117,6 +115,22 @@ func InitConfig(name, mode, port string) {
 
 		cfg.Logger.Info().Msg("Mindloop global config has been set!")
 	})
+}
+
+var userCfg UserConfig
+var userCfgOnce sync.Once
+var userCfgMu sync.RWMutex
+
+// GetUserConfig returns a safe value copy of the singleton UserConfig
+func GetUserConfig() UserConfig {
+	userCfgOnce.Do(func() {
+		userCfg = UserConfig{}
+		_ = userCfg.ReadFromYAML()
+	})
+
+	userCfgMu.RLock()
+	defer userCfgMu.RUnlock()
+	return userCfg
 }
 
 // GetConfig returns the global configuration object
@@ -254,17 +268,16 @@ func (uc UserConfig) WriteToYAMLError() error {
 
 // UpdateUserConfig serializes read-modify-write updates to the user config.
 func UpdateUserConfig(mutate func(*UserConfig) error) error {
-	userConfigMu.Lock()
-	defer userConfigMu.Unlock()
+	// ensure init
+	_ = GetUserConfig()
 
-	uc := UserConfig{}
-	if err := uc.ReadFromYAML(); err != nil && !os.IsNotExist(err) {
+	userCfgMu.Lock()
+	defer userCfgMu.Unlock()
+
+	if err := mutate(&userCfg); err != nil {
 		return err
 	}
-	if err := mutate(&uc); err != nil {
-		return err
-	}
-	return uc.WriteToYAMLError()
+	return userCfg.WriteToYAMLError()
 }
 
 // ReadFromYAML loads the UserConfig from a YAML file

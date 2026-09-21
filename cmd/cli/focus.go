@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"time"
 
-	cfg "github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/focus"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
@@ -24,7 +24,7 @@ var focusCmd = &cobra.Command{
 	Example: `mindloop focus start "Work on project"`,
 	Args:    cobra.NoArgs,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		focusService = focus.NewService(gdb)
+		focusService = focus.NewService(focus.NewSQLRepository(gdb))
 	},
 }
 
@@ -90,8 +90,7 @@ var focusEndCmd = &cobra.Command{
 			return
 		}
 
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 		session, milestoneReached, err := focusService.EndSession(sessionIDInt, uc.PointsConfig.Focus)
 		if err != nil {
 			utils.PrintErrorln("Error ending focus session:", err)

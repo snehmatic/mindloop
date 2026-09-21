@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/snehmatic/mindloop/api/v1"
+	v1 "github.com/snehmatic/mindloop/api/v1"
 )
 
 func TestHandleChunk_InvalidType(t *testing.T) {

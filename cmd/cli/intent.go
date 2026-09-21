@@ -1,7 +1,7 @@
 package cli
 
 import (
-	cfg "github.com/snehmatic/mindloop/internal/config"
+	"github.com/snehmatic/mindloop/internal/config"
 	"github.com/snehmatic/mindloop/internal/core/intent"
 	"github.com/snehmatic/mindloop/internal/utils"
 	"github.com/snehmatic/mindloop/models"
@@ -18,7 +18,7 @@ var intentCmd = &cobra.Command{
 	Short:   "Manage your intents",
 	Example: `mindloop intent start "Get this work done"`,
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
-		intentService = intent.NewService(gdb)
+		intentService = intent.NewService(intent.NewSQLRepository(gdb))
 	},
 }
 
@@ -110,8 +110,7 @@ var intentEndCmd = &cobra.Command{
 			return
 		}
 
-		uc := cfg.UserConfig{}
-		_ = uc.ReadFromYAML()
+		uc := config.GetUserConfig()
 
 		intent, milestoneReached, err := intentService.EndIntent(args[0], uc.PointsConfig.Intent)
 		if err != nil {

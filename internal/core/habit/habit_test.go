@@ -32,7 +32,7 @@ func setupTestDB(t *testing.T) *gorm.DB {
 
 func TestHabitService(t *testing.T) {
 	db := setupTestDB(t)
-	s := habit.NewService(db)
+	s := habit.NewService(habit.NewSQLRepository(db))
 
 	// 1. Create Habit
 	h := &models.Habit{
@@ -65,9 +65,9 @@ func TestHabitService(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to calculate streak: %v", err)
 	}
-	
-	// Test output is not strictly asserted here because LogHabit creates logs 
-	// using time.Now() via GORM, making the exact momentum value dependent on 
+
+	// Test output is not strictly asserted here because LogHabit creates logs
+	// using time.Now() via GORM, making the exact momentum value dependent on
 	// timezone differences between SQLite and the system. We test math explicitly below.
 	if momentum < 0 {
 		t.Errorf("Expected momentum to be >= 0")
@@ -87,7 +87,7 @@ func TestHabitService(t *testing.T) {
 }
 
 func TestCalculateMomentum(t *testing.T) {
-	s := habit.NewService(nil)
+	s := habit.NewService(habit.NewSQLRepository(nil))
 	today := time.Now().Truncate(24 * time.Hour)
 
 	h := &models.Habit{Title: "Run", TargetCount: 1, Interval: models.Daily}
@@ -130,4 +130,3 @@ func TestCalculateMomentum(t *testing.T) {
 		t.Errorf("Expected momentum 39 after gap, got %d", momentum)
 	}
 }
-

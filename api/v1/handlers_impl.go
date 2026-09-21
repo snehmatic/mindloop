@@ -142,7 +142,7 @@ func (mlh *MindloopHandler) HandleHabitList(w http.ResponseWriter, r *http.Reque
 		switch success {
 		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		case "done":
+		case models.StatusDone:
 			data["SuccessMessage"] = "Habit logged successfully! Keep it up!"
 		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
@@ -329,8 +329,7 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 
 	habitID := r.FormValue("habit_id")
 
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	habit, logRes, milestoneReached, err := mlh.habit.LogHabit(habitID, uc.PointsConfig.Habit)
 	if err != nil {
@@ -360,7 +359,7 @@ func (mlh *MindloopHandler) HandleHabitLog(w http.ResponseWriter, r *http.Reques
 	}
 
 	if uc.FeatureFlags.Gamification && logRes != nil && habit != nil && logRes.ActualCount == habit.TargetCount {
-		successType := "done"
+		successType := models.StatusDone
 		if milestoneReached {
 			successType = "milestone"
 		}
@@ -456,7 +455,7 @@ func (mlh *MindloopHandler) HandleIntent(w http.ResponseWriter, r *http.Request)
 		switch success {
 		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		case "done":
+		case models.StatusDone:
 			data["SuccessMessage"] = "Intent completed successfully! Great job!"
 		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
@@ -516,8 +515,7 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 		http.Redirect(w, r, "/intent", http.StatusSeeOther)
 		return
 	}
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	id := r.FormValue("id")
 	_, milestoneReached, err := mlh.intent.EndIntent(id, uc.PointsConfig.Intent)
@@ -534,7 +532,7 @@ func (mlh *MindloopHandler) HandleIntentComplete(w http.ResponseWriter, r *http.
 			}
 		}
 	} else if uc.FeatureFlags.Gamification {
-		successType := "done"
+		successType := models.StatusDone
 		if milestoneReached {
 			successType = "milestone"
 		}
@@ -581,7 +579,7 @@ func (mlh *MindloopHandler) HandleFocus(w http.ResponseWriter, r *http.Request) 
 		switch success {
 		case "true":
 			data["SuccessMessage"] = "Action completed successfully"
-		case "done":
+		case models.StatusDone:
 			data["SuccessMessage"] = "Focus session ended successfully! Well done!"
 		case "milestone":
 			data["SuccessMessage"] = "🏆 MILESTONE REACHED! You are amazing! 🏆"
@@ -627,8 +625,7 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 		http.Redirect(w, r, "/focus", http.StatusSeeOther)
 		return
 	}
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML()
+	uc := config.GetUserConfig()
 
 	idStr := r.FormValue("id")
 	id, _ := strconv.Atoi(idStr)
@@ -659,7 +656,7 @@ func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Reque
 	}
 
 	if uc.FeatureFlags.Gamification {
-		successType := "done"
+		successType := models.StatusDone
 		if milestoneReached {
 			successType = "milestone"
 		}
@@ -1112,8 +1109,7 @@ func (mlh *MindloopHandler) HandleVoid(w http.ResponseWriter, r *http.Request) {
 // --- Settings Handlers ---
 
 func (mlh *MindloopHandler) HandleSettings(w http.ResponseWriter, r *http.Request) {
-	uc := config.UserConfig{}
-	_ = uc.ReadFromYAML() // Ignore error if file doesn't exist
+	uc := config.GetUserConfig()
 
 	data := map[string]interface{}{
 		"Title":    "Settings",

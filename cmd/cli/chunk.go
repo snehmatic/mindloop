@@ -52,12 +52,12 @@ var chunkCmd = &cobra.Command{
 		}
 
 		aiSvc := ai.NewService(dbConn)
-		taskSvc := task.NewService(dbConn)
+		taskSvc := task.NewService(task.NewSQLRepository(dbConn))
 
 		var itemName string
 		switch itemType {
 		case "intent":
-			intentSvc := intent.NewService(dbConn)
+			intentSvc := intent.NewService(intent.NewSQLRepository(dbConn))
 			i, err := intentSvc.GetIntent(idStr)
 			if err != nil || i == nil {
 				utils.PrintErrorln("Intent not found")
