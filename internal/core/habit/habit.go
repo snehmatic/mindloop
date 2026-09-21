@@ -9,11 +9,11 @@ import (
 )
 
 type Service struct {
-	DB *gorm.DB
+	repo Repository
 }
 
 func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+	return &Service{repo: NewSQLRepository(db)}
 }
 
 func (s *Service) CreateHabit(habit *models.Habit) error {
@@ -23,29 +23,15 @@ func (s *Service) CreateHabit(habit *models.Habit) error {
 	if err := habit.ValidateHabit(); err != nil {
 		return err
 	}
-	return s.DB.Create(habit).Error
+	return s.repo.CreateHabit(habit)
 }
 
 func (s *Service) DeleteHabit(id string) error {
-	var habits []models.Habit
-	if err := s.DB.Where("id = ?", id).Limit(1).Find(&habits).Error; err != nil {
-		return err
-	}
-	if len(habits) == 0 {
-		return ErrHabitNotFound
-	}
-	return s.DB.Delete(&habits[0]).Error
+	return s.repo.DeleteHabit(id)
 }
 
 func (s *Service) GetHabit(id string) (*models.Habit, error) {
-	var habits []models.Habit
-	if err := s.DB.Where("id = ?", id).Limit(1).Find(&habits).Error; err != nil {
-		return nil, err
-	}
-	if len(habits) == 0 {
-		return nil, ErrHabitNotFound
-	}
-	return &habits[0], nil
+	return s.repo.GetHabit(id)
 }
 
 func (s *Service) UpdateHabit(habit *models.Habit) error {
@@ -55,28 +41,15 @@ func (s *Service) UpdateHabit(habit *models.Habit) error {
 	if err := habit.ValidateHabit(); err != nil {
 		return err
 	}
-	return s.DB.Save(habit).Error
+	return s.repo.UpdateHabit(habit)
 }
 
 func (s *Service) ListHabits(interval models.IntervalType) ([]models.Habit, error) {
-	var habits []models.Habit
-	query := s.DB
-	if interval != "" {
-		query = query.Where("interval = ?", interval)
-	}
-	// Only show habits that haven't ended yet
-	now := time.Now()
-	query = query.Where("EndDate IS NULL OR EndDate > ?", now)
-
-	result := query.Order("CreatedAt DESC").Find(&habits)
-	return habits, result.Error
+	return s.repo.ListHabits(interval, time.Now())
 }
 
 func (s *Service) ListEndedHabits() ([]models.Habit, error) {
-	var habits []models.Habit
-	now := time.Now()
-	result := s.DB.Where("EndDate IS NOT NULL AND EndDate <= ?", now).Order("CreatedAt DESC").Find(&habits)
-	return habits, result.Error
+	return s.repo.ListEndedHabits(time.Now())
 }
 
 func (s *Service) LogHabit(habitID string, pointsToAward int) (*models.Habit, *models.HabitLog, bool, error) {
@@ -85,7 +58,6 @@ func (s *Service) LogHabit(habitID string, pointsToAward int) (*models.Habit, *m
 		return nil, nil, false, err
 	}
 
-	var existingLogs []models.HabitLog
 	now := time.Now()
 	today := now.Truncate(24 * time.Hour)
 	var startRange, endRange time.Time
@@ -103,29 +75,28 @@ func (s *Service) LogHabit(habitID string, pointsToAward int) (*models.Habit, *m
 		endRange = startRange.AddDate(0, 0, 7)
 	}
 
-	res := s.DB.Where("HabitID = ? AND CreatedAt >= ? AND CreatedAt < ?", habit.ID, startRange, endRange).Limit(1).Find(&existingLogs)
-	if res.Error != nil {
-		return nil, nil, false, res.Error
+	existingLog, err := s.repo.GetHabitLogForInterval(habit.ID, startRange, endRange)
+	if err != nil {
+		return nil, nil, false, err
 	}
 
 	milestoneReached := false
 
-	if len(existingLogs) > 0 {
-		existingLog := existingLogs[0]
+	if existingLog != nil {
 		if existingLog.ActualCount >= habit.TargetCount {
-			return habit, &existingLog, false, ErrHabitAlreadyCompletedForInterval
+			return habit, existingLog, false, ErrHabitAlreadyCompletedForInterval
 		}
 
 		existingLog.ActualCount++
-		if err := s.DB.Save(&existingLog).Error; err != nil {
+		if err := s.repo.UpdateHabitLog(existingLog); err != nil {
 			return nil, nil, false, err
 		}
 
 		if existingLog.ActualCount == habit.TargetCount {
-			milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryHabit, habit.ID, pointsToAward)
+			milestoneReached, _ = points.AwardPoints(s.repo.GetDB(), models.CategoryHabit, habit.ID, pointsToAward)
 		}
 
-		return habit, &existingLog, milestoneReached, nil
+		return habit, existingLog, milestoneReached, nil
 	}
 
 	// Create new log
@@ -137,12 +108,12 @@ func (s *Service) LogHabit(habitID string, pointsToAward int) (*models.Habit, *m
 		ActualCount: 1,
 		EndedAt:     endRange.AddDate(0, 0, -1), // Represents the last day of the interval
 	}
-	if err := s.DB.Create(habitLog).Error; err != nil {
+	if err := s.repo.CreateHabitLog(habitLog); err != nil {
 		return nil, nil, false, err
 	}
 
 	if habitLog.ActualCount == habit.TargetCount {
-		milestoneReached, _ = points.AwardPoints(s.DB, models.CategoryHabit, habit.ID, pointsToAward)
+		milestoneReached, _ = points.AwardPoints(s.repo.GetDB(), models.CategoryHabit, habit.ID, pointsToAward)
 	}
 
 	return habit, habitLog, milestoneReached, nil
@@ -154,7 +125,6 @@ func (s *Service) UnlogHabit(habitID string) (*models.Habit, error) {
 		return nil, err
 	}
 
-	var existingLogs []models.HabitLog
 	now := time.Now()
 	today := now.Truncate(24 * time.Hour)
 	var startRange, endRange time.Time
@@ -172,22 +142,21 @@ func (s *Service) UnlogHabit(habitID string) (*models.Habit, error) {
 		endRange = startRange.AddDate(0, 0, 7)
 	}
 
-	res := s.DB.Where("HabitID = ? AND CreatedAt >= ? AND CreatedAt < ?", habit.ID, startRange, endRange).Limit(1).Find(&existingLogs)
-	if res.Error != nil {
-		return nil, res.Error
+	existingLog, err := s.repo.GetHabitLogForInterval(habit.ID, startRange, endRange)
+	if err != nil {
+		return nil, err
 	}
 
-	if len(existingLogs) == 0 {
+	if existingLog == nil {
 		return nil, ErrNoExistingLogFoundForThisInterval
 	}
 
-	existingLog := existingLogs[0]
 	if existingLog.ActualCount <= 0 {
 		return nil, ErrHabitIsAlreadyMarkedAsUndone
 	}
 
 	existingLog.ActualCount--
-	if err := s.DB.Save(&existingLog).Error; err != nil {
+	if err := s.repo.UpdateHabitLog(existingLog); err != nil {
 		return nil, err
 	}
 
@@ -195,36 +164,19 @@ func (s *Service) UnlogHabit(habitID string) (*models.Habit, error) {
 }
 
 func (s *Service) ListHabitLogs(interval models.IntervalType) ([]models.HabitLog, error) {
-	var habitLogs []models.HabitLog
-	query := s.DB
-	if interval != "" {
-		query = query.Where("interval = ?", interval)
-	}
-	result := query.Order("CreatedAt DESC").Find(&habitLogs)
-	return habitLogs, result.Error
+	return s.repo.ListHabitLogs(interval)
 }
 
 func (s *Service) ListLogsForHabit(habitID uint) ([]models.HabitLog, error) {
-	var habitLogs []models.HabitLog
-	result := s.DB.Where("HabitID = ?", habitID).Order("CreatedAt ASC").Find(&habitLogs)
-	return habitLogs, result.Error
+	return s.repo.ListLogsForHabit(habitID)
 }
 
 func (s *Service) DeleteAll() error {
-	// Transaction to delete both logs and habits
-	return s.DB.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.HabitLog{}).Error; err != nil {
-			return err
-		}
-		if err := tx.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Habit{}).Error; err != nil {
-			return err
-		}
-		return nil
-	})
+	return s.repo.DeleteAll()
 }
 
 func (s *Service) RecalibrateAll() error {
-	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Model(&models.Habit{}).Update("RecalibratedAt", time.Now()).Error
+	return s.repo.RecalibrateAll()
 }
 
 func (s *Service) CalculateMomentumFromLogs(habit *models.Habit, logs []models.HabitLog) int {
@@ -283,8 +235,8 @@ func (s *Service) CalculateMomentums(habits []models.Habit) (map[uint]int, error
 		habitIDs = append(habitIDs, h.ID)
 	}
 
-	var allLogs []models.HabitLog
-	if err := s.DB.Where("HabitID IN ?", habitIDs).Order("CreatedAt asc").Find(&allLogs).Error; err != nil {
+	allLogs, err := s.repo.ListLogsForHabits(habitIDs)
+	if err != nil {
 		return nil, err
 	}
 
@@ -301,8 +253,8 @@ func (s *Service) CalculateMomentums(habits []models.Habit) (map[uint]int, error
 }
 
 func (s *Service) CalculateMomentum(habit *models.Habit) (int, error) {
-	var logs []models.HabitLog
-	if err := s.DB.Where("HabitID = ?", habit.ID).Order("CreatedAt asc").Find(&logs).Error; err != nil {
+	logs, err := s.repo.ListLogsForHabit(habit.ID)
+	if err != nil {
 		return 0, err
 	}
 	return s.CalculateMomentumFromLogs(habit, logs), nil

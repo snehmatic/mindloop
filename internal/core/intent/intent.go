@@ -11,11 +11,11 @@ import (
 
 // Service handles the logic for managing user intents
 type Service struct {
-	DB *gorm.DB
+	repo Repository
 }
 
 func NewService(db *gorm.DB) *Service {
-	return &Service{DB: db}
+	return &Service{repo: NewSQLRepository(db)}
 }
 
 func (s *Service) StartIntent(name string) (*models.Intent, error) {
@@ -31,51 +31,35 @@ func (s *Service) StartIntent(name string) (*models.Intent, error) {
 		DueDate: dueDate,
 	}
 
-	if err := s.DB.Create(intent).Error; err != nil {
+	if err := s.repo.CreateIntent(intent); err != nil {
 		return nil, err
 	}
 	return intent, nil
 }
 
 func (s *Service) ListIntents() ([]models.Intent, error) {
-	var intents []models.Intent
-	result := s.DB.Order("CreatedAt DESC").Find(&intents)
-	return intents, result.Error
+	return s.repo.ListIntents()
 }
 
 func (s *Service) ListActiveIntents() ([]models.Intent, error) {
-	var intents []models.Intent
-	result := s.DB.Where("status = ?", models.StatusActive).Order("CreatedAt DESC").Find(&intents)
-	return intents, result.Error
+	return s.repo.ListActiveIntents()
 }
 
 func (s *Service) GetOngoingIntent() (*models.Intent, error) {
-	var intents []models.Intent
-	result := s.DB.Where("status IN ?", []string{models.StatusActive, models.StatusPaused}).Limit(1).Find(&intents)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	if len(intents) == 0 {
-		return nil, nil
-	}
-	return &intents[0], nil
+	return s.repo.GetOngoingIntent()
 }
 
 func (s *Service) GetIntent(id string) (*models.Intent, error) {
-	var intent models.Intent
-	if err := s.DB.Where("id = ?", id).First(&intent).Error; err != nil {
-		return nil, err
-	}
-	return &intent, nil
+	return s.repo.GetIntent(id)
 }
 
 func (s *Service) UpdateIntent(intent *models.Intent) error {
-	return s.DB.Save(intent).Error
+	return s.repo.UpdateIntent(intent)
 }
 
 func (s *Service) EndIntent(idStr string, pointsToAward int) (*models.Intent, bool, error) {
-	var intent models.Intent
-	if err := s.DB.Where("id = ?", idStr).First(&intent).Error; err != nil {
+	intent, err := s.repo.GetIntent(idStr)
+	if err != nil {
 		return nil, false, err
 	}
 
@@ -83,27 +67,26 @@ func (s *Service) EndIntent(idStr string, pointsToAward int) (*models.Intent, bo
 	intent.Status = models.StatusDone
 	intent.EndedAt = &now
 
-	if err := s.DB.Save(&intent).Error; err != nil {
+	if err := s.repo.UpdateIntent(intent); err != nil {
 		return nil, false, err
 	}
 
-	milestoneReached, _ := points.AwardPoints(s.DB, models.CategoryIntent, intent.ID, pointsToAward)
+	milestoneReached, _ := points.AwardPoints(s.repo.GetDB(), models.CategoryIntent, intent.ID, pointsToAward)
 
-	return &intent, milestoneReached, nil
+	return intent, milestoneReached, nil
 }
 
 func (s *Service) DeleteIntent(id string) error {
-	s.DB.Model(&models.Task{}).Where("IntentID = ?", id).Update("IntentID", nil)
-	return s.DB.Delete(&models.Intent{}, "id = ?", id).Error
+	return s.repo.DeleteIntent(id)
 }
 
 func (s *Service) DeleteAll() error {
-	return s.DB.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Intent{}).Error
+	return s.repo.DeleteAll()
 }
 
 func (s *Service) PauseIntent(id uint) (*models.Intent, error) {
-	var intent models.Intent
-	if err := s.DB.First(&intent, id).Error; err != nil {
+	intent, err := s.repo.GetIntentByID(id)
+	if err != nil {
 		return nil, err
 	}
 
@@ -112,15 +95,15 @@ func (s *Service) PauseIntent(id uint) (*models.Intent, error) {
 	}
 
 	intent.Status = models.StatusPaused
-	if err := s.DB.Save(&intent).Error; err != nil {
+	if err := s.repo.UpdateIntent(intent); err != nil {
 		return nil, err
 	}
-	return &intent, nil
+	return intent, nil
 }
 
 func (s *Service) ResumeIntent(id uint) (*models.Intent, error) {
-	var intent models.Intent
-	if err := s.DB.First(&intent, id).Error; err != nil {
+	intent, err := s.repo.GetIntentByID(id)
+	if err != nil {
 		return nil, err
 	}
 
@@ -129,8 +112,8 @@ func (s *Service) ResumeIntent(id uint) (*models.Intent, error) {
 	}
 
 	intent.Status = models.StatusActive
-	if err := s.DB.Save(&intent).Error; err != nil {
+	if err := s.repo.UpdateIntent(intent); err != nil {
 		return nil, err
 	}
-	return &intent, nil
+	return intent, nil
 }
