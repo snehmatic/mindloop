@@ -120,6 +120,18 @@ Focus sessions allow you to track time spent on specific tasks, helping you stay
     ```
     Starts a timer for your focus session.
 
+*   **Pause a session:**
+    ```bash
+    mindloop focus pause
+    ```
+    Pauses the currently active focus session.
+
+*   **Resume a session:**
+    ```bash
+    mindloop focus resume
+    ```
+    Resumes the currently paused focus session.
+
 *   **List sessions:**
     ```bash
     mindloop focus list

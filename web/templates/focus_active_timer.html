@@ -6,33 +6,45 @@
     </div>
 
     <div style="position: relative; z-index: 1;">
-        {{ $activeSession := "" }}
-        {{ range .Sessions }}
-        {{ if eq .Status "active" }}
-        {{ $activeSession = . }}
-        {{ end }}
-        {{ end }}
-
+        {{ $activeSession := $.ActiveFocus }}
+        
         {{ if $activeSession }}
         <!-- Active Timer UI -->
         <div class="text-sm font-bold text-primary mb-md" style="text-transform: uppercase; letter-spacing: 0.1em;">
-            Focusing</div>
+            {{ if eq $activeSession.Status "paused" }}Paused{{ else }}Focusing{{ end }}</div>
         <h2 class="mb-lg">{{ $activeSession.Title }}</h2>
 
         <div class="mb-lg">
             <!-- Timer Display -->
             <div id="timer-display"
-                style="font-size: 5rem; font-weight: 800; font-family: var(--font-family, 'Plus Jakarta Sans', sans-serif); font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; color: var(--text-main);">
+                style="font-size: 5rem; font-weight: 800; font-family: var(--font-family, 'Plus Jakarta Sans', sans-serif); font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: -2px; color: var(--text-main); {{ if eq $activeSession.Status "paused" }}opacity: 0.5;{{ end }}">
                 00:00:00
             </div>
         </div>
 
-        <form hx-post="/focus/stop" hx-target="#focus-view" class="mt-lg">
-            <input type="hidden" name="id" value="{{ $activeSession.ID }}">
-            <button type="submit" class="btn btn-danger-outline btn-lg">
-                Stop Session
-            </button>
-        </form>
+        <div class="flex-center gap-sm mt-lg">
+            {{ if eq $activeSession.Status "paused" }}
+            <form hx-post="/focus/resume" hx-target="#focus-view" class="mb-0">
+                <input type="hidden" name="id" value="{{ $activeSession.ID }}">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    Resume
+                </button>
+            </form>
+            {{ else }}
+            <form hx-post="/focus/pause" hx-target="#focus-view" class="mb-0">
+                <input type="hidden" name="id" value="{{ $activeSession.ID }}">
+                <button type="submit" class="btn btn-secondary btn-lg">
+                    Pause
+                </button>
+            </form>
+            {{ end }}
+            <form hx-post="/focus/stop" hx-target="#focus-view" class="mb-0">
+                <input type="hidden" name="id" value="{{ $activeSession.ID }}">
+                <button type="submit" class="btn btn-danger-outline btn-lg">
+                    Stop Session
+                </button>
+            </form>
+        </div>
 
         <!-- Inline Tasks for Focus Session -->
         <div style="width: 100%; max-width: 600px; margin: 3rem auto 0; border-top: 1px solid var(--border); padding-top: 1.5rem; text-align: left;">
@@ -76,16 +88,27 @@
                 const startTime = new Date("{{ $activeSession.CreatedAt | iso8601 }}").getTime();
                 const timerDisplay = document.getElementById('timer-display');
                 if (!timerDisplay) return;
+                
+                const pausedDurationMs = {{ $activeSession.PausedDuration }} * 1000;
+                let lastPausedAtMs = null;
+                {{ if $activeSession.LastPausedAt }}
+                lastPausedAtMs = new Date("{{ $activeSession.LastPausedAt | iso8601 }}").getTime();
+                {{ end }}
+                const status = "{{ $activeSession.Status }}";
 
                 function updateTimer() {
                     const now = new Date().getTime();
-                    const diff = now - startTime;
+                    
+                    let activeDurationMs = now - startTime - pausedDurationMs;
+                    if (status === "paused" && lastPausedAtMs) {
+                        activeDurationMs -= (now - lastPausedAtMs);
+                    }
+                    
+                    if (activeDurationMs < 0) activeDurationMs = 0;
 
-                    if (diff < 0) return;
-
-                    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                    const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+                    const hours = Math.floor((activeDurationMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((activeDurationMs % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((activeDurationMs % (1000 * 60)) / 1000);
 
                     timerDisplay.innerText =
                         (hours < 10 ? "0" + hours : hours) + ":" +
@@ -94,7 +117,9 @@
                 }
 
                 if (window.focusTimerInterval) clearInterval(window.focusTimerInterval);
-                window.focusTimerInterval = setInterval(updateTimer, 1000);
+                if (status === "active") {
+                    window.focusTimerInterval = setInterval(updateTimer, 1000);
+                }
                 updateTimer();
             })();
         </script>

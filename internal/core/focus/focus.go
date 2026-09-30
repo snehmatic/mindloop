@@ -63,13 +63,18 @@ func (s *Service) EndSession(id int, pointsToAward int) (*models.FocusSession, b
 		return nil, false, err
 	}
 
-	if session.Status != models.StatusActive {
+	if session.Status != models.StatusActive && session.Status != models.StatusPaused {
 		return nil, false, ErrFocusSessionIsNotActive
 	}
 
-	session.Status = models.StatusEnded // Or models.StatusEnded if it existed, but we'll stick to original string models.StatusEnded
 	session.EndTime = time.Now()
-	session.Duration = session.EndTime.Sub(session.CreatedAt).Minutes()
+	durationSeconds := session.EndTime.Sub(session.CreatedAt).Seconds() - float64(session.PausedDuration)
+	if session.Status == models.StatusPaused && session.LastPausedAt != nil {
+		durationSeconds -= session.EndTime.Sub(*session.LastPausedAt).Seconds()
+	}
+
+	session.Status = models.StatusEnded
+	session.Duration = durationSeconds / 60.0
 
 	if err := s.repo.UpdateSession(session); err != nil {
 		return nil, false, err
@@ -125,6 +130,8 @@ func (s *Service) PauseSession(id uint) (*models.FocusSession, error) {
 	}
 
 	session.Status = models.StatusPaused
+	now := time.Now()
+	session.LastPausedAt = &now
 	if err := s.repo.UpdateSession(session); err != nil {
 		return nil, err
 	}
@@ -142,6 +149,10 @@ func (s *Service) ResumeSession(id uint) (*models.FocusSession, error) {
 	}
 
 	session.Status = models.StatusActive
+	if session.LastPausedAt != nil {
+		session.PausedDuration += int(time.Since(*session.LastPausedAt).Seconds())
+		session.LastPausedAt = nil
+	}
 	if err := s.repo.UpdateSession(session); err != nil {
 		return nil, err
 	}

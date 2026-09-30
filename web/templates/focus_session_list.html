@@ -63,6 +63,8 @@
 
                         {{ if eq .Status "active" }}
                         <span class="badge badge-primary">Active</span>
+                        {{ else if eq .Status "paused" }}
+                        <span class="badge badge-secondary" style="background: var(--bg-surface-alt); border: 1px solid var(--border);">Paused</span>
                         {{ else }}
                         <div class="flex-center gap-sm">
                             <button onclick="toggleEditFocus('{{ .ID }}')" class="btn btn-sm btn-secondary"

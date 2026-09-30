@@ -160,14 +160,81 @@ var focusStatusCmd = &cobra.Command{
 			return
 		}
 
-		duration := time.Since(session.CreatedAt)
-		mins := int(duration.Minutes())
+		durationSeconds := time.Since(session.CreatedAt).Seconds() - float64(session.PausedDuration)
+		if session.Status == "paused" && session.LastPausedAt != nil {
+			durationSeconds -= time.Since(*session.LastPausedAt).Seconds()
+		}
+		mins := int(durationSeconds / 60)
 
 		if focusStatusFormat == "compact" {
-			fmt.Printf("⚡ %dm - %s\n", mins, session.Title)
+			if session.Status == "paused" {
+				fmt.Printf("⏸ %dm - %s\n", mins, session.Title)
+			} else {
+				fmt.Printf("⚡ %dm - %s\n", mins, session.Title)
+			}
 		} else {
-			utils.PrintSuccessf("Active Focus: '%s' (%d minutes)\n", session.Title, mins)
+			statusStr := "Active"
+			if session.Status == "paused" {
+				statusStr = "Paused"
+			}
+			utils.PrintSuccessf("%s Focus: '%s' (%d minutes)\n", statusStr, session.Title, mins)
 		}
+	},
+}
+
+var focusPauseCmd = &cobra.Command{
+	Use:     "pause",
+	Short:   "Pause the active focus session",
+	Long:    `Pause the currently active focus session.`,
+	Example: `mindloop focus pause`,
+	Args:    cobra.NoArgs,
+	Run: func(cmd *cobra.Command, args []string) {
+		session, err := focusService.GetActiveSession()
+		if err != nil {
+			utils.PrintErrorln("Error getting active session:", err)
+			return
+		}
+		if session == nil {
+			utils.PrintInfoln("No active focus session to pause.")
+			return
+		}
+
+		_, err = focusService.PauseSession(session.ID)
+		if err != nil {
+			utils.PrintErrorln("Error pausing focus session:", err)
+			ac.Logger.Error().Msgf("Error pausing focus session: %v", err)
+			return
+		}
+		utils.PrintSuccessf("Focus session '%s' paused.\n", session.Title)
+		ac.Logger.Info().Msgf("Focus session '%s' paused.", session.Title)
+	},
+}
+
+var focusResumeCmd = &cobra.Command{
+	Use:     "resume",
+	Short:   "Resume a paused focus session",
+	Long:    `Resume the currently paused focus session.`,
+	Example: `mindloop focus resume`,
+	Args:    cobra.NoArgs,
+	Run: func(cmd *cobra.Command, args []string) {
+		session, err := focusService.GetActiveSession()
+		if err != nil {
+			utils.PrintErrorln("Error getting active session:", err)
+			return
+		}
+		if session == nil {
+			utils.PrintInfoln("No active focus session to resume.")
+			return
+		}
+
+		_, err = focusService.ResumeSession(session.ID)
+		if err != nil {
+			utils.PrintErrorln("Error resuming focus session:", err)
+			ac.Logger.Error().Msgf("Error resuming focus session: %v", err)
+			return
+		}
+		utils.PrintSuccessf("Focus session '%s' resumed.\n", session.Title)
+		ac.Logger.Info().Msgf("Focus session '%s' resumed.", session.Title)
 	},
 }
 
@@ -176,6 +243,8 @@ func init() {
 	focusCmd.AddCommand(focusListCmd)
 	focusCmd.AddCommand(focusEndCmd)
 	focusCmd.AddCommand(focusRateCmd)
+	focusCmd.AddCommand(focusPauseCmd)
+	focusCmd.AddCommand(focusResumeCmd)
 
 	focusStatusCmd.Flags().StringVar(&focusStatusFormat, "format", "", "Output format (e.g., compact)")
 	focusCmd.AddCommand(focusStatusCmd)

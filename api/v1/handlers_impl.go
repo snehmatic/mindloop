@@ -620,6 +620,72 @@ func (mlh *MindloopHandler) HandleFocusStart(w http.ResponseWriter, r *http.Requ
 	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
 }
 
+func (mlh *MindloopHandler) HandleFocusPause(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/focus", http.StatusSeeOther)
+		return
+	}
+
+	session, err := mlh.focus.GetActiveSession()
+	if err == nil && session != nil {
+		_, err = mlh.focus.PauseSession(session.ID)
+		if err != nil {
+			log.Error().Err(err).Msg("Error pausing focus session")
+			if r.Header.Get("HX-Request") == "true" {
+				w.Header().Set("HX-Redirect", "/focus?error="+err.Error())
+				return
+			}
+			http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
+			return
+		}
+	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		sessions, _ := mlh.focus.ListSessions()
+		data := map[string]interface{}{
+			"Sessions": sessions,
+		}
+		data["ActiveFocus"], _ = mlh.focus.GetActiveSession()
+		mlh.renderPartial(w, "focus_active_timer.html", data)
+		mlh.renderPartial(w, "focus_session_list.html", data)
+		return
+	}
+	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
+}
+
+func (mlh *MindloopHandler) HandleFocusResume(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Redirect(w, r, "/focus", http.StatusSeeOther)
+		return
+	}
+
+	session, err := mlh.focus.GetActiveSession()
+	if err == nil && session != nil {
+		_, err = mlh.focus.ResumeSession(session.ID)
+		if err != nil {
+			log.Error().Err(err).Msg("Error resuming focus session")
+			if r.Header.Get("HX-Request") == "true" {
+				w.Header().Set("HX-Redirect", "/focus?error="+err.Error())
+				return
+			}
+			http.Redirect(w, r, "/focus?error="+err.Error(), http.StatusSeeOther)
+			return
+		}
+	}
+
+	if r.Header.Get("HX-Request") == "true" {
+		sessions, _ := mlh.focus.ListSessions()
+		data := map[string]interface{}{
+			"Sessions": sessions,
+		}
+		data["ActiveFocus"], _ = mlh.focus.GetActiveSession()
+		mlh.renderPartial(w, "focus_active_timer.html", data)
+		mlh.renderPartial(w, "focus_session_list.html", data)
+		return
+	}
+	http.Redirect(w, r, "/focus?success=true", http.StatusSeeOther)
+}
+
 func (mlh *MindloopHandler) HandleFocusStop(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Redirect(w, r, "/focus", http.StatusSeeOther)

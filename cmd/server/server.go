@@ -80,6 +80,8 @@ func CreateRouter(mlh *v1.MindloopHandler) *mux.Router {
 	// Focus Routes
 	r.HandleFunc("/focus", mlh.HandleFocus).Methods("GET")
 	r.HandleFunc("/focus/start", mlh.HandleFocusStart).Methods("POST")
+	r.HandleFunc("/focus/pause", mlh.HandleFocusPause).Methods("POST")
+	r.HandleFunc("/focus/resume", mlh.HandleFocusResume).Methods("POST")
 	r.HandleFunc("/focus/update", mlh.HandleFocusUpdate).Methods("POST")
 	r.HandleFunc("/focus/stop", mlh.HandleFocusStop).Methods("POST")
 	r.HandleFunc("/focus/delete", mlh.HandleFocusDelete).Methods("POST")

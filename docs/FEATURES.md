@@ -34,6 +34,7 @@ Set a single-threaded goal to maintain absolute focus. **One thing at a time.**
 ## Focus Sessions
 Break your intents into deep work chunks with a built-in timer.
 - **Time Blindness Visual Pacing**: Subtle ambient background color shifts and a progress rail in the Web UI visually anchor your time. CLI supports a compact tmux-friendly format via `mindloop focus status --format=compact`.
+- **Pause and Resume**: Flexibility to pause a focus session for breaks or interruptions, and resume it without losing your session tracking or accumulated time.
 - Track duration and frequency of deep work.
 - Associate sessions directly with your active Intent.
 
