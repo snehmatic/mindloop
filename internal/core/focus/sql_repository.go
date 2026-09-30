@@ -58,7 +58,7 @@ func (r *SQLRepository) DeleteAll() error {
 
 func (r *SQLRepository) GetActiveSession() (*models.FocusSession, error) {
 	var sessions []models.FocusSession
-	err := r.db.Where("status = ?", models.StatusActive).Limit(1).Find(&sessions).Error
+	err := r.db.Where("status IN ?", []string{models.StatusActive, models.StatusPaused}).Limit(1).Find(&sessions).Error
 	if err != nil {
 		return nil, err
 	}

@@ -181,11 +181,13 @@ func ToIntentView(i Intent) IntentView {
 // FocusSession records a period of deep work
 type FocusSession struct {
 	gorm.Model
-	Title    string    `gorm:"not null" json:"title"`        // e.g., "Work on project"
-	Status   string    `gorm:"default:active" json:"status"` // active, paused
-	EndTime  time.Time `json:"end_time"`
-	Duration float64   `json:"duration"`                 // in mins
-	Rating   int       `gorm:"default:-1" json:"rating"` // 0 to 10, optional
+	Title          string     `gorm:"not null" json:"title"`        // e.g., "Work on project"
+	Status         string     `gorm:"default:active" json:"status"` // active, paused
+	EndTime        time.Time  `json:"end_time"`
+	Duration       float64    `json:"duration"`                 // in mins
+	Rating         int        `gorm:"default:-1" json:"rating"` // 0 to 10, optional
+	PausedDuration int        `json:"paused_duration"`          // in seconds
+	LastPausedAt   *time.Time `json:"last_paused_at"`           // timestamp when it was last paused
 }
 
 // FocusSessionView is a simplified representation of a FocusSession for the UI
@@ -212,12 +214,17 @@ func ToFocusSessionView(fs FocusSession) FocusSessionView {
 
 	if fs.EndTime.IsZero() {
 		fsv.EndTime = "Focus on!"
+
+		durationSeconds := time.Since(fs.CreatedAt).Seconds() - float64(fs.PausedDuration)
+		if fs.Status == "paused" && fs.LastPausedAt != nil {
+			durationSeconds -= time.Since(*fs.LastPausedAt).Seconds()
+		}
+		fsv.Duration = durationSeconds / 60.0
 	}
 	if fs.Rating == 0 {
 		fsv.Rating = -1 // indicate no rating given
 	}
-	now := time.Now()
-	fsv.Duration = now.Sub(fs.CreatedAt).Minutes()
+
 	fsv.Duration = math.Floor(fsv.Duration) // todo: fix decimals
 	return fsv
 }
